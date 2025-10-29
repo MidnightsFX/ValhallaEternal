@@ -1,5 +1,6 @@
 ﻿using BepInEx.Logging;
 using System;
+using ValhallEternal.common;
 
 
 namespace ValhallEternal
@@ -37,14 +38,14 @@ namespace ValhallEternal
         {
             if (Level >= LogLevel.Debug)
             {
-                StarLevelSystem.Log.LogInfo(message);
+                ValhallEternal.Log.LogInfo(message);
             }
         }
         public static void LogInfo(string message)
         {
             if (Level >= LogLevel.Info)
             {
-                StarLevelSystem.Log.LogInfo(message);
+                ValhallEternal.Log.LogInfo(message);
             }
         }
 
@@ -52,7 +53,7 @@ namespace ValhallEternal
         {
             if (Level >= LogLevel.Warning)
             {
-                StarLevelSystem.Log.LogWarning(message);
+                ValhallEternal.Log.LogWarning(message);
             }
         }
 
@@ -60,7 +61,7 @@ namespace ValhallEternal
         {
             if (Level >= LogLevel.Error)
             {
-                StarLevelSystem.Log.LogError(message);
+                ValhallEternal.Log.LogError(message);
             }
         }
     }

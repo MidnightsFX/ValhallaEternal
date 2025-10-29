@@ -5,6 +5,7 @@ using Jotunn.Managers;
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 
 namespace ValhallEternal.common;
 
@@ -12,6 +13,11 @@ public class ValConfig
 {
     public static ConfigFile cfg;
     public static ConfigEntry<bool> EnableDebugMode;
+    public static ConfigEntry<string> TributeLocationBiome;
+    public static ConfigEntry<int> MaxTributeLocationsGeneration;
+    public static ConfigEntry<float> MinDistanceBetweenTributeLocations;
+
+    public static ConfigEntry<float> LocalLevelDisplayOffset;
 
     const string cfgFolder = "Valhalla_Eternal";
     const string PrestigeCfg = "Prestige.yaml";
@@ -46,6 +52,10 @@ public class ValConfig
     // Create Configuration and load it.
     private void CreateConfigValues(ConfigFile Config)
     {
+        TributeLocationBiome = BindServerConfig("TributeLocation", "TributeLocationBiome", "Mistlands", "The biome which the tribute shrine will generate in.", acceptableValues: new AcceptableValueList<string>(Enum.GetNames(typeof(Heightmap.Biome))) { });
+        MaxTributeLocationsGeneration = BindServerConfig("TributeLocation", "MaxTributeLocationsGeneration", 10, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MinDistanceBetweenTributeLocations = BindServerConfig("TributeLocation", "MinDistanceBetweenTributeLocations", 500f, "The minimum distance between any tribute locations. Larger values make this more spread out.", false, 0, 5000);
+        LocalLevelDisplayOffset = BindServerConfig("LevelDisplay", "LocalLevelDisplayOffset", 50f, "The x pixel offset for the local players level display.");
         // Debugmode
         EnableDebugMode = Config.Bind("Client config", "EnableDebugMode", false,
             new ConfigDescription("Enables Debug logging.",

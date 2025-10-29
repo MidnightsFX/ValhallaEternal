@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "com.qiaozhilei.easy-text-effects": "https://github.com/LeiQiaoZhi/Easy-Text-Effect.git",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.assetbundlebrowser": "https://github.com/Unity-Technologies/AssetBundles-Browser.git",
     "com.unity.ide.rider": "3.0.38",
