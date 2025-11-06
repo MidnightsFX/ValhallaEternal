@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
+using Jotunn.Managers;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ValhallEternal.common;
 using Vector3 = UnityEngine.Vector3;
 
@@ -8,62 +10,58 @@ namespace ValhallEternal.modules
 {
     static class PlayerLevelDisplays
     {
-        static GameObject levelBronze = null;
-        static GameObject levelSilver = null;
-        static GameObject levelGold = null;
-        static GameObject levelDiamond = null;
-        static GameObject levelMythic = null;
-
         static GameObject localPlayerVEHUD = null;
-        static GameObject localPlayerLevelGO = null;
+        static TextMeshPro localPlayerLevelText = null;
 
-        public static void LoadAssets()
-        {
-            levelBronze = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>($"assets/leveldisplay/level_bronze.prefab");
-            levelSilver = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>($"assets/leveldisplay/level_silver.prefab");
-            levelGold = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>($"assets/leveldisplay/level_gold.prefab");
-            levelDiamond = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>($"assets/leveldisplay/level_diamond.prefab");
-            levelMythic = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>($"assets/leveldisplay/level_mythic.prefab");
-        }
-
-        [HarmonyPatch(typeof(Hud))]
-        public static class DisplaySelfLevel
-        {
-            [HarmonyPatch(nameof(Hud.Awake))]
-            public static void Postfix(Hud __instance)
-            {
+        public static void CreateLocalHudElements(Transform targetTform) {
+            if (localPlayerVEHUD == null) {
+                Logger.LogDebug("Creating Local Player Level Display HUD Elements.");
                 GameObject veLocalHud = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("VELocalHud");
-                if (veLocalHud != null && localPlayerVEHUD == null) {
-                    localPlayerVEHUD = GameObject.Instantiate(veLocalHud, __instance.m_healthPanel.transform);
+                localPlayerVEHUD = GameObject.Instantiate(veLocalHud, targetTform);
+                if (Hud.m_instance != null) {
+                    // This will get the X set correctly, but need to set Y
+                    Transform minimapTform = Hud.m_instance.m_rootObject.transform.Find("MiniMap/small");
+                    if (minimapTform != null) {
+                        localPlayerVEHUD.transform.position = minimapTform.position;
+                        //localPlayerVEHUD.transform.localPosition = minimapTform.localPosition;
+                        localPlayerVEHUD.transform.localPosition = new Vector3(x: localPlayerVEHUD.transform.localPosition.x - 112, y: localPlayerVEHUD.transform.localPosition.y - 10);
+                    }
                 }
-                // set local hud position
-                if (localPlayerVEHUD != null) {
-                    Transform healthIco = __instance.m_healthPanel.transform.Find("healthicon");
-                    veLocalHud.transform.localPosition = new Vector3(healthIco.position.x - ValConfig.LocalLevelDisplayOffset.Value, healthIco.position.y);
+            }
+            if (localPlayerVEHUD != null && localPlayerLevelText == null) {
+                //Transform healthIco = __instance.m_healthPanel.transform.Find("healthicon");
+                //veLocalHud.transform.localPosition = new Vector3(healthIco.position.x - ValConfig.LocalLevelDisplayOffset.Value, healthIco.position.y);
+                Transform tform = localPlayerVEHUD.transform.Find("Level");
+                if (tform != null)
+                {
+                    localPlayerLevelText = tform.GetComponent<TextMeshPro>();
+                }
+                else
+                {
+                    Logger.LogDebug("Could not find Level GO");
                 }
             }
         }
 
         [HarmonyPatch(typeof(Player))]
-        public static class SetupLocalPlayer
-        {
-            [HarmonyPostfix]
-            [HarmonyPatch(nameof(Player.OnSpawned))]
-            static void Postfix(Player __instance)
-            {
-                //if (__instance != Player.m_localPlayer) {
-                //    return;
-                //}
-                
+        public static class DisplaySelfLevel {
+            [HarmonyPatch(nameof(Player.Awake))]
+            public static void Postfix(Player __instance) {
+                if (__instance == null || !SceneManager.GetActiveScene().name.Equals("main")) {
+                    return;
+                }
+
                 // Ensure that the players Zkey value is set so that other players HUDs will be able to see this players achievements
-                if (__instance.PlayerHasUniqueKey(DataObjects.CustomLevelZKey)) {
+                if (__instance.PlayerHasUniqueKey(DataObjects.CustomLevelZKey))
+                {
                     __instance.TryGetUniqueKeyValue(DataObjects.CustomLevelZKey, out string kv);
-                    if (int.TryParse(kv, out int level) == false) {
+                    if (int.TryParse(kv, out int level) == false)
+                    {
                         level = 0;
                     }
                     __instance.m_nview.GetZDO().Set(DataObjects.CustomLevelZKey, level);
                 }
-
+                CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
                 UpdateLocalLevelDisplay(__instance);
             }
         }
@@ -97,55 +95,41 @@ namespace ValhallEternal.modules
                     // Add the players level to their hud display
 
                     // Build/determine the enemy hud parent object and pass that in as the location where the level should be created
-                    SetupPlayerLevelDisplay(ehud.m_gui, playerVELevel);
+                    Logger.LogDebug("Setting enemy hud player level");
+                    GameObject enemyHud = CreateEnemyHud(ehud.m_gui.transform);
+                    SetupPlayerLevelDisplay(enemyHud, playerVELevel);
                 }
             }
         }
 
-        public static void SetupPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
-            if (levelBronze == null) { LoadAssets(); }
+        public static GameObject CreateEnemyHud(Transform targetTform)
+        {
+            Logger.LogDebug("Creating Enemy Player Hud.");
+            GameObject hud = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("VELocalHud");
+            GameObject enemyHudLevel = GameObject.Instantiate(hud, targetTform);
+            // adjust enemyHudLevel transforms to fit hud location
+            return enemyHudLevel;
+        }
 
+        public static void SetupPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
             if (levelnum == 0) {
                 // No level to display
-                Logger.LogInfo("Player level set to zero or not set, removing.");
-                if (localPlayerLevelGO != null) {
-                    Logger.LogDebug("Removing local player level");
-                    GameObject.Destroy(localPlayerLevelGO);
-                }
+                Logger.LogInfo("Player level set to zero or not set, disabling display.");
+                hugGUI.SetActive(false);
                 return;
             }
 
             Logger.LogDebug($"Setting player HUD with level {levelnum}");
+            hugGUI.SetActive(true);
             // This should instead determine the display based on the level configuration sent from the server and the level of the target player
+            // Consider if this should have the option to convert to roman, nordic runes or language specific numbers
+            Logger.LogDebug($"Checking for Level text in GO:{hugGUI.name}");
 
-            if (levelnum >= 1 && levelnum <= 10)
-            {
-                // Bronze
-                localPlayerLevelGO = GameObject.Instantiate(levelBronze, hugGUI.transform);
-            }
-            else if (levelnum >= 11 && levelnum <= 20)
-            {
-                // Silver
-                localPlayerLevelGO = GameObject.Instantiate(levelSilver, hugGUI.transform);
-            }
-            else if (levelnum >= 21 && levelnum <= 30)
-            {
-                // Gold
-                localPlayerLevelGO = GameObject.Instantiate(levelGold, hugGUI.transform);
-            }
-            else if (levelnum >= 31 && levelnum <= 40)
-            {
-                // Diamond
-                localPlayerLevelGO = GameObject.Instantiate(levelDiamond, hugGUI.transform);
-            }
-            else if (levelnum >= 41)
-            {
-                // Mythic
-                localPlayerLevelGO = GameObject.Instantiate(levelMythic, hugGUI.transform);
-            }
 
-            TextMeshPro tmp = localPlayerLevelGO.GetComponentInChildren<TextMeshPro>();
-            tmp.text = $"{levelnum}";
+            TextMeshPro tmp = hugGUI.GetComponentInChildren<TextMeshPro>(true);
+            if (tmp != null) {
+                tmp.text = $"{levelnum}";
+            }
         }
     }
 }

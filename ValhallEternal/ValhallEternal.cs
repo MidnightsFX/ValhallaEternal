@@ -38,7 +38,7 @@ namespace ValhallEternal
             Logger.LogInfo($"Asset Names: {string.Join(",", EmbeddedResourceBundle.GetAllAssetNames())}");
             HarmonyInstance = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
 
-            PlayerLevelDisplays.LoadAssets();
+            //PlayerLevelDisplays.LoadAssets();
             Locations.AddLocationsToWorldGen();
             Commands.AddCommands();
             Harmony.PatchAll(Assembly.GetExecutingAssembly());

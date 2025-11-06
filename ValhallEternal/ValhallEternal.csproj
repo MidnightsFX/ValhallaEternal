@@ -57,6 +57,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="boons\" />
     <Folder Include="vendor\" />
   </ItemGroup>
 

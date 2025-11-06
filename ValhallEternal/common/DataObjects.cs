@@ -23,15 +23,6 @@ namespace ValhallEternal.common
             Formatting = Formatting.None,
         };
 
-        public enum TextStyle
-        {
-            Bronze,
-            Silver,
-            Gold,
-            Diamond,
-            Mythic
-        }
-
         public enum DisplayStyle
         {
             Numeric,
@@ -41,7 +32,7 @@ namespace ValhallEternal.common
 
         public enum Oaths
         {
-            DamageTakenPerLevel
+            DamageTaken
         }
 
         public enum Boons
@@ -49,11 +40,26 @@ namespace ValhallEternal.common
         
         }
 
+        public class LevelTextGradiant
+        {
+            public string TopLeft { get; set; }
+            public string BottomLeft { get; set; }
+            public string TopRight { get; set; }
+            public string BottomRight { get; set; }
+        }
+
         public class PlayerLevelConfiguration {
-            public TextStyle TextColor;
-            public DisplayStyle DisplayStyle;
-            public int levelStart = 1;
-            public int levelEnd = 10;
+            public LevelTextGradiant TextColors { get; set; }
+            public DisplayStyle DisplayStyle { get; set; }
+            public int Level { get; set; }
+            public Dictionary<Oaths, float> DifficultyOaths { get; set; }
+            public Dictionary<Boons, float> DifficultyBoons { get; set; }
+        }
+
+        public class CompositePlayerConfig
+        {
+            public Dictionary<Oaths, float> TotalOaths { get; set; } = new Dictionary<Oaths, float>();
+            public Dictionary<Boons, float> TotalBoons { get; set; } = new Dictionary<Boons, float>();
         }
 
         [Serializable]
