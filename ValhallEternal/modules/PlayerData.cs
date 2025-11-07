@@ -42,9 +42,28 @@ namespace ValhallEternal.modules
             };
         }
 
-        public static void LoadPlayerData(Player player)
+        public static void SavePlayerConfiguration(Player player)
         {
-            player.m_customData.ContainsKey(CustomDataKey);
+            PlayerLevelData playerData = new PlayerLevelData()
+            {
+                PlayerOaths = localPlayerConfig.TotalOaths,
+                PlayerBoons = localPlayerConfig.TotalBoons,
+            };
+            string packedData = PackPlayerDataToString(playerData);
+            if (player.m_customData.ContainsKey(CustomDataKey)) {
+                player.m_customData[CustomDataKey] = packedData;
+            } else {
+                player.m_customData.Add(CustomDataKey, packedData);
+            }
+        }
+
+
+        public static void LoadPlayerConfiguration(Player player)
+        {
+            if (player.m_customData.ContainsKey(CustomDataKey))
+            {
+                PlayerLevelData pld = UnpackPlayerData(player.m_customData[CustomDataKey]);
+            }
         }
 
         public static string PackPlayerDataToString(PlayerLevelData playerData)
