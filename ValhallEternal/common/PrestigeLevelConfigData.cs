@@ -7,7 +7,7 @@ using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.common
 {
-    public static class EternalConfigData
+    public static class PrestigeLevelConfigData
     {
         public static Dictionary<int, PlayerLevelConfiguration> activePlayerConfig = defaultPlayerConfig;
 

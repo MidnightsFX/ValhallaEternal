@@ -39,7 +39,7 @@ Stats tracked for completion point (leaderboard)
 - Lower stamina
 - Lower health
 - Lower carry weight
-- No helment
+- No helmet
 
 
 ## Boons
