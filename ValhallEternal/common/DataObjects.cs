@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace ValhallEternal.common
 {
@@ -23,6 +25,17 @@ namespace ValhallEternal.common
             DefaultValueHandling = DefaultValueHandling.Ignore,
             Formatting = Formatting.None,
         };
+        public static Dictionary<Diety, Sprite> DietyImages = new Dictionary<Diety, Sprite>();
+
+        public enum Diety
+        {
+            Baldur,
+            Hel,
+            Gefjun,
+            Skaldi,
+            Freya,
+            Vor
+        }
 
         public enum DisplayStyle
         {
@@ -100,11 +113,21 @@ namespace ValhallEternal.common
             public Dictionary<Boons, float> PlayerBoons { get; set; }
         }
 
+        public class PlayerResetData
+        {
+            public float ResetSkillPercentage { get; set; } = .5f;
+            public bool ResetKnownRecipes { get; set; } = true;
+            public bool TeleportToSpawn { get; set; } = false;
+            public int PrestigeLevelsGained { get; set; } = 1;
+        }
+
         [Serializable]
         public class Sacrifice
         {
             public string Name { get; set; }
             public string Description { get; set; }
+            public bool TriggerPrestige { get; set; }
+            public PlayerResetData ResetPlayer { get; set; }
             public Dictionary<string, int> ItemRequirements { get; set; }
             public List<string> PlayerKeyRequirements { get; set; }
             public List<Oaths> PlayerOathRequirements { get; set; }
@@ -140,6 +163,70 @@ namespace ValhallEternal.common
                         sb.AppendLine($"PlayerKey {key}");
                     }
                 }
+
+                return sb.ToString();
+            }
+
+            public string GetOathChanges() {
+                StringBuilder sb = new StringBuilder();
+                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
+                    sb.AppendLine($"The following Oath changes will happen.");
+                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges) {
+                        if (kvp.Value > 0) {
+                            sb.AppendLine($"{kvp.Key} will increase by +{kvp.Value}");
+                        } else {
+                            sb.AppendLine($"{kvp.Key} will decrease by -{kvp.Value}");
+                        }
+                    }
+                }
+
+                return sb.ToString();
+            }
+
+            public string GetBoonChanges()
+            {
+                StringBuilder sb = new StringBuilder();
+                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0)
+                {
+                    sb.AppendLine($"The following Boon changes will happen.");
+                    foreach (KeyValuePair<Boons, float> kvp in PlayerBoonsChanges)
+                    {
+                        if (kvp.Value > 0)
+                        {
+                            sb.AppendLine($"{kvp.Key} will increase by +{kvp.Value}");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"{kvp.Key} will decrease by -{kvp.Value}");
+                        }
+                    }
+                }
+                return sb.ToString();
+            }
+
+            public string GetResetDetails()
+            {
+                StringBuilder sb = new StringBuilder();
+                if (TriggerPrestige == true && ResetPlayer != null)
+                {
+                    sb.AppendLine("This is a prestige increase.");
+                    if (ResetPlayer.ResetSkillPercentage > 0) {
+                        sb.AppendLine($"All skills will be reduced by: {ResetPlayer.ResetSkillPercentage}");
+                    }
+                    if (ResetPlayer.ResetKnownRecipes) {
+                        sb.AppendLine("All known recipes will be forgotten.");
+                    }
+                    if (ResetPlayer.TeleportToSpawn) {
+                        sb.AppendLine("You will be teleported to spawn.");
+                    }
+                    if (ResetPlayer.PrestigeLevelsGained > 0) {
+                        sb.AppendLine($"You will gain {ResetPlayer.PrestigeLevelsGained} Prestige levels.");
+                    }
+                    if (ResetPlayer.PrestigeLevelsGained < 0) {
+                        sb.AppendLine($"You will loose {ResetPlayer.PrestigeLevelsGained} Prestige levels.");
+                    }
+                }
+
 
                 return sb.ToString();
             }

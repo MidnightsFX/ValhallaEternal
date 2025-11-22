@@ -1,15 +1,53 @@
-﻿using Jotunn.Managers;
-using System;
+﻿using HarmonyLib;
+using Jotunn.Managers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using ValhallEternal.common;
 
 namespace ValhallEternal.modules
 {
+
+    public static class SacrificePatches
+    {
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
+        public static class AddSacrificeUIButton
+        {
+            static GameObject SacrificeEnableButton = null;
+            public static void Postfix(InventoryGui __instance)
+            {
+                if (SacrificeEnableButton != null) { return; }
+
+                SacrificeEnableButton = GUIManager.Instance.CreateButton(
+                    text: Localization.instance.Localize("$sacrifice"),
+                    parent: __instance.m_infoPanel.transform,
+                    anchorMin: new Vector2(1f, 1f),
+                    anchorMax: new Vector2(1f, 1f),
+                    position: new Vector2(-612f, -26f),
+                    width: 60f,
+                    height: 60f);
+                Button bclose = SacrificeEnableButton.GetComponent<Button>();
+                bclose.interactable = true;
+
+                SacrificeEnableButton.AddComponent<SacrificeUI>();
+                bclose.onClick.AddListener(SacrificeUI.Instance.Show);
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Hide))]
+        public static class HideSacrificeUI_InventoryClose
+        {
+            public static void Postfix()
+            {
+                SacrificeUI.Instance.Hide();
+            }
+        }
+    }
+
+
+
     internal class SacrificeUI : MonoBehaviour
     {
         // UI instance for this player
@@ -24,17 +62,20 @@ namespace ValhallEternal.modules
         private static GameObject ChoiceSelectButton;
         private static GameObject ManualCloseButton;
 
-        private static Text Description1;
-        private static Text Description2;
-        private static Text Description3;
-        private static Text Description4;
+        private static Text SacrificeRequirements;
+        private static Text BoonChanges;
+        private static Text OathChanges;
+        private static Text PrestigeResetDetails;
+        private static Text DeityName;
+        private static Text DeityDescription;
+        private static Image DeityImage;
 
         private static List<Toggle> SacrificeToggleOptions = new List<Toggle>();
         private static string SelectedChoice = "none";
 
         public void Awake()
         {
-
+            _instance = this;
         }
 
         public void Show()
@@ -54,6 +95,11 @@ namespace ValhallEternal.modules
                 SacrificePanel.SetActive(false);
             }
             GUIManager.BlockInput(false);
+        }
+
+        public void SetupForDiety(DataObjects.Diety targetDiety)
+        {
+            
         }
 
         private void CreateStaticUIObjects()
@@ -76,8 +122,52 @@ namespace ValhallEternal.modules
             // Hide it right away
             SacrificePanel.SetActive(false);
 
+
+            GameObject dietyImageHolder = Object.Instantiate(new GameObject("DeityImage"), SacrificePanel.transform);
+            dietyImageHolder.transform.localPosition = new Vector3(-328f, 328f);
+            DeityImage = dietyImageHolder.AddComponent<Image>();
+            DeityImage.sprite = DataObjects.DietyImages[DataObjects.Diety.Gefjun];
+            // TODO: add portrait outliner
+
+            var dName  = GUIManager.Instance.CreateText(
+                text: Localization.instance.Localize("$ve_header_gefjun"),
+                parent: SacrificePanel.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(-300f, 340f),
+                font: GUIManager.Instance.AveriaSerifBold,
+                fontSize: 16,
+                // TODO: change this to a cool unique color
+                color: GUIManager.Instance.ValheimYellow,
+                outline: true,
+                outlineColor: Color.black,
+                width: 350f,
+                height: 40f,
+                addContentSizeFitter: false);
+            DeityName = dName.GetComponent<Text>();
+            DeityName.name = "DeityName";
+
+            GameObject dietydesc = GUIManager.Instance.CreateText(
+                text: Localization.instance.Localize("$ve_description_gefjun"),
+                parent: SacrificePanel.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(-250f, 315f),
+                font: GUIManager.Instance.AveriaSerif,
+                fontSize: 14,
+                color: Color.white,
+                outline: true,
+                outlineColor: Color.black,
+                width: 300f,
+                height: 80f,
+                addContentSizeFitter: false);
+            var descgotext = dietydesc.GetComponent<Text>();
+            descgotext.resizeTextForBestFit = true;
+            descgotext.resizeTextMaxSize = 20;
+            descgotext.alignment = TextAnchor.MiddleCenter;
+
             var textHeader = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$selection_header"),
+                text: Localization.instance.Localize("$ve_sacrifice_header"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
@@ -93,7 +183,7 @@ namespace ValhallEternal.modules
             textHeader.name = "Sacrifice";
 
             GameObject descgo = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$selection_description"),
+                text: Localization.instance.Localize("$ve_description_gefjun"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
@@ -106,10 +196,10 @@ namespace ValhallEternal.modules
                 width: 560f,
                 height: 60f,
                 addContentSizeFitter: false);
-            var descgotext = descgo.GetComponent<Text>();
-            descgotext.resizeTextForBestFit = true;
-            descgotext.resizeTextMaxSize = 20;
-            descgotext.alignment = TextAnchor.MiddleCenter;
+            DeityDescription = descgo.GetComponent<Text>();
+            DeityDescription.resizeTextForBestFit = true;
+            DeityDescription.resizeTextMaxSize = 20;
+            DeityDescription.alignment = TextAnchor.UpperLeft;
 
             ManualCloseButton = GUIManager.Instance.CreateButton(
                 text: Localization.instance.Localize("$close"),
@@ -125,7 +215,7 @@ namespace ValhallEternal.modules
             ManualCloseButton.SetActive(false);
 
             var deathpenaltyTitle = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$death_penalty_header"),
+                text: Localization.instance.Localize("$ve_sacrifice_boonHeader"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
@@ -138,7 +228,7 @@ namespace ValhallEternal.modules
                 width: 400f,
                 height: 40f,
                 addContentSizeFitter: false);
-            deathpenaltyTitle.name = "DeathPenaltyTitle";
+            deathpenaltyTitle.name = "BoonProvideHeader";
 
             var deathpenalty = GUIManager.Instance.CreateText(
                 text: Localization.instance.Localize("$death_penalty_description"),
@@ -155,9 +245,9 @@ namespace ValhallEternal.modules
                 height: 200f,
                 addContentSizeFitter: false);
             deathpenalty.name = "DeathPenaltyDesc";
-            Description1 = deathpenalty.GetComponent<Text>();
-            Description1.resizeTextForBestFit = true;
-            Description1.resizeTextMaxSize = 18;
+            BoonChanges = deathpenalty.GetComponent<Text>();
+            BoonChanges.resizeTextForBestFit = true;
+            BoonChanges.resizeTextMaxSize = 18;
             //DeathPenaltyDescription.verticalOverflow = VerticalWrapMode.Overflow;
 
             var xpTitle = GUIManager.Instance.CreateText(
@@ -191,9 +281,9 @@ namespace ValhallEternal.modules
                 height: 200f,
                 addContentSizeFitter: false);
             xpMod.name = "xpModifiersDesc";
-            Description2 = xpMod.GetComponent<Text>();
-            Description2.resizeTextForBestFit = true;
-            Description2.resizeTextMaxSize = 18;
+            SacrificeRequirements = xpMod.GetComponent<Text>();
+            SacrificeRequirements.resizeTextForBestFit = true;
+            SacrificeRequirements.resizeTextMaxSize = 18;
 
             var lootTitle = GUIManager.Instance.CreateText(
                 text: Localization.instance.Localize("$loot_header"),
@@ -226,9 +316,9 @@ namespace ValhallEternal.modules
                 height: 200f,
                 addContentSizeFitter: false);
             lootDesc.name = "lootModifersDesc";
-            Description3 = lootDesc.GetComponent<Text>();
-            Description3.resizeTextForBestFit = true;
-            Description3.resizeTextMaxSize = 18;
+            OathChanges = lootDesc.GetComponent<Text>();
+            OathChanges.resizeTextForBestFit = true;
+            OathChanges.resizeTextMaxSize = 18;
 
             var harvestTitle = GUIManager.Instance.CreateText(
                 text: Localization.instance.Localize("$harvest_header"),
@@ -261,9 +351,9 @@ namespace ValhallEternal.modules
                 height: 200f,
                 addContentSizeFitter: false);
             harvestDesc.name = "harvestModifersDesc";
-            Description4 = harvestDesc.GetComponent<Text>();
-            Description4.resizeTextForBestFit = true;
-            Description4.resizeTextMaxSize = 18;
+            PrestigeResetDetails = harvestDesc.GetComponent<Text>();
+            PrestigeResetDetails.resizeTextForBestFit = true;
+            PrestigeResetDetails.resizeTextMaxSize = 18;
 
             ChoiceSelectButton = GUIManager.Instance.CreateButton(
                 text: Localization.instance.Localize("$deathchoice_select"),
@@ -337,15 +427,16 @@ namespace ValhallEternal.modules
                 toggle.group = SacrificeChoiceGroup;
                 toggle.onValueChanged.AddListener((isOn) => {
                     //Logger.LogDebug("Setting up onclock");
-                    Description1.GetComponent<Text>().text = entry
+                    SacrificeRequirements.GetComponent<Text>().text = entry.GetPlayerRequirements();
                     //Logger.LogDebug("Set death description");
-                    Description2.GetComponent<Text>().text = entry.Value.GetSkillModiferDescription();
+                    BoonChanges.GetComponent<Text>().text = entry.GetBoonChanges();
                     //Logger.LogDebug("Set xp mod");
-                    Description3.GetComponent<Text>().text = entry.Value.GetLootModifiersDescription();
+                    OathChanges.GetComponent<Text>().text = entry.GetOathChanges();
                     //Logger.LogDebug("Set loot mod");
-                    Description4.GetComponent<Text>().text = entry.Value.GetResourceModiferDescription();
+                    PrestigeResetDetails.GetComponent<Text>().text = entry.GetResetDetails();
                     //Logger.LogDebug("Set harvest mod");
-                    SelectedChoice = entry.Key;
+                    // Maybe should not just be a name reference?
+                    SelectedChoice = entry.Name;
                 });
                 //Logger.LogDebug("Created onclick");
                 newDeathChoice.SetActive(true);

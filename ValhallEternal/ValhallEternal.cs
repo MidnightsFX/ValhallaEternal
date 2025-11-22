@@ -4,6 +4,7 @@ using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
 using Jotunn.Utils;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using ValhallEternal.common;
@@ -36,6 +37,7 @@ namespace ValhallEternal
 
             EmbeddedResourceBundle = AssetUtils.LoadAssetBundleFromResources("ValhallEternal.embedded.valeternal", typeof(ValhallEternal).Assembly);
             Logger.LogInfo($"Asset Names: {string.Join(",", EmbeddedResourceBundle.GetAllAssetNames())}");
+            SetupDeityDictionary();
             HarmonyInstance = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
 
             //PlayerLevelDisplays.LoadAssets();
@@ -46,6 +48,16 @@ namespace ValhallEternal
             
             // To learn more about Jotunn's features, go to
             // https://valheim-modding.github.io/Jotunn/tutorials/overview.html
+        }
+
+        private static void SetupDeityDictionary()
+        {
+            DataObjects.DietyImages.Add(DataObjects.Diety.Baldur, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/baladur_nobackground.png"));
+            DataObjects.DietyImages.Add(DataObjects.Diety.Hel, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/hel_nobackground.png"));
+            DataObjects.DietyImages.Add(DataObjects.Diety.Gefjun, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/gefjun_nobackground.png"));
+            DataObjects.DietyImages.Add(DataObjects.Diety.Skaldi, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/skaldi_nobackground.png"));
+            DataObjects.DietyImages.Add(DataObjects.Diety.Freya, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/freya_nobackground.png"));
+            DataObjects.DietyImages.Add(DataObjects.Diety.Vor, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/vor_nobackground.png"));
         }
     }
 }
