@@ -2,18 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace ValhallEternal.common
 {
     public static class DataObjects {
         public static readonly string CustomLevelZKey = "VELevel";
-        public static readonly string CustomDataKey = "VEOath";
+        public static readonly string CustomDataKey = "VEOathBoons";
         internal static JsonSerializer serializer = new JsonSerializer() { NullValueHandling = NullValueHandling.Ignore};
         internal static JsonSerializer compactSerializer = new JsonSerializer() {
             NullValueHandling = NullValueHandling.Ignore,
@@ -25,17 +23,12 @@ namespace ValhallEternal.common
             DefaultValueHandling = DefaultValueHandling.Ignore,
             Formatting = Formatting.None,
         };
-        public static Dictionary<Diety, Sprite> DietyImages = new Dictionary<Diety, Sprite>();
 
-        public enum Diety
-        {
-            Baldur,
-            Hel,
-            Gefjun,
-            Skaldi,
-            Freya,
-            Vor
-        }
+        const string color_increase = "#b9f2ff";
+        const string colore_decrease = "#ff4040";
+
+        public static readonly string HarvestingBonusColor = "#ffc87c";
+        public static readonly string FishBountyBonusColor = "#619CFF";
 
         public enum DisplayStyle
         {
@@ -46,40 +39,100 @@ namespace ValhallEternal.common
 
         public enum Oaths
         {
-            DamageTaken = 0,
-            DealLessBluntDamage = 1,
-            DealLessPierceDamage = 2,
-            DealLessSlashDamage = 3,
-            LowerSkillGainBow = 4,
-            LowerSkillGainSword = 5,
-            LowerSkillGainClub = 6,
-            LowerSkillGainPolearms = 7,
-            LowerSkillGainKnives = 8,
-            LowerSkillGainRun = 9,
-            LowerSkillGainSneak = 10,
-            LowerSkillGainBloodMagic = 11,
-            LowerSkillGainElementalMagic = 12,
-            ReducePlayerHealthPercent = 13,
-            ReducePlayerStaminaPercent = 14,
-            ReducePlayerCarryWeight = 15,
+            DamageTakenIncrease,
+            DealLessBluntDamage,
+            DealLessPierceDamage,
+            DealLessSlashDamage,
+            LowerSkillGainBow,
+            LowerSkillGainSword,
+            LowerSkillGainClub,
+            LowerSkillGainPolearms,
+            LowerSkillGainKnives,
+            LowerSkillGainRun,
+            LowerSkillGainSneak,
+            LowerSkillGainBloodMagic,
+            LowerSkillGainElementalMagic,
+            LowerSkillGainCrossbow,
+            LowerSkillGainSpears,
+            LowerSkillGainAxes,
+            ReducePlayerHealthPercent,
+            ReducePlayerStaminaPercent,
+            ReducePlayerEitrPercent,
+            ReducePlayerCarryWeight,
+            NoBows,
+            NoCrossbows,
         }
 
         public enum Boons
         {
-            IncreasePickableYields = 0,
-            SeedsGrowEverywhere = 1,
-            FoodForAll = 2,
-            FishingProsperity = 3,
-            RandomXPBonus = 4,
-            KnowledgeIsPower = 5,
-            HuntressArrowReturn = 6,
-            SwiftShadow = 7,
-            TowershieldPowerful = 8,
-            ExtraLoot = 9,
-            IncreaseEitrRegen = 10,
-            IncreaseStaminaRegen = 11,
-            ReturnStaminaOnDamage = 12,
-            ReturnEitrOnDamage = 13
+            IncreasePickableYields,
+            SeedsGrowEverywhere,
+            QualityNourishment,
+            FishingProsperity,
+            GefjunFeasts,
+            RandomXPBonus,
+            KnowledgeIsPower,
+            HuntressArrowReturn,
+            SwiftShadow,
+            PowerfulShield,
+            ExtraLoot,
+            IncreaseEitrRegen,
+            IncreaseStaminaRegen,
+            ReturnStaminaOnDamage,
+            ReturnEitrOnDamage,
+            ReduceDodgeCost,
+            BladeboundKnowledge,
+            StormboundRage,
+            IncreaseBaseEitr,
+            IncreaseBaseStamina,
+            IncreaseHeatResistance,
+            MovementSpeedOnKill,
+            ReduceWet,
+            IncreaseMeleeDamage,
+            Everwatchful,
+            BrutalDefiance
+        }
+
+        public static readonly List<Oaths> DamageReductionOaths = new List<Oaths>() {
+            Oaths.DealLessBluntDamage,
+            Oaths.DealLessPierceDamage,
+            Oaths.DealLessSlashDamage
+        };
+        public static readonly List<Oaths> ReducedSkillGainOaths = new List<Oaths>() {
+            Oaths.LowerSkillGainBow,
+            Oaths.LowerSkillGainSword,
+            Oaths.LowerSkillGainClub,
+            Oaths.LowerSkillGainPolearms,
+            Oaths.LowerSkillGainKnives,
+            Oaths.LowerSkillGainRun,
+            Oaths.LowerSkillGainSneak,
+            Oaths.LowerSkillGainElementalMagic,
+            Oaths.LowerSkillGainBloodMagic,
+            Oaths.LowerSkillGainCrossbow,
+            Oaths.LowerSkillGainSpears,
+            Oaths.LowerSkillGainAxes,
+        };
+
+        public static string LocalizeOath(Oaths oath) {
+            return $"$ve_{oath}";
+        }
+
+        public static string LocalizeOathDesc(Oaths oath) {
+            return $"$ve_{oath}_desc";
+        }
+
+        public static string LocalizeBoon(Boons boon) {
+            return $"$ve_{boon}";
+        }
+
+        public static string LocalizeBoonDesc(Boons boon) {
+            return $"$ve_{boon}_desc";
+        }
+
+        public interface IProbability
+        {
+            public string Name { get; set; }
+            public float SelectionWeight { get; set; }
         }
 
         public class LevelTextGradiant
@@ -100,13 +153,54 @@ namespace ValhallEternal.common
 
         public class CompositePlayerConfig
         {
+            public int PlayerLevel { get; set; } = 0;
+            public bool ReduceSkillGainsActive { get; set; } = false;
+            public bool DealReductedDamageActive { get; set; } = false;
             public Dictionary<Oaths, float> TotalOaths { get; set; } = new Dictionary<Oaths, float>();
             public Dictionary<Boons, float> TotalBoons { get; set; } = new Dictionary<Boons, float>();
+
+            public bool HasOath(Oaths oath, out float OathValue)
+            {
+                OathValue = 0;
+                if (TotalOaths.ContainsKey(oath)) {
+                    OathValue = TotalOaths[oath];
+                    return true;
+                }
+                return false;
+            }
+
+            public bool HasOath(Oaths oath)
+            {
+                if (TotalOaths.ContainsKey(oath)) {
+                    return true;
+                }
+                return false;
+            }
+
+            public bool HasBoon(Boons boon, out float BoonValue)
+            {
+                BoonValue = 0;
+                if (TotalBoons.ContainsKey(boon))
+                {
+                    BoonValue = TotalBoons[boon];
+                    return true;
+                }
+                return false;
+            }
+
+            public bool HasBoon(Boons boon) {
+                if (TotalBoons.ContainsKey(boon)) {
+                    return true;
+                }
+                return false;
+            }
         }
 
         [Serializable]
         public class PlayerLevelData
         {
+            [DataMember]
+            public int PlayerLevel { get; set; }
             [DataMember]
             public Dictionary<Oaths, float> PlayerOaths { get; set; }
             [DataMember]
@@ -126,18 +220,17 @@ namespace ValhallEternal.common
         {
             public string Name { get; set; }
             public string Description { get; set; }
-            public bool TriggerPrestige { get; set; }
             public PlayerResetData ResetPlayer { get; set; }
             public Dictionary<string, int> ItemRequirements { get; set; }
             public List<string> PlayerKeyRequirements { get; set; }
-            public List<Oaths> PlayerOathRequirements { get; set; }
-            public List<Boons> PlayerBoonRequirements { get; set; }
+            public Dictionary<Oaths, float> PlayerOathRequirements { get; set; }
+            public Dictionary<Boons, float> PlayerBoonRequirements { get; set; }
             [DataMember]
             public Dictionary<Oaths, float> PlayerOathChanges { get; set; }
             [DataMember]
             public Dictionary<Boons, float> PlayerBoonsChanges { get; set; }
 
-            public string GetPlayerRequirements(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false)
+            public string GetPlayerRequirementsDescription(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false)
             {
                 StringBuilder sb = new StringBuilder();
                 if (PlayerOathRequirements != null && PlayerOathRequirements.Count > 0 || PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0 || PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0)
@@ -146,15 +239,15 @@ namespace ValhallEternal.common
                 }
 
                 if (includeOathsInDescription && PlayerOathRequirements != null && PlayerOathRequirements.Count > 0) {
-                    foreach (Oaths oath in PlayerOathRequirements)
+                    foreach (KeyValuePair<Oaths, float> oath in PlayerOathRequirements)
                     {
-                        sb.AppendLine($"Oath: {oath}");
+                        sb.AppendLine($"Oath: {oath.Key}");
                     }
                 }
                 if (includeBoonsInDescription && PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0) {
-                    foreach (Boons boon in PlayerBoonRequirements)
+                    foreach (KeyValuePair<Boons, float> boon in PlayerBoonRequirements)
                     {
-                        sb.AppendLine($"Boon: {boon}");
+                        sb.AppendLine($"Boon: {boon.Key}");
                     }
                 }
                 if (includeKeysInDescription && PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0) {
@@ -167,37 +260,43 @@ namespace ValhallEternal.common
                 return sb.ToString();
             }
 
-            public string GetOathChanges() {
+            public string GetChangesGrantedDescription()
+            {
                 StringBuilder sb = new StringBuilder();
-                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
-                    sb.AppendLine($"The following Oath changes will happen.");
-                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges) {
-                        if (kvp.Value > 0) {
-                            sb.AppendLine($"{kvp.Key} will increase by +{kvp.Value}");
-                        } else {
-                            sb.AppendLine($"{kvp.Key} will decrease by -{kvp.Value}");
+
+                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0)
+                {
+                    sb.Append(Localization.instance.Localize("$ve_oath_changes"));
+                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges)
+                    {
+                        if (kvp.Value > 0)
+                        {
+                            sb.Append(Localization.instance.Localize($" {LocalizeOath(kvp.Key)} $ve_increase <color={color_increase}>+{kvp.Value}</color>"));
+                        }
+                        else
+                        {
+                            sb.Append(Localization.instance.Localize($" {LocalizeOath(kvp.Key)} $ve_decrease <color={colore_decrease}>-{kvp.Value}</color>"));
                         }
                     }
                 }
 
-                return sb.ToString();
-            }
-
-            public string GetBoonChanges()
-            {
-                StringBuilder sb = new StringBuilder();
-                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0)
+                if (PlayerBoonsChanges != null && PlayerBoonsChanges.Count > 0)
                 {
-                    sb.AppendLine($"The following Boon changes will happen.");
+                    // spacing between boon and oath changes if both are defined
+                    if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
+                        sb.AppendLine("");
+                    }
+
+                    sb.Append(Localization.instance.Localize("$ve_boon_changes"));
                     foreach (KeyValuePair<Boons, float> kvp in PlayerBoonsChanges)
                     {
                         if (kvp.Value > 0)
                         {
-                            sb.AppendLine($"{kvp.Key} will increase by +{kvp.Value}");
+                            sb.Append(Localization.instance.Localize($" {LocalizeBoon(kvp.Key)} $ve_increase <color={color_increase}>+{kvp.Value}</color>"));
                         }
                         else
                         {
-                            sb.AppendLine($"{kvp.Key} will decrease by -{kvp.Value}");
+                            sb.Append(Localization.instance.Localize($" {LocalizeBoon(kvp.Key)} $ve_decrease <color={colore_decrease}>-{kvp.Value}</color>"));
                         }
                     }
                 }
@@ -207,11 +306,11 @@ namespace ValhallEternal.common
             public string GetResetDetails()
             {
                 StringBuilder sb = new StringBuilder();
-                if (TriggerPrestige == true && ResetPlayer != null)
+                if (ResetPlayer != null)
                 {
                     sb.AppendLine("This is a prestige increase.");
                     if (ResetPlayer.ResetSkillPercentage > 0) {
-                        sb.AppendLine($"All skills will be reduced by: {ResetPlayer.ResetSkillPercentage}");
+                        sb.AppendLine($"All skills will be reduced by: <color={colore_decrease}>{ResetPlayer.ResetSkillPercentage}%</color>");
                     }
                     if (ResetPlayer.ResetKnownRecipes) {
                         sb.AppendLine("All known recipes will be forgotten.");
@@ -220,15 +319,28 @@ namespace ValhallEternal.common
                         sb.AppendLine("You will be teleported to spawn.");
                     }
                     if (ResetPlayer.PrestigeLevelsGained > 0) {
-                        sb.AppendLine($"You will gain {ResetPlayer.PrestigeLevelsGained} Prestige levels.");
+                        sb.AppendLine($"You will gain <color={color_increase}>{ResetPlayer.PrestigeLevelsGained}</color> Prestige levels.");
                     }
                     if (ResetPlayer.PrestigeLevelsGained < 0) {
-                        sb.AppendLine($"You will loose {ResetPlayer.PrestigeLevelsGained} Prestige levels.");
+                        sb.AppendLine($"You will loose <color={colore_decrease}>{ResetPlayer.PrestigeLevelsGained}</color> Prestige levels.");
                     }
                 }
 
 
                 return sb.ToString();
+            }
+
+            public string GetTotalDescription(bool showreqboons = true, bool showreqoaths = true) {
+                string reqdesc = GetPlayerRequirementsDescription(includeOathsInDescription: showreqoaths, includeBoonsInDescription: showreqboons);
+                string changesgranted = GetChangesGrantedDescription();
+                string prestige = GetResetDetails();
+                string totaldesc = "";
+                totaldesc += reqdesc;
+                if (reqdesc.Length > 0) { totaldesc += "\n"; }
+                totaldesc += changesgranted;
+                if (changesgranted.Length > 0) { totaldesc += "\n"; }
+                totaldesc += prestige;
+                return totaldesc;
             }
         }
     }

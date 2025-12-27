@@ -56,7 +56,7 @@ Goddess Of Plowing, Agriculture & Protection
 - Bounty of the lands | Increases yield from harvests (chance?)
 - Seeds of the Gods | Grow crops in any environment (starts with weaker crops, gains 1 per level)
 - Feed the Heroes | Chance to produce bonus food items? 
-- Prosperity | Fishing is less stamina consuming?
+- Prosperity | Fishing has a chance to produce bonus items? Fishing costs less stamina?
 
 ## Vör | Blackforest
 Goddess of Curiosity, Wisdom & Certainty
@@ -65,12 +65,28 @@ Goddess of Curiosity, Wisdom & Certainty
 - Knowledge is Power | Sacrifice a trophy to gain +dmg% against that creature
 
 ## Core
-- Choosen weapon skill randomly provides XP to other skills
+- Weapon skill randomly provides XP to other skills
 
 ### Boons
 - Wisdom of the Ages | Recieve bonus XP (chance? random?)
 - Strike Now! | provides a burst of stamina when close to death
-- Knowledge is Power | Every time you discover a recipe, gain a small amount of XP for a random skill
+- Curiosity | Every time you discover a recipe, gain a small amount of XP for a random skill
+- Knowledge is Power | Highest non-combat skill provides a bonus to all weapon skills
+
+## Baldur | Swamp
+God of Light, Purity & Invincibility
+
+## Choice UI?
+- Summon a wisp to light your way at night every x minutes/hits (toggleable)?
+
+## Core
+- Cleanse | Reduces duration of poison, and fire on you
+
+### Boons
+- Cleanse Wet | Reduces duration of wet on you
+- Light of Baldur | Increases damage against undead
+- Stronger Shields | Increases shield block effectiveness
+- Arrow Catcher | Reduces projectile damage taken every x hits/minutes
 
 ## Skaði | Mountains
 Goddess of Winter, Mountains & Hunting
@@ -81,6 +97,7 @@ Goddess of Winter, Mountains & Hunting
 ### Boons
 - Huntress Prowess | Creature kills have a chance to give you an arrow
 - Swift is the Shadow | Increases speed at night or on mountains?
+- Stormbound Rage | Deal bonus lightning damage during storms
 - Vegence is mine | Poisons the attacker (% of damage taken?)
 
 ## Syn | Plains
@@ -95,6 +112,7 @@ Goddess of Refusal, Protection & Guardian of Valhalla
 - Guardian of the Gates | Tower shields block is %+ stronger
 - Lineage of legend | Increases amount of gold or valuables found (chance?)
 - Ever Watchful | Recieve less damage from backstabs
+- Brutal Defiance | Enables Shield bash on your equipped shield, repeatedly blocking in succession releases a burst of damage
 
 ## Freya | Mistlands
 Goddess of Love, Sex, Beauty, War & Seiðr Magic
@@ -116,6 +134,7 @@ Goddess of Death and Ruler of the Damned in the Underworld
 ### Boons
 - Hellfire Adaptation | Increases how long you can withstand incredible heat/ fire damage
 - Balance of duality | Recieve Eitr/stamina when taking damage
+- Haste the inevitable | Increases movement speed killing enemies
 - Death Control | Prevent death once (recharge 1 hour?), if you do not kill something in x seconds die
 
 

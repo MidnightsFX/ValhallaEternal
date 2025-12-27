@@ -16,6 +16,11 @@ public class ValConfig
     public static ConfigEntry<string> TributeLocationBiome;
     public static ConfigEntry<int> MaxTributeLocationsGeneration;
     public static ConfigEntry<float> MinDistanceBetweenTributeLocations;
+    public static ConfigEntry<float> ChanceOfHarvestBonusBoon;
+
+    public static ConfigEntry<bool> KeyRequirementsHideChoices;
+    public static ConfigEntry<bool> BoonRequirementsHideChoices;
+    public static ConfigEntry<bool> OathRequirementsHideChoices;
 
     public static ConfigEntry<float> LocalLevelDisplayOffset;
 
@@ -56,6 +61,15 @@ public class ValConfig
         MaxTributeLocationsGeneration = BindServerConfig("TributeLocation", "MaxTributeLocationsGeneration", 10, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
         MinDistanceBetweenTributeLocations = BindServerConfig("TributeLocation", "MinDistanceBetweenTributeLocations", 500f, "The minimum distance between any tribute locations. Larger values make this more spread out.", false, 0, 5000);
         LocalLevelDisplayOffset = BindServerConfig("LevelDisplay", "LocalLevelDisplayOffset", 50f, "The x pixel offset for the local players level display.");
+
+        // Sacrifice Discovery
+        KeyRequirementsHideChoices = BindServerConfig("Discovery", "KeyRequirementsHideChoices", true, "Whether or not required global or private keys cause options to be hidden if not met.");
+        BoonRequirementsHideChoices = BindServerConfig("Discovery", "BoonRequirementsHideChoices", true, "Whether or not required Boons cause options to be hidden if not met.");
+        OathRequirementsHideChoices = BindServerConfig("Discovery", "OathRequirementsHideChoices", true, "Whether or not required Oaths cause options to be hidden if not met.");
+
+        //Boon configs
+        ChanceOfHarvestBonusBoon = BindServerConfig("Boons", "ChanceOfHarvestBonusBoon", 0.10f, "Chance that the harvest boon will activate when the player has it.", false, 0.001f, 1f);
+
         // Debugmode
         EnableDebugMode = Config.Bind("Client config", "EnableDebugMode", false,
             new ConfigDescription("Enables Debug logging.",

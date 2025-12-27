@@ -21,7 +21,7 @@ namespace ValhallEternal.modules
                 if (SacrificeEnableButton != null) { return; }
 
                 SacrificeEnableButton = GUIManager.Instance.CreateButton(
-                    text: Localization.instance.Localize("$sacrifice"),
+                    text: Localization.instance.Localize("$ve_sacrifice_button"),
                     parent: __instance.m_infoPanel.transform,
                     anchorMin: new Vector2(1f, 1f),
                     anchorMax: new Vector2(1f, 1f),
@@ -61,17 +61,20 @@ namespace ValhallEternal.modules
         private static GameObject SacrificeChoiceContainer;
         private static GameObject ChoiceSelectButton;
         private static GameObject ManualCloseButton;
+        private static GameObject DeitySelectorDropdown;
 
-        private static Text SacrificeRequirements;
-        private static Text BoonChanges;
-        private static Text OathChanges;
-        private static Text PrestigeResetDetails;
+
+        //private static Text SacrificeRequirements;
+        //private static Text BoonChanges;
+        //private static Text OathChanges;
+        //private static Text PrestigeResetDetails;
         private static Text DeityName;
         private static Text DeityDescription;
         private static Image DeityImage;
 
         private static List<Toggle> SacrificeToggleOptions = new List<Toggle>();
         private static string SelectedChoice = "none";
+        private static Deities.Deity SelectedDeity;
 
         public void Awake()
         {
@@ -83,6 +86,8 @@ namespace ValhallEternal.modules
             if (SacrificePanel == null)
             {
                 CreateStaticUIObjects();
+                //LoadStaticAssets();
+                SetChoiceList(Deities.Deity.Gefjun);
             }
             SacrificePanel.SetActive(true);
         }
@@ -97,9 +102,157 @@ namespace ValhallEternal.modules
             GUIManager.BlockInput(false);
         }
 
-        public void SetupForDiety(DataObjects.Diety targetDiety)
+        public void UpdateSelectedDiety(int _actionID)
         {
-            
+            Dropdown dropSelector = DeitySelectorDropdown.GetComponent<Dropdown>();
+            Deities.Deity selectedDiety = (Deities.Deity)System.Enum.Parse(typeof(Deities.Deity), dropSelector.options[dropSelector.value].text);
+
+            SetChoiceList(selectedDiety);
+            //dropSelector.value;
+        }
+
+        public void CompleteSacrifice()
+        {
+            if (SelectedChoice == "None") {
+                Logger.LogWarning("No sacrifice choice selected.");
+                return;
+            }
+            Logger.LogInfo($"Completing sacrifice choice: {SelectedChoice} for deity {SelectedDeity}");
+            DataObjects.Sacrifice selectedSacrifice = SacrificeData.AllSacrifices[SelectedDeity][SelectedChoice];
+            // Remove items
+            if (selectedSacrifice.ItemRequirements != null) {
+                foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements)
+                {
+                    Logger.LogDebug($"Removing {itemReq.Value} of item {itemReq.Key} from player inventory.");
+                    Player.m_localPlayer.m_inventory.RemoveItem(itemReq.Key, itemReq.Value);
+                }
+            }
+            // Remove players keys
+            if (selectedSacrifice.PlayerKeyRequirements != null) {
+                foreach (string key in selectedSacrifice.PlayerKeyRequirements)
+                {
+                    // TODO: config for having key removal be global vs player unique
+                    Logger.LogDebug($"Removing unique key {key} from player.");
+                    Player.m_localPlayer.RemoveUniqueKey(key);
+                }
+            }
+            // Make boon changes
+            if (selectedSacrifice.PlayerBoonsChanges != null) {                 
+                foreach (KeyValuePair<DataObjects.Boons, float> boonChange in selectedSacrifice.PlayerBoonsChanges)
+                {
+                    Logger.LogDebug($"Changing player boon {boonChange.Key} by {boonChange.Value}.");
+                    PlayerData.AddBoonToPlayerConfig(boonChange.Key, boonChange.Value);
+                }
+            }
+            // Make oath changes
+            if (selectedSacrifice.PlayerOathChanges != null) {
+                foreach (KeyValuePair<DataObjects.Oaths, float> oathChange in selectedSacrifice.PlayerOathChanges)
+                {
+                    Logger.LogDebug($"Changing player oath {oathChange.Key} by {oathChange.Value}.");
+                    PlayerData.AddOathToPlayerConfig(oathChange.Key, oathChange.Value);
+                }
+            }
+
+            // Changes to the player data and profile
+            if (selectedSacrifice.ResetPlayer != null)
+            {
+                if (selectedSacrifice.ResetPlayer.ResetKnownRecipes)
+                {
+                    // Clear known recipes and materials
+                    Player.m_localPlayer.m_knownMaterial.Clear();
+                    Player.m_localPlayer.m_knownRecipes.Clear();
+                }
+                if (selectedSacrifice.ResetPlayer.ResetSkillPercentage > 0f)
+                {
+                    Player.m_localPlayer.m_skills.LowerAllSkills(selectedSacrifice.ResetPlayer.ResetSkillPercentage);
+                }
+                if (selectedSacrifice.ResetPlayer.PrestigeLevelsGained > 0)
+                {
+                    PlayerData.localPlayerConfig.PlayerLevel += selectedSacrifice.ResetPlayer.PrestigeLevelsGained;
+                }
+                if (selectedSacrifice.ResetPlayer.TeleportToSpawn)
+                {
+                    GameObject startTemple = Resources.FindObjectsOfTypeAll<GameObject>().Where(obj => obj.name == "StartTemple").FirstOrDefault();
+                    if (startTemple != null)
+                    {
+                        Logger.LogDebug("Teleporting player to start temple.");
+                        Player.m_localPlayer.TeleportTo(startTemple.transform.position, startTemple.transform.rotation, false);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Start temple not found, teleporting to spawn point instead.");
+
+                        Game.instance.FindSpawnPoint(out Vector3 point, out bool logoutPoint, 0f);
+                        Player.m_localPlayer.TeleportTo(point, Quaternion.identity, true);
+                    }
+                }
+            }
+            PlayerData.SavePlayerConfiguration();
+            PlayerData.LoadPlayerConfiguration(Player.m_localPlayer);
+            SacrificeUI.Instance.Hide();
+            UpdateSelectedDiety(-1); //refresh list, to show newly available options
+        }
+
+        private void LoadStaticAssets()
+        {
+            GameObject bareUI = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/ui/sacrificeui.prefab");
+
+            SacrificePanel = GUIManager.Instance.CreateWoodpanel(
+                parent: GUIManager.CustomGUIFront.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(0, 0),
+                width: 800,
+                height: 800,
+                draggable: true);
+            // Hide it right away
+            SacrificePanel.SetActive(false);
+
+            GameObject instance = Object.Instantiate(bareUI, GUIManager.CustomGUIFront.transform);
+            GameObject panelHolder = instance.transform.Find("Panel").gameObject;
+            panelHolder.transform.SetParent(SacrificePanel.transform);
+            //GUIManager.Instance.ApplyWoodpanelStyle(SacrificePanel.transform);
+            DeityImage = panelHolder.transform.Find("DeityImage").GetComponent<Image>();
+            DeityName = panelHolder.transform.Find("DeityName").GetComponent<Text>();
+            DeityDescription = panelHolder.transform.Find("DeityDesc").GetComponent<Text>();
+            ManualCloseButton = panelHolder.transform.Find("Close").gameObject;
+            Button bclose = ManualCloseButton.GetComponent<Button>();
+            GUIManager.Instance.ApplyButtonStyle(bclose);
+            bclose.interactable = true;
+            bclose.onClick.AddListener(Hide);
+
+            ChoiceSelectButton = panelHolder.transform.Find("SacrificeSelectButton").gameObject;
+            Button bconfirm = ManualCloseButton.GetComponent<Button>();
+            GUIManager.Instance.ApplyButtonStyle(bconfirm, 18);
+            bconfirm.onClick.AddListener(CompleteSacrifice);
+
+            // Create the dropdown for deity selection
+            DeitySelectorDropdown = GUIManager.Instance.CreateDropDown(
+                parent: panelHolder.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(200f, 357f),
+                fontSize: 18,
+                width: 200f,
+                height: 40f);
+
+            Dropdown deityDropdown = DeitySelectorDropdown.GetComponent<Dropdown>();
+            deityDropdown.AddOptions(Deities.DeityOptions());
+            deityDropdown.value = 2; // Gefjun default
+            deityDropdown.name = "DeitySelector";
+            deityDropdown.onValueChanged.AddListener(UpdateSelectedDiety);
+
+            ScrollContentArea = panelHolder.transform.Find("OptionScroll/ScrollContent").gameObject;
+
+            SacrificeChoiceContainer = panelHolder.transform.Find("TemplateEntry").gameObject;
+            var toggle = GUIManager.Instance.CreateToggle(
+                parent: SacrificeChoiceContainer.transform,
+                width: 40f,
+                height: 40f
+            );
+            toggle.name = "selecter";
+            toggle.transform.Find("Label").gameObject.SetActive(false);
+            toggle.GetComponent<Toggle>().isOn = false;
         }
 
         private void CreateStaticUIObjects()
@@ -124,9 +277,10 @@ namespace ValhallEternal.modules
 
 
             GameObject dietyImageHolder = Object.Instantiate(new GameObject("DeityImage"), SacrificePanel.transform);
-            dietyImageHolder.transform.localPosition = new Vector3(-328f, 328f);
+            dietyImageHolder.transform.localPosition = new Vector3(-323f, 323f);
             DeityImage = dietyImageHolder.AddComponent<Image>();
-            DeityImage.sprite = DataObjects.DietyImages[DataObjects.Diety.Gefjun];
+            dietyImageHolder.GetComponent<RectTransform>().sizeDelta = new Vector2(125, 125);
+            DeityImage.sprite = Deities.DeityConfiguration[Deities.Deity.Gefjun].Image;
             // TODO: add portrait outliner
 
             var dName  = GUIManager.Instance.CreateText(
@@ -134,9 +288,9 @@ namespace ValhallEternal.modules
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(-300f, 340f),
+                position: new Vector2(11f, 360f),
                 font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 16,
+                fontSize: 20,
                 // TODO: change this to a cool unique color
                 color: GUIManager.Instance.ValheimYellow,
                 outline: true,
@@ -152,7 +306,7 @@ namespace ValhallEternal.modules
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(-250f, 315f),
+                position: new Vector2(-110f, 325f),
                 font: GUIManager.Instance.AveriaSerif,
                 fontSize: 14,
                 color: Color.white,
@@ -161,17 +315,18 @@ namespace ValhallEternal.modules
                 width: 300f,
                 height: 80f,
                 addContentSizeFitter: false);
-            var descgotext = dietydesc.GetComponent<Text>();
-            descgotext.resizeTextForBestFit = true;
-            descgotext.resizeTextMaxSize = 20;
-            descgotext.alignment = TextAnchor.MiddleCenter;
+            DeityDescription = dietydesc.GetComponent<Text>();
+            DeityDescription.resizeTextForBestFit = true;
+            DeityDescription.resizeTextMaxSize = 20;
+            DeityDescription.alignment = TextAnchor.MiddleCenter;
+            DeityDescription.name = "DeityDesc";
 
             var textHeader = GUIManager.Instance.CreateText(
                 text: Localization.instance.Localize("$ve_sacrifice_header"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(50f, 360f),
+                position: new Vector2(275f, 305f),
                 font: GUIManager.Instance.AveriaSerifBold,
                 fontSize: 30,
                 color: GUIManager.Instance.ValheimOrange,
@@ -183,26 +338,27 @@ namespace ValhallEternal.modules
             textHeader.name = "Sacrifice";
 
             GameObject descgo = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$ve_description_gefjun"),
+                text: Localization.instance.Localize("$ve_sacrifice_header_desc"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(0f, 315f),
+                position: new Vector2(6f, 217f),
                 font: GUIManager.Instance.AveriaSerif,
                 fontSize: 20,
                 color: Color.white,
                 outline: true,
                 outlineColor: Color.black,
-                width: 560f,
-                height: 60f,
+                width: 730f,
+                height: 80f,
                 addContentSizeFitter: false);
-            DeityDescription = descgo.GetComponent<Text>();
-            DeityDescription.resizeTextForBestFit = true;
-            DeityDescription.resizeTextMaxSize = 20;
-            DeityDescription.alignment = TextAnchor.UpperLeft;
+            descgo.name = "SacrificeDesc";
+            Text desctextgo = descgo.GetComponent<Text>();
+            desctextgo.resizeTextForBestFit = true;
+            desctextgo.resizeTextMaxSize = 20;
+            desctextgo.alignment = TextAnchor.UpperLeft;
 
             ManualCloseButton = GUIManager.Instance.CreateButton(
-                text: Localization.instance.Localize("$close"),
+                text: Localization.instance.Localize("$ve_close"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
@@ -212,237 +368,305 @@ namespace ValhallEternal.modules
             Button bclose = ManualCloseButton.GetComponent<Button>();
             bclose.interactable = true;
             bclose.onClick.AddListener(Hide);
-            ManualCloseButton.SetActive(false);
+            //ManualCloseButton.SetActive(false);
 
-            var deathpenaltyTitle = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$ve_sacrifice_boonHeader"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(100f, 220f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 22,
-                color: GUIManager.Instance.ValheimOrange,
-                outline: true,
-                outlineColor: Color.black,
-                width: 400f,
-                height: 40f,
-                addContentSizeFitter: false);
-            deathpenaltyTitle.name = "BoonProvideHeader";
-
-            var deathpenalty = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$death_penalty_description"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(150f, 110f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 18,
-                color: Color.white,
-                outline: true,
-                outlineColor: Color.black,
-                width: 500f,
-                height: 200f,
-                addContentSizeFitter: false);
-            deathpenalty.name = "DeathPenaltyDesc";
-            BoonChanges = deathpenalty.GetComponent<Text>();
-            BoonChanges.resizeTextForBestFit = true;
-            BoonChanges.resizeTextMaxSize = 18;
-            //DeathPenaltyDescription.verticalOverflow = VerticalWrapMode.Overflow;
-
-            var xpTitle = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$xp_header"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(100f, 30f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 22,
-                color: GUIManager.Instance.ValheimOrange,
-                outline: true,
-                outlineColor: Color.black,
-                width: 400f,
-                height: 40f,
-                addContentSizeFitter: false);
-            xpTitle.name = "xpModifiersTitle";
-
-            var xpMod = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$xp_mod_description"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(150f, -80f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 16,
-                color: Color.white,
-                outline: true,
-                outlineColor: Color.black,
-                width: 500f,
-                height: 200f,
-                addContentSizeFitter: false);
-            xpMod.name = "xpModifiersDesc";
-            SacrificeRequirements = xpMod.GetComponent<Text>();
-            SacrificeRequirements.resizeTextForBestFit = true;
-            SacrificeRequirements.resizeTextMaxSize = 18;
-
-            var lootTitle = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$loot_header"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(100f, -130f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 22,
-                color: GUIManager.Instance.ValheimOrange,
-                outline: true,
-                outlineColor: Color.black,
-                width: 400f,
-                height: 40f,
-                addContentSizeFitter: false);
-            lootTitle.name = "lootModifiersTitle";
-
-            var lootDesc = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$loot_modifier_description"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(150f, -240f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 16,
-                color: Color.white,
-                outline: true,
-                outlineColor: Color.black,
-                width: 500f,
-                height: 200f,
-                addContentSizeFitter: false);
-            lootDesc.name = "lootModifersDesc";
-            OathChanges = lootDesc.GetComponent<Text>();
-            OathChanges.resizeTextForBestFit = true;
-            OathChanges.resizeTextMaxSize = 18;
-
-            var harvestTitle = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$harvest_header"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(100f, -260f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 22,
-                color: GUIManager.Instance.ValheimOrange,
-                outline: true,
-                outlineColor: Color.black,
-                width: 400f,
-                height: 40f,
-                addContentSizeFitter: false);
-            harvestTitle.name = "harvestModifiersTitle";
-
-            var harvestDesc = GUIManager.Instance.CreateText(
-                text: Localization.instance.Localize("$harvest_modifier_description"),
-                parent: SacrificePanel.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(150f, -370f),
-                font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 16,
-                color: Color.white,
-                outline: true,
-                outlineColor: Color.black,
-                width: 500f,
-                height: 200f,
-                addContentSizeFitter: false);
-            harvestDesc.name = "harvestModifersDesc";
-            PrestigeResetDetails = harvestDesc.GetComponent<Text>();
-            PrestigeResetDetails.resizeTextForBestFit = true;
-            PrestigeResetDetails.resizeTextMaxSize = 18;
+            // Sacrifice button
 
             ChoiceSelectButton = GUIManager.Instance.CreateButton(
-                text: Localization.instance.Localize("$deathchoice_select"),
+                text: Localization.instance.Localize("$ve_sacrifice_sealed"),
                 parent: SacrificePanel.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(-240f, -290f),
-                width: 200f,
-                height: 80f);
-            Button bchoice = ChoiceSelectButton.GetComponent<Button>();
-            bchoice.interactable = true;
-            //bchoice.onClick.AddListener(MakePlayerDeathSelection);
+                position: new Vector2(0f, -350f),
+                width: 300f,
+                height: 60f);
+            Button bselect = ChoiceSelectButton.GetComponent<Button>();
+            //bselect.interactable = false;
+            bselect.onClick.AddListener(CompleteSacrifice);
 
             Logger.LogDebug("Setting up scroll entry");
             // Scroll area
-            ScrollAreaView = GUIManager.Instance.CreateScrollView(SacrificePanel.transform, false, true, 10f, 10f, GUIManager.Instance.ValheimScrollbarHandleColorBlock, Color.grey, 200f, 400f);
-            ScrollAreaView.transform.localPosition = new Vector2 { x = -260, y = -30 };
+            ScrollAreaView = GUIManager.Instance.CreateScrollView(
+                SacrificePanel.transform,
+                showHorizontalScrollbar: false,
+                showVerticalScrollbar: true,
+                handleSize: 10f,
+                handleDistanceToBorder: 10f,
+                GUIManager.Instance.ValheimScrollbarHandleColorBlock,
+                Color.grey,
+                width: 750f,
+                height: 500f);
+            ScrollAreaView.transform.localPosition = new Vector2 { x = 0, y = -68f };
+            ScrollAreaView.GetComponentInChildren<ScrollRect>().scrollSensitivity = 200;
             ScrollContentArea = ScrollAreaView.GetComponentInChildren<ContentSizeFitter>().gameObject;
             SacrificeChoiceGroup = ScrollContentArea.AddComponent<ToggleGroup>();
 
-            Logger.LogDebug("Setting up death choice template entry");
+            DeitySelectorDropdown = GUIManager.Instance.CreateDropDown(
+                parent: SacrificePanel.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(200f, 357f),
+                fontSize: 18,
+                width: 200f,
+                height: 40f);
 
-            SacrificeChoiceContainer = new GameObject("DeathChoice");
-            SacrificeChoiceContainer.transform.SetParent(SacrificePanel.transform);
-            SacrificeChoiceContainer.transform.position = SacrificePanel.transform.position;
+            Dropdown deityDropdown = DeitySelectorDropdown.GetComponent<Dropdown>();
+            deityDropdown.AddOptions(Deities.DeityOptions());
+            deityDropdown.value = 2; // Gefjun default
+            deityDropdown.onValueChanged.AddListener(UpdateSelectedDiety);
+
+            Logger.LogDebug("Setting Template");
+            // Setup the template for adding entries
+
+            SacrificeChoiceContainer = Object.Instantiate(new GameObject("ChoiceTemplate"), SacrificePanel.transform);
+
+            //Image img = SacrificeChoiceContainer.AddComponent<Image>();
+            //img.color = Color.white;
+            LayoutElement le = SacrificeChoiceContainer.AddComponent<LayoutElement>();
+            le.minHeight = 240;
+            le.minWidth = 760;
+            le.preferredWidth = 760;
+            if (SacrificeChoiceContainer.GetComponent<RectTransform>() == null) { SacrificeChoiceContainer.AddComponent<RectTransform>(); }
+            SacrificeChoiceContainer.layer = 5; // UI Layer
+            var tf = SacrificeChoiceContainer.GetComponent<RectTransform>();
+            tf.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 760);
+            tf.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 300);
+            ContentSizeFitter csf = SacrificeChoiceContainer.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+
             SacrificeChoiceContainer.SetActive(false);
 
-            var toggleGo = GUIManager.Instance.CreateToggle(
+
+
+            //SacrificeChoiceContainer = GUIManager.Instance.CreateWoodpanel(
+            //    parent: SacrificePanel.transform,
+            //    anchorMin: new Vector2(0f, 0f),
+            //    anchorMax: new Vector2(1f, 1f),
+            //    position: new Vector2(0, 0),
+            //    width: 750,
+            //    height: 200,
+            //    draggable: false);
+            //SacrificeChoiceContainer.SetActive(false);
+
+            // Background border image
+
+            var toggle = GUIManager.Instance.CreateToggle(
                 parent: SacrificeChoiceContainer.transform,
                 width: 40f,
                 height: 40f
                 );
-            toggleGo.transform.localPosition = new Vector2(-220f, 0f);
-            toggleGo.name = "selecter";
-            toggleGo.transform.Find("Label").gameObject.SetActive(false);
-            toggleGo.GetComponent<Toggle>().isOn = false;
+            toggle.name = "selecter";
+            toggle.transform.localPosition = new Vector3(-345, 15);
+            toggle.transform.Find("Label").gameObject.SetActive(false);
+            toggle.GetComponent<Toggle>().isOn = false;
+            toggle.AddComponent<LayoutElement>();
 
-            var deathSettingName = GUIManager.Instance.CreateText(
+
+            var sacrificeName = GUIManager.Instance.CreateText(
                 text: "Name",
                 parent: SacrificeChoiceContainer.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(-20f, 0f),
+                position: new Vector2(16f, 62f),
                 font: GUIManager.Instance.AveriaSerifBold,
                 fontSize: 20,
-                color: GUIManager.Instance.ValheimYellow,
+                color: GUIManager.Instance.ValheimOrange,
                 outline: true,
                 outlineColor: Color.black,
-                width: 350f,
-                height: 40f,
+                width: 660f,
+                height: 80f,
                 addContentSizeFitter: false);
-            deathSettingName.name = "ChoiceName";
+            sacrificeName.name = "ChoiceName";
+            sacrificeName.AddComponent<LayoutElement>();
+
+            var choiceDesc = GUIManager.Instance.CreateText(
+                text: "Desc",
+                parent: SacrificeChoiceContainer.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(16f, 40f),
+                font: GUIManager.Instance.AveriaSerif,
+                fontSize: 20,
+                color: GUIManager.Instance.ValheimBeige,
+                outline: true,
+                outlineColor: Color.black,
+                width: 660f,
+                height: 80f,
+                addContentSizeFitter: false);
+            choiceDesc.name = "ChoiceDesc";
+            choiceDesc.AddComponent<LayoutElement>();
+
+            var requirementDesc = GUIManager.Instance.CreateText(
+                text: "Description",
+                parent: SacrificeChoiceContainer.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(16f, -40f),
+                font: GUIManager.Instance.AveriaSerif,
+                fontSize: 20,
+                color: Color.white,
+                outline: true,
+                outlineColor: Color.black,
+                width: 660f,
+                height: 80f,
+                addContentSizeFitter: false);
+            requirementDesc.name = "RequirementDesc";
+            requirementDesc.AddComponent<LayoutElement>();
+            //ContentSizeFitter rdcsf = requirementDesc.GetComponent<ContentSizeFitter>();
+            //rdcsf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            //rdcsf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            GameObject itemreq = Object.Instantiate(new GameObject("ItemRequirements"), SacrificeChoiceContainer.transform);
+            itemreq.name = "ItemRequirements";
+            itemreq.transform.localPosition = new Vector3(-300f, 30f, 0f);
+            itemreq.AddComponent<RectTransform>();
+            itemreq.AddComponent<LayoutElement>();
         }
 
-        private void SetChoiceList()
+        private void SetChoiceList(Deities.Deity selectedDiety)
         {
+            // Diety info
+            DeityName.text = Localization.instance.Localize(Deities.DeityConfiguration[selectedDiety].NameLocalKey);
+            DeityDescription.text = Localization.instance.Localize(Deities.DeityConfiguration[selectedDiety].DescriptionLocalKey);
+            DeityImage.sprite = Deities.DeityConfiguration[selectedDiety].Image;
+
             SacrificeToggleOptions.Clear();
-            int y_value = -50;
-            //Logger.LogDebug($"Setting up {DeathChoices.Count} death styles.");
-            foreach (var entry in SacrificeData.AllSacrifices)
+            // Delete the actual gameobjects, once the toggle list is cleared
+            while (ScrollContentArea.transform.childCount > 0) {
+                Transform tf = ScrollContentArea.transform.GetChild(0);
+                if (tf == null) { break; }
+                DestroyImmediate(tf.gameObject);
+            }
+
+            SelectedDeity = selectedDiety;
+            int y_value = -40;
+            Logger.LogDebug($"Setting up {selectedDiety}.");
+            foreach (KeyValuePair<string, DataObjects.Sacrifice> entry in SacrificeData.AllSacrifices[selectedDiety])
             {
-                var newDeathChoice = GameObject.Instantiate(SacrificeChoiceContainer, ScrollContentArea.transform);
-                //Logger.LogDebug("Created container");
-                var selector = newDeathChoice.transform.Find("selecter");
-                //Logger.LogDebug($"Finding selector... null? {selector == null}");
-                selector.Find("Label").GetComponent<Text>().text = entry.Name;
-                //Logger.LogDebug("Set label text");
-                newDeathChoice.transform.Find("ChoiceName").GetComponent<Text>().text = entry.Description;
-                //Logger.LogDebug("Set display name");
-                var toggle = selector.GetComponent<Toggle>();
+                bool has_required_keys = true;
+                bool has_required_boons = true;
+                bool has_required_oaths = true;
+                // Player required to check requirements
+                if (Player.m_localPlayer != null && ZoneSystem.instance != null) {
+                    if (entry.Value.PlayerKeyRequirements != null) {
+                        foreach (string requiredKey in entry.Value.PlayerKeyRequirements)
+                        {
+                            if (!ZoneSystem.instance.GetGlobalKey(requiredKey) && !Player.m_localPlayer.PlayerHasUniqueKey(requiredKey))
+                            {
+                                has_required_keys = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (entry.Value.PlayerBoonRequirements != null) {
+                        foreach (KeyValuePair<DataObjects.Boons, float> boon in entry.Value.PlayerBoonRequirements)
+                        {
+                            if (PlayerData.localPlayerConfig.HasBoon(boon.Key, out float _) == false)
+                            {
+                                has_required_boons = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (entry.Value.PlayerOathRequirements != null) {
+                        foreach (KeyValuePair<DataObjects.Oaths, float> boon in entry.Value.PlayerOathRequirements)
+                        {
+                            if (PlayerData.localPlayerConfig.HasOath(boon.Key, out float _) == false)
+                            {
+                                has_required_oaths = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Skip if failing a check
+                Logger.LogDebug($"Check for listing requirement  required_keys met: {has_required_keys}, required_boons met: {has_required_boons}, required_oaths met: {has_required_oaths}");
+                if (has_required_keys == false && ValConfig.KeyRequirementsHideChoices.Value == true) { continue; }
+                if (has_required_boons == false && ValConfig.BoonRequirementsHideChoices.Value == true) { continue; }
+                if (has_required_oaths == false && ValConfig.OathRequirementsHideChoices.Value == true) { continue; }
+
+                // Required items are not a hard failure
+                Logger.LogDebug("Creating Choice Container");
+
+                var newSacrificeChoice = GameObject.Instantiate(SacrificeChoiceContainer, ScrollContentArea.transform);
+                newSacrificeChoice.SetActive(true);
+                var rect = newSacrificeChoice.GetComponent<RectTransform>();
+                rect.localPosition = new Vector3() { x = 250, y = y_value };
+                Logger.LogDebug("Created container");
+
+                newSacrificeChoice.transform.Find("ChoiceName").GetComponent<Text>().text = entry.Value.Name;
+                newSacrificeChoice.name = $"choice_{entry.Value.Name}";
+                Logger.LogDebug("Set choice name");
+
+                newSacrificeChoice.transform.Find("ChoiceDesc").GetComponent<Text>().text = entry.Value.Description;
+                Logger.LogDebug("Set choice Desc");
+
+                newSacrificeChoice.transform.Find("RequirementDesc").GetComponent<Text>().text = entry.Value.GetTotalDescription();
+                Logger.LogDebug("Set requirement Desc");
+
+                if (entry.Value.ItemRequirements != null) {
+                    Logger.LogDebug("Setting up item requirements.");
+                    Transform itemrequirementsParent = newSacrificeChoice.transform.Find("ItemRequirements");
+                    if (itemrequirementsParent == null) {
+                        Logger.LogWarning("Item requirements parent not found.");
+                        //continue;
+                    }
+                    int item_x_offset = 0;
+                    foreach (KeyValuePair<string, int> itemReq in entry.Value.ItemRequirements)
+                    {
+                        Logger.LogDebug($"Item Requirement: {itemReq.Key} x{itemReq.Value}");
+                        GameObject prefab = PrefabManager.Instance.GetPrefab(itemReq.Key);
+                        if (prefab != null)
+                        {
+                            prefab.TryGetComponent<ItemDrop>(out ItemDrop itemDrop);
+                            if (itemDrop != null)
+                            {
+                                GameObject itemImageGO = Object.Instantiate(new GameObject($"ReqItem_{itemReq.Key}"), itemrequirementsParent);
+                                //itemImageGO.transform.localPosition = new Vector3(-328f, 328f);
+                                Image itemImage = itemImageGO.AddComponent<Image>();
+                                itemImageGO.GetComponent<RectTransform>().sizeDelta = new Vector2(50, 50);
+                                itemImage.sprite = itemDrop.m_itemData.GetIcon();
+                                Logger.LogDebug("Added Icon.");
+
+                                var itemCount = GUIManager.Instance.CreateText(
+                                    text: $"{itemReq.Value}",
+                                    parent: itemrequirementsParent,
+                                    anchorMin: new Vector2(0.5f, 0.5f),
+                                    anchorMax: new Vector2(0.5f, 0.5f),
+                                    position: new Vector2(-10f, 360f),
+                                    font: GUIManager.Instance.AveriaSerifBold,
+                                    fontSize: 12,
+                                    // TODO: change this to a cool unique color
+                                    color: Color.grey,
+                                    outline: true,
+                                    outlineColor: Color.black,
+                                    width: 40f,
+                                    height: 40f,
+                                    addContentSizeFitter: false);
+                                Logger.LogDebug("Added Text.");
+                                itemCount.transform.localPosition = new Vector3(item_x_offset, 0f);
+                                itemImageGO.transform.localPosition = new Vector3(item_x_offset, 0f);
+                                item_x_offset += 50;
+                                Logger.LogDebug("Repositioned Icon and Text.");
+                            }
+                        }
+                    }
+                    Logger.LogDebug("Set up Item requirements.");
+                }
+                
+
+                var toggle = newSacrificeChoice.transform.Find("selecter").GetComponent<Toggle>();
                 toggle.group = SacrificeChoiceGroup;
                 toggle.onValueChanged.AddListener((isOn) => {
-                    //Logger.LogDebug("Setting up onclock");
-                    SacrificeRequirements.GetComponent<Text>().text = entry.GetPlayerRequirements();
-                    //Logger.LogDebug("Set death description");
-                    BoonChanges.GetComponent<Text>().text = entry.GetBoonChanges();
-                    //Logger.LogDebug("Set xp mod");
-                    OathChanges.GetComponent<Text>().text = entry.GetOathChanges();
-                    //Logger.LogDebug("Set loot mod");
-                    PrestigeResetDetails.GetComponent<Text>().text = entry.GetResetDetails();
-                    //Logger.LogDebug("Set harvest mod");
-                    // Maybe should not just be a name reference?
-                    SelectedChoice = entry.Name;
+                    SelectedChoice = entry.Key;
                 });
-                //Logger.LogDebug("Created onclick");
-                newDeathChoice.SetActive(true);
-                newDeathChoice.transform.localPosition = new Vector3() { x = 260, y = y_value };
+                Logger.LogDebug("Created onclick");
                 SacrificeToggleOptions.Add(toggle);
-                y_value -= 50;
+                y_value -= 180;
             }
         }
     }

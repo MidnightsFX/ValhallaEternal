@@ -14,6 +14,7 @@
 *.userprefs
 
 /ValhallEternalUnity/Assets/AmplifyShaderEditor/
+/ValhallEternalUnity/Assets/Piloto Studio/
 
 # Mono auto generated files
 mono_crash.*

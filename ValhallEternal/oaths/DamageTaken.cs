@@ -3,15 +3,16 @@ using ValhallEternal.common;
 using ValhallEternal.modules;
 
 namespace ValhallEternal.oaths {
-    public static class DamageTaken {
-        public static class MultiplayerDamageMod {
-            [HarmonyPatch(typeof(Game), nameof(Game.GetDifficultyDamageScalePlayer))]
+    internal static class DamageTaken {
+        public static class PlayerOathOfDamageTaken {
+            [HarmonyPatch(typeof(Character), nameof(Character.RPC_Damage))]
             public static class EnemyDamageScalingIncrease {
-                public static void Postfix(ref float __result) {
-                    if (Player.m_localPlayer != null &&  PlayerData.localPlayerConfig.TotalOaths.ContainsKey(DataObjects.Oaths.DamageTaken)) {
-                        float extra_damagetaken_percent = PlayerData.localPlayerConfig.TotalOaths[DataObjects.Oaths.DamageTaken];
-                        Logger.LogDebug($"Oath of Damage Taken: oath: {extra_damagetaken_percent}");
-                        __result += extra_damagetaken_percent;
+                public static void Prefix(Character __instance, ref HitData hit) {
+                    if (__instance.IsPlayer() && PlayerData.localPlayerConfig.TotalOaths.ContainsKey(DataObjects.Oaths.DamageTakenIncrease) && __instance as Player == Player.m_localPlayer) {
+                        float extra_damagetaken_percent = PlayerData.localPlayerConfig.TotalOaths[DataObjects.Oaths.DamageTakenIncrease] + 1f;
+                        Logger.LogDebug($"Oath of Damage Taken mult: {extra_damagetaken_percent} Hit total dmg: {hit.GetTotalDamage()}");
+                        hit.m_damage.Modify(extra_damagetaken_percent);
+                        Logger.LogDebug($"New Oath increased Damage: {hit.GetTotalDamage()}");
                     }
                 }
             }

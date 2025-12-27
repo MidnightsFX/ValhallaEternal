@@ -24,7 +24,7 @@ namespace ValhallEternal.modules
                     if (minimapTform != null) {
                         localPlayerVEHUD.transform.position = minimapTform.position;
                         //localPlayerVEHUD.transform.localPosition = minimapTform.localPosition;
-                        localPlayerVEHUD.transform.localPosition = new Vector3(x: localPlayerVEHUD.transform.localPosition.x - 112, y: localPlayerVEHUD.transform.localPosition.y - 10);
+                        localPlayerVEHUD.transform.localPosition = new Vector3(x: localPlayerVEHUD.transform.localPosition.x - 108, y: localPlayerVEHUD.transform.localPosition.y - 10);
                     }
                 }
             }
@@ -43,39 +43,9 @@ namespace ValhallEternal.modules
             }
         }
 
-        [HarmonyPatch(typeof(Player))]
-        public static class DisplaySelfLevel {
-            [HarmonyPatch(nameof(Player.Awake))]
-            public static void Postfix(Player __instance) {
-                if (__instance == null || !SceneManager.GetActiveScene().name.Equals("main")) {
-                    return;
-                }
-
-                // Ensure that the players Zkey value is set so that other players HUDs will be able to see this players achievements
-                if (__instance.PlayerHasUniqueKey(DataObjects.CustomLevelZKey))
-                {
-                    __instance.TryGetUniqueKeyValue(DataObjects.CustomLevelZKey, out string kv);
-                    if (int.TryParse(kv, out int level) == false)
-                    {
-                        level = 0;
-                    }
-                    __instance.m_nview.GetZDO().Set(DataObjects.CustomLevelZKey, level);
-                }
-                CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
-                UpdateLocalLevelDisplay(__instance);
-            }
-        }
-
-        public static void UpdateLocalLevelDisplay(Player player) {
-            if (player.PlayerHasUniqueKey(DataObjects.CustomLevelZKey)) {
-                player.TryGetUniqueKeyValue(DataObjects.CustomLevelZKey, out string playerlvl);
-                Logger.LogDebug($"Checking player level |{playerlvl}|");
-                if (int.TryParse(playerlvl, out int levelnum) == false)
-                {
-                    levelnum = 0;
-                }
-                SetupPlayerLevelDisplay(localPlayerVEHUD, levelnum);
-            }
+        public static void UpdateLocalPlayerLevelDisplay() {
+            CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
+            SetupPlayerLevelDisplay(localPlayerVEHUD, PlayerData.localPlayerConfig.PlayerLevel);
         }
 
 
@@ -85,12 +55,15 @@ namespace ValhallEternal.modules
             [HarmonyPatch(nameof(EnemyHud.ShowHud))]
             public static void Postfix(EnemyHud __instance, Character c)
             {
-                if (c == null || !c.IsPlayer()) { return; }
+                if (c == null || !c.IsPlayer() || __instance == null) { return; }
                 EnemyHud.HudData ehud = __instance.m_huds[c];
                 if (ehud == null) { return; }
 
                 Player otherplayer = c as Player;
-                int playerVELevel = otherplayer.m_nview.GetZDO().GetInt(DataObjects.CustomLevelZKey, 0);
+                if (otherplayer == null) { return; }
+                ZDO ozdo = otherplayer.m_nview.GetZDO();
+                if (ozdo == null) { return; }
+                int playerVELevel = ozdo.GetInt(DataObjects.CustomLevelZKey, 0);
                 if (playerVELevel > 0) {
                     // Add the players level to their hud display
 

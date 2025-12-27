@@ -26,7 +26,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  5f}
+                        {Oaths.DamageTakenIncrease,  5f}
                     }
                 }
             },
@@ -43,7 +43,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  10f}
+                        {Oaths.DamageTakenIncrease,  10f}
                     }
                 }
             },
@@ -60,7 +60,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  15f}
+                        {Oaths.DamageTakenIncrease,  15f}
                     }
                 }
             },
@@ -77,7 +77,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  20f}
+                        {Oaths.DamageTakenIncrease,  20f}
                     }
                 }
             },
@@ -94,7 +94,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  25f}
+                        {Oaths.DamageTakenIncrease,  25f}
                     }
                 }
             },
@@ -111,7 +111,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  30f}
+                        {Oaths.DamageTakenIncrease,  30f}
                     }
                 }
             },
@@ -128,7 +128,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  35f}
+                        {Oaths.DamageTakenIncrease,  35f}
                     }
                 }
             },
@@ -145,7 +145,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  40f}
+                        {Oaths.DamageTakenIncrease,  40f}
                     }
                 }
             },
@@ -162,7 +162,7 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  45f}
+                        {Oaths.DamageTakenIncrease,  45f}
                     }
                 }
             },
@@ -179,12 +179,20 @@ namespace ValhallEternal.common
                     Level = 1,
                     DifficultyOaths = new Dictionary<Oaths, float>()
                     {
-                        {Oaths.DamageTaken,  50f}
+                        {Oaths.DamageTakenIncrease,  50f}
                     }
                 }
             },
         };
 
         // set from config file after load
+        public static PlayerLevelConfiguration GetPlayerLevelConfiguration(int prestigeLevel)
+        {
+            if (activePlayerConfig != null && activePlayerConfig.ContainsKey(prestigeLevel)) {
+                return activePlayerConfig[prestigeLevel];
+            } else {
+                return new PlayerLevelConfiguration();
+            }
+        }
     }
 }
