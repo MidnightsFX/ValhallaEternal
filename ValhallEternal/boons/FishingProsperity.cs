@@ -47,7 +47,8 @@ namespace ValhallEternal.boons
                     int chance = UnityEngine.Random.Range(0, 100);
                     Logger.LogDebug($"Rolling chance for fishing prosperity {chance} activate? {chance < value}");
                     if (chance < value) {
-                        string selected = Extensions.RandomSelectFromWeightedListWithExclusions(FishingProsperityOptions.Cast<IProbability>().ToList());
+                        List<FishReward> levelselectedOptions = FishingProsperityOptions.Where(x => x.MinLevelRequired < value && x.MaxLevelAllowed >= value).ToList();
+                        string selected = Extensions.RandomSelectFromWeightedListWithExclusions(levelselectedOptions.Cast<IProbability>().ToList());
 
                         FishReward selectedReward = FishingProsperityOptions.Where(x => x.Name == selected).First();
 

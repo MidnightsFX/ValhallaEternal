@@ -44,6 +44,7 @@ namespace ValhallEternal
             HarmonyInstance = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
             AddLocalizations();
             SacrificeData.SetupSacrificeData();
+            DataObjects.LoadAssets();
             //PlayerLevelDisplays.LoadAssets();
             //Locations.AddLocationsToWorldGen();
             Commands.AddCommands();

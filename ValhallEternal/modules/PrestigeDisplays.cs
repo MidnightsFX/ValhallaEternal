@@ -2,13 +2,12 @@
 using Jotunn.Managers;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using ValhallEternal.common;
 using Vector3 = UnityEngine.Vector3;
 
 namespace ValhallEternal.modules
 {
-    static class PlayerLevelDisplays
+    static class PrestigeDisplays
     {
         static GameObject localPlayerVEHUD = null;
         static TextMeshPro localPlayerLevelText = null;

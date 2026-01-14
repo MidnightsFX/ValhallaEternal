@@ -189,70 +189,9 @@ namespace ValhallEternal.modules
             }
             PlayerData.SavePlayerConfiguration();
             PlayerData.LoadPlayerConfiguration(Player.m_localPlayer);
+            PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
             SacrificeUI.Instance.Hide();
             UpdateSelectedDiety(-1); //refresh list, to show newly available options
-        }
-
-        private void LoadStaticAssets()
-        {
-            GameObject bareUI = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/ui/sacrificeui.prefab");
-
-            SacrificePanel = GUIManager.Instance.CreateWoodpanel(
-                parent: GUIManager.CustomGUIFront.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(0, 0),
-                width: 800,
-                height: 800,
-                draggable: true);
-            // Hide it right away
-            SacrificePanel.SetActive(false);
-
-            GameObject instance = Object.Instantiate(bareUI, GUIManager.CustomGUIFront.transform);
-            GameObject panelHolder = instance.transform.Find("Panel").gameObject;
-            panelHolder.transform.SetParent(SacrificePanel.transform);
-            //GUIManager.Instance.ApplyWoodpanelStyle(SacrificePanel.transform);
-            DeityImage = panelHolder.transform.Find("DeityImage").GetComponent<Image>();
-            DeityName = panelHolder.transform.Find("DeityName").GetComponent<Text>();
-            DeityDescription = panelHolder.transform.Find("DeityDesc").GetComponent<Text>();
-            ManualCloseButton = panelHolder.transform.Find("Close").gameObject;
-            Button bclose = ManualCloseButton.GetComponent<Button>();
-            GUIManager.Instance.ApplyButtonStyle(bclose);
-            bclose.interactable = true;
-            bclose.onClick.AddListener(Hide);
-
-            ChoiceSelectButton = panelHolder.transform.Find("SacrificeSelectButton").gameObject;
-            Button bconfirm = ManualCloseButton.GetComponent<Button>();
-            GUIManager.Instance.ApplyButtonStyle(bconfirm, 18);
-            bconfirm.onClick.AddListener(CompleteSacrifice);
-
-            // Create the dropdown for deity selection
-            DeitySelectorDropdown = GUIManager.Instance.CreateDropDown(
-                parent: panelHolder.transform,
-                anchorMin: new Vector2(0.5f, 0.5f),
-                anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(200f, 357f),
-                fontSize: 18,
-                width: 200f,
-                height: 40f);
-
-            Dropdown deityDropdown = DeitySelectorDropdown.GetComponent<Dropdown>();
-            deityDropdown.AddOptions(Deities.DeityOptions());
-            deityDropdown.value = 2; // Gefjun default
-            deityDropdown.name = "DeitySelector";
-            deityDropdown.onValueChanged.AddListener(UpdateSelectedDiety);
-
-            ScrollContentArea = panelHolder.transform.Find("OptionScroll/ScrollContent").gameObject;
-
-            SacrificeChoiceContainer = panelHolder.transform.Find("TemplateEntry").gameObject;
-            var toggle = GUIManager.Instance.CreateToggle(
-                parent: SacrificeChoiceContainer.transform,
-                width: 40f,
-                height: 40f
-            );
-            toggle.name = "selecter";
-            toggle.transform.Find("Label").gameObject.SetActive(false);
-            toggle.GetComponent<Toggle>().isOn = false;
         }
 
         private void CreateStaticUIObjects()
@@ -397,7 +336,7 @@ namespace ValhallEternal.modules
                 width: 750f,
                 height: 500f);
             ScrollAreaView.transform.localPosition = new Vector2 { x = 0, y = -68f };
-            ScrollAreaView.GetComponentInChildren<ScrollRect>().scrollSensitivity = 200;
+            ScrollAreaView.GetComponentInChildren<ScrollRect>().scrollSensitivity = 1000;
             ScrollContentArea = ScrollAreaView.GetComponentInChildren<ContentSizeFitter>().gameObject;
             SacrificeChoiceGroup = ScrollContentArea.AddComponent<ToggleGroup>();
 
@@ -422,10 +361,17 @@ namespace ValhallEternal.modules
 
             //Image img = SacrificeChoiceContainer.AddComponent<Image>();
             //img.color = Color.white;
-            LayoutElement le = SacrificeChoiceContainer.AddComponent<LayoutElement>();
-            le.minHeight = 240;
-            le.minWidth = 760;
-            le.preferredWidth = 760;
+            VerticalLayoutGroup vlg = SacrificeChoiceContainer.AddComponent<VerticalLayoutGroup>();
+            vlg.childAlignment = TextAnchor.MiddleLeft;
+            vlg.childControlHeight = true;
+            //vlg.childControlWidth = true;
+            vlg.spacing = 5f;
+            vlg.childForceExpandHeight = false;
+
+            //le.minHeight = 240;
+            //le.minWidth = 760;
+            //le.preferredWidth = 760;
+            //le.flexibleHeight = 1200;
             if (SacrificeChoiceContainer.GetComponent<RectTransform>() == null) { SacrificeChoiceContainer.AddComponent<RectTransform>(); }
             SacrificeChoiceContainer.layer = 5; // UI Layer
             var tf = SacrificeChoiceContainer.GetComponent<RectTransform>();
@@ -437,40 +383,45 @@ namespace ValhallEternal.modules
 
             SacrificeChoiceContainer.SetActive(false);
 
-
-
-            //SacrificeChoiceContainer = GUIManager.Instance.CreateWoodpanel(
-            //    parent: SacrificePanel.transform,
-            //    anchorMin: new Vector2(0f, 0f),
-            //    anchorMax: new Vector2(1f, 1f),
-            //    position: new Vector2(0, 0),
-            //    width: 750,
-            //    height: 200,
-            //    draggable: false);
-            //SacrificeChoiceContainer.SetActive(false);
-
-            // Background border image
+            //Row 1 - Toggle + Name
+            GameObject choiceHeaderSection = Object.Instantiate(new GameObject("ChoiceHeader"), SacrificeChoiceContainer.transform);
+            choiceHeaderSection.name = "ChoiceHeader";
+            HorizontalLayoutGroup hzlygch = choiceHeaderSection.AddComponent<HorizontalLayoutGroup>();
+            hzlygch.childForceExpandHeight = false;
+            hzlygch.childForceExpandWidth = false;
+            hzlygch.childControlWidth = true;
+            LayoutElement chle = choiceHeaderSection.AddComponent<LayoutElement>();
+            chle.minHeight = 40;
 
             var toggle = GUIManager.Instance.CreateToggle(
-                parent: SacrificeChoiceContainer.transform,
+                parent: choiceHeaderSection.transform,
                 width: 40f,
                 height: 40f
                 );
             toggle.name = "selecter";
-            toggle.transform.localPosition = new Vector3(-345, 15);
+            toggle.transform.localPosition = new Vector3(-370, 10);
             toggle.transform.Find("Label").gameObject.SetActive(false);
             toggle.GetComponent<Toggle>().isOn = false;
-            toggle.AddComponent<LayoutElement>();
+            LayoutElement tle = toggle.AddComponent<LayoutElement>();
+            tle.minWidth = 45;
+            HorizontalLayoutGroup tglhzlg = toggle.AddComponent<HorizontalLayoutGroup>();
+            tglhzlg.childForceExpandHeight = false;
+            tglhzlg.childForceExpandWidth = false;
+            tglhzlg.childControlWidth = true;
+            GameObject tbg = toggle.transform.Find("Background").gameObject;
+            LayoutElement tbglayout = tbg.AddComponent<LayoutElement>();
+            tbglayout.minHeight = 40;
+            tbglayout.minWidth = 40;
 
 
             var sacrificeName = GUIManager.Instance.CreateText(
                 text: "Name",
-                parent: SacrificeChoiceContainer.transform,
+                parent: choiceHeaderSection.transform,
                 anchorMin: new Vector2(0.5f, 0.5f),
                 anchorMax: new Vector2(0.5f, 0.5f),
-                position: new Vector2(16f, 62f),
+                position: new Vector2(0f, 0f),
                 font: GUIManager.Instance.AveriaSerifBold,
-                fontSize: 20,
+                fontSize: 30,
                 color: GUIManager.Instance.ValheimOrange,
                 outline: true,
                 outlineColor: Color.black,
@@ -478,7 +429,11 @@ namespace ValhallEternal.modules
                 height: 80f,
                 addContentSizeFitter: false);
             sacrificeName.name = "ChoiceName";
-            sacrificeName.AddComponent<LayoutElement>();
+            sacrificeName.transform.localPosition = new Vector3(-240, -10);
+            LayoutElement chlayout = sacrificeName.AddComponent<LayoutElement>();
+            chlayout.flexibleHeight = 900;
+            chlayout.minHeight = 40;
+            //chlayout.minWidth = 40;
 
             var choiceDesc = GUIManager.Instance.CreateText(
                 text: "Desc",
@@ -495,7 +450,12 @@ namespace ValhallEternal.modules
                 height: 80f,
                 addContentSizeFitter: false);
             choiceDesc.name = "ChoiceDesc";
-            choiceDesc.AddComponent<LayoutElement>();
+            LayoutElement clayout = choiceDesc.AddComponent<LayoutElement>();
+            clayout.flexibleHeight = 900;
+            VerticalLayoutGroup clayoutg = choiceDesc.AddComponent<VerticalLayoutGroup>();
+            clayoutg.childForceExpandHeight = false;
+            clayoutg.childForceExpandWidth = false;
+            clayoutg.childControlWidth = true;
 
             var requirementDesc = GUIManager.Instance.CreateText(
                 text: "Description",
@@ -512,16 +472,35 @@ namespace ValhallEternal.modules
                 height: 80f,
                 addContentSizeFitter: false);
             requirementDesc.name = "RequirementDesc";
-            requirementDesc.AddComponent<LayoutElement>();
-            //ContentSizeFitter rdcsf = requirementDesc.GetComponent<ContentSizeFitter>();
-            //rdcsf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            //rdcsf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+            LayoutElement dlayout = requirementDesc.AddComponent<LayoutElement>();
+            dlayout.flexibleHeight = 900;
+            VerticalLayoutGroup dlayoutg = requirementDesc.AddComponent<VerticalLayoutGroup>();
+            dlayoutg.childForceExpandHeight = false;
+            dlayoutg.childForceExpandWidth = false;
+            dlayoutg.childControlWidth = true;
 
             GameObject itemreq = Object.Instantiate(new GameObject("ItemRequirements"), SacrificeChoiceContainer.transform);
             itemreq.name = "ItemRequirements";
             itemreq.transform.localPosition = new Vector3(-300f, 30f, 0f);
             itemreq.AddComponent<RectTransform>();
             itemreq.AddComponent<LayoutElement>();
+            HorizontalLayoutGroup dlitemreq = itemreq.AddComponent<HorizontalLayoutGroup>();
+            dlitemreq.childForceExpandHeight = false;
+            dlitemreq.childForceExpandWidth = false;
+
+
+            // Footer
+            GameObject FooterSection = Object.Instantiate(new GameObject("ChoiceFooter"), SacrificeChoiceContainer.transform);
+            FooterSection.name = "ChoiceFooter";
+            LayoutElement flayout = FooterSection.AddComponent<LayoutElement>();
+            flayout.minHeight = 50;
+            VerticalLayoutGroup fvlg = FooterSection.AddComponent<VerticalLayoutGroup>();
+            fvlg.childForceExpandHeight = false;
+            fvlg.childForceExpandWidth = false;
+            fvlg.childControlWidth = true;
+            Image bkgimg = FooterSection.AddComponent<Image>();
+            bkgimg.sprite = DataObjects.boonbackground;
+            bkgimg.GetComponent<RectTransform>().sizeDelta = new Vector2(512, 50);
         }
 
         private void SetChoiceList(Deities.Deity selectedDiety)
@@ -598,7 +577,7 @@ namespace ValhallEternal.modules
                 rect.localPosition = new Vector3() { x = 250, y = y_value };
                 Logger.LogDebug("Created container");
 
-                newSacrificeChoice.transform.Find("ChoiceName").GetComponent<Text>().text = entry.Value.Name;
+                newSacrificeChoice.transform.Find("ChoiceHeader/ChoiceName").GetComponent<Text>().text = entry.Value.Name;
                 newSacrificeChoice.name = $"choice_{entry.Value.Name}";
                 Logger.LogDebug("Set choice name");
 
@@ -629,17 +608,20 @@ namespace ValhallEternal.modules
                                 //itemImageGO.transform.localPosition = new Vector3(-328f, 328f);
                                 Image itemImage = itemImageGO.AddComponent<Image>();
                                 itemImageGO.GetComponent<RectTransform>().sizeDelta = new Vector2(50, 50);
+                                LayoutElement ilayout = itemImageGO.AddComponent<LayoutElement>();
+                                ilayout.minHeight = 50;
+                                ilayout.minWidth = 50;
                                 itemImage.sprite = itemDrop.m_itemData.GetIcon();
                                 Logger.LogDebug("Added Icon.");
 
-                                var itemCount = GUIManager.Instance.CreateText(
+                                GameObject itemCount = GUIManager.Instance.CreateText(
                                     text: $"{itemReq.Value}",
                                     parent: itemrequirementsParent,
                                     anchorMin: new Vector2(0.5f, 0.5f),
                                     anchorMax: new Vector2(0.5f, 0.5f),
                                     position: new Vector2(-10f, 360f),
                                     font: GUIManager.Instance.AveriaSerifBold,
-                                    fontSize: 12,
+                                    fontSize: 14,
                                     // TODO: change this to a cool unique color
                                     color: Color.grey,
                                     outline: true,
@@ -648,9 +630,12 @@ namespace ValhallEternal.modules
                                     height: 40f,
                                     addContentSizeFitter: false);
                                 Logger.LogDebug("Added Text.");
+                                LayoutElement icountLE = itemCount.AddComponent<LayoutElement>();
+                                icountLE.minHeight = 10;
+                                icountLE.minWidth = 10;
                                 itemCount.transform.localPosition = new Vector3(item_x_offset, 0f);
                                 itemImageGO.transform.localPosition = new Vector3(item_x_offset, 0f);
-                                item_x_offset += 50;
+                                item_x_offset += 45;
                                 Logger.LogDebug("Repositioned Icon and Text.");
                             }
                         }
@@ -659,7 +644,7 @@ namespace ValhallEternal.modules
                 }
                 
 
-                var toggle = newSacrificeChoice.transform.Find("selecter").GetComponent<Toggle>();
+                var toggle = newSacrificeChoice.transform.Find("ChoiceHeader/selecter").GetComponent<Toggle>();
                 toggle.group = SacrificeChoiceGroup;
                 toggle.onValueChanged.AddListener((isOn) => {
                     SelectedChoice = entry.Key;

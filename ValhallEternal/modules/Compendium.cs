@@ -27,7 +27,7 @@ namespace ValhallEternal.modules {
                     sb.AppendLine();
                 }
                 foreach (KeyValuePair<DataObjects.Boons, float> kvp in PlayerData.localPlayerConfig.TotalBoons) {
-                    sb.AppendLine(Localization.instance.Localize($"{DataObjects.LocalizeBoon(kvp.Key)} ($ve_level <color={BoonColor}>{kvp.Value}</color>) - {DataObjects.LocalizeBoonDesc(kvp.Key)}"));
+                    sb.AppendLine(Localization.instance.Localize($"<size=24>{DataObjects.LocalizeBoon(kvp.Key)}</size> ($ve_level <color={BoonColor}>{kvp.Value}</color>) - {DataObjects.LocalizeBoonDesc(kvp.Key)}"));
                 }
 
                 // Section break
@@ -38,7 +38,7 @@ namespace ValhallEternal.modules {
                     sb.AppendLine();
                 }
                 foreach (KeyValuePair<DataObjects.Oaths, float> kvp in PlayerData.localPlayerConfig.TotalOaths) {
-                    sb.AppendLine(Localization.instance.Localize($"{DataObjects.LocalizeOath(kvp.Key)} ($ve_level <color={OathColor}>{kvp.Value}</color>) - {DataObjects.LocalizeOathDesc(kvp.Key)}"));
+                    sb.AppendLine(Localization.instance.Localize($"<size=24>{DataObjects.LocalizeOath(kvp.Key)}</size> ($ve_level <color={OathColor}>{kvp.Value}</color>) - {DataObjects.LocalizeOathDesc(kvp.Key, kvp.Value)}"));
                 }
 
                 // Only add the entry if it has not already been added.

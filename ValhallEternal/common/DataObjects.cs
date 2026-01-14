@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Jotunn.Managers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.common
 {
@@ -23,6 +25,17 @@ namespace ValhallEternal.common
             DefaultValueHandling = DefaultValueHandling.Ignore,
             Formatting = Formatting.None,
         };
+
+        public static Sprite boonbackground;
+        public static Sprite hastenDeath;
+
+        public static void LoadAssets()
+        {
+            boonbackground = ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/bottom_border_divider.png");
+            hastenDeath = ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/hastenDeath.png");
+
+            boons.HastenTheInevitable.AddHastenDeathStatus();
+        }
 
         const string color_increase = "#b9f2ff";
         const string colore_decrease = "#ff4040";
@@ -70,6 +83,7 @@ namespace ValhallEternal.common
             QualityNourishment,
             FishingProsperity,
             GefjunFeasts,
+            ThirstForKnowledge,
             RandomXPBonus,
             KnowledgeIsPower,
             HuntressArrowReturn,
@@ -90,7 +104,21 @@ namespace ValhallEternal.common
             ReduceWet,
             IncreaseMeleeDamage,
             Everwatchful,
-            BrutalDefiance
+            BrutalDefiance,
+            DamageAgainstUndead,
+            StrongerBlock,
+            StrongerTowerBlock,
+            DedicationToTheBlade,
+            WealthOfAges,
+            BuiltDifferent,
+            GoddessOfWar,
+            SeidrOfPlenty,
+            PerfectForm,
+            BalanceOfTheJotunn,
+            BalanceOfTheAesir,
+            HastenTheInevitable,
+            ReduceFirePoison,
+            HungerForKnowledge,
         }
 
         public static readonly List<Oaths> DamageReductionOaths = new List<Oaths>() {
@@ -117,7 +145,8 @@ namespace ValhallEternal.common
             return $"$ve_{oath}";
         }
 
-        public static string LocalizeOathDesc(Oaths oath) {
+        public static string LocalizeOathDesc(Oaths oath, float value = 0) {
+            if (value > 0) { return $"$ve_{oath}_desc {value}"; }
             return $"$ve_{oath}_desc";
         }
 
@@ -125,7 +154,23 @@ namespace ValhallEternal.common
             return $"$ve_{boon}";
         }
 
-        public static string LocalizeBoonDesc(Boons boon) {
+        public static string LocalizeBoonDesc(Boons boon, float value = 0) {
+            if (value > 0) {
+                bool has_percent = false;
+                string valueformatted = value.ToString("0.0");
+                switch (boon) {
+                    case Boons.IncreasePickableYields:
+                    case Boons.FishingProsperity:
+                        valueformatted = $"{(value * 100).ToString("0.0")}%";
+                        break;
+                }
+                string result = $"$ve_{boon}_desc <color={colore_decrease}>{valueformatted}</color>";
+                if (has_percent) {
+                    result += "%";
+                }
+
+                return result;
+            }
             return $"$ve_{boon}_desc";
         }
 
@@ -230,7 +275,7 @@ namespace ValhallEternal.common
             [DataMember]
             public Dictionary<Boons, float> PlayerBoonsChanges { get; set; }
 
-            public string GetPlayerRequirementsDescription(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false)
+            public string GetPlayerRequirementsDescription(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false, bool includeItemReference = true)
             {
                 StringBuilder sb = new StringBuilder();
                 if (PlayerOathRequirements != null && PlayerOathRequirements.Count > 0 || PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0 || PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0)
@@ -241,20 +286,26 @@ namespace ValhallEternal.common
                 if (includeOathsInDescription && PlayerOathRequirements != null && PlayerOathRequirements.Count > 0) {
                     foreach (KeyValuePair<Oaths, float> oath in PlayerOathRequirements)
                     {
-                        sb.AppendLine($"Oath: {oath.Key}");
+                        sb.AppendLine(Localization.instance.Localize($"{LocalizeOath(oath.Key)} -($ve_oath)- $ve_level_required"));
                     }
                 }
+                if (sb.Length > 0) { sb.AppendLine(""); }
                 if (includeBoonsInDescription && PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0) {
                     foreach (KeyValuePair<Boons, float> boon in PlayerBoonRequirements)
                     {
-                        sb.AppendLine($"Boon: {boon.Key}");
+                        sb.AppendLine(Localization.instance.Localize($"Boon: {LocalizeBoon(boon.Key)} -($ve_boon)- $ve_level_required {boon.Value}"));
                     }
+                    sb.AppendLine("");
                 }
                 if (includeKeysInDescription && PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0) {
                     foreach (string key in PlayerKeyRequirements)
                     {
                         sb.AppendLine($"PlayerKey {key}");
                     }
+                    sb.AppendLine("");
+                }
+                if (includeItemReference && ItemRequirements != null && ItemRequirements.Count > 0) {
+                    sb.AppendLine("Item Requirements:");
                 }
 
                 return sb.ToString();
@@ -264,39 +315,30 @@ namespace ValhallEternal.common
             {
                 StringBuilder sb = new StringBuilder();
 
-                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0)
-                {
-                    sb.Append(Localization.instance.Localize("$ve_oath_changes"));
-                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges)
-                    {
-                        if (kvp.Value > 0)
-                        {
-                            sb.Append(Localization.instance.Localize($" {LocalizeOath(kvp.Key)} $ve_increase <color={color_increase}>+{kvp.Value}</color>"));
-                        }
-                        else
-                        {
-                            sb.Append(Localization.instance.Localize($" {LocalizeOath(kvp.Key)} $ve_decrease <color={colore_decrease}>-{kvp.Value}</color>"));
+                if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
+                    sb.AppendLine($"{Localization.instance.Localize("$ve_oath_changes")}");
+                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges) {
+                        if (kvp.Value > 0) {
+                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={color_increase}>+{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key)}\n"));
+                        } else {
+                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={colore_decrease}>-{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key)}\n"));
                         }
                     }
                 }
 
-                if (PlayerBoonsChanges != null && PlayerBoonsChanges.Count > 0)
-                {
+                if (PlayerBoonsChanges != null && PlayerBoonsChanges.Count > 0) {
                     // spacing between boon and oath changes if both are defined
                     if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
                         sb.AppendLine("");
                     }
 
-                    sb.Append(Localization.instance.Localize("$ve_boon_changes"));
-                    foreach (KeyValuePair<Boons, float> kvp in PlayerBoonsChanges)
-                    {
+                    sb.AppendLine($"{Localization.instance.Localize("$ve_boon_changes")}");
+                    foreach (KeyValuePair<Boons, float> kvp in PlayerBoonsChanges) {
                         if (kvp.Value > 0)
                         {
-                            sb.Append(Localization.instance.Localize($" {LocalizeBoon(kvp.Key)} $ve_increase <color={color_increase}>+{kvp.Value}</color>"));
-                        }
-                        else
-                        {
-                            sb.Append(Localization.instance.Localize($" {LocalizeBoon(kvp.Key)} $ve_decrease <color={colore_decrease}>-{kvp.Value}</color>"));
+                            sb.AppendLine(Localization.instance.Localize($"  » <size=18>{LocalizeBoon(kvp.Key)}</size> <color={color_increase}>+{kvp.Value}</color> | {LocalizeBoonDesc(kvp.Key)}\n"));
+                        } else {
+                            sb.AppendLine(Localization.instance.Localize($"  » <size=18>{LocalizeBoon(kvp.Key)}</size> <color={colore_decrease}>-{kvp.Value}</color> | {LocalizeBoonDesc(kvp.Key)}\n"));
                         }
                     }
                 }
@@ -310,7 +352,7 @@ namespace ValhallEternal.common
                 {
                     sb.AppendLine("This is a prestige increase.");
                     if (ResetPlayer.ResetSkillPercentage > 0) {
-                        sb.AppendLine($"All skills will be reduced by: <color={colore_decrease}>{ResetPlayer.ResetSkillPercentage}%</color>");
+                        sb.AppendLine($"All skills will be reduced by: <color={colore_decrease}>{ResetPlayer.ResetSkillPercentage*100}%</color>");
                     }
                     if (ResetPlayer.ResetKnownRecipes) {
                         sb.AppendLine("All known recipes will be forgotten.");
@@ -332,14 +374,14 @@ namespace ValhallEternal.common
 
             public string GetTotalDescription(bool showreqboons = true, bool showreqoaths = true) {
                 string reqdesc = GetPlayerRequirementsDescription(includeOathsInDescription: showreqoaths, includeBoonsInDescription: showreqboons);
-                string changesgranted = GetChangesGrantedDescription();
                 string prestige = GetResetDetails();
                 string totaldesc = "";
-                totaldesc += reqdesc;
-                if (reqdesc.Length > 0) { totaldesc += "\n"; }
-                totaldesc += changesgranted;
-                if (changesgranted.Length > 0) { totaldesc += "\n"; }
+
+                totaldesc += GetChangesGrantedDescription();
+                if (prestige.Length > 0) { totaldesc += "\n"; }
                 totaldesc += prestige;
+                if (reqdesc.Length > 0) { totaldesc += "\n"; }
+                totaldesc += reqdesc;
                 return totaldesc;
             }
         }

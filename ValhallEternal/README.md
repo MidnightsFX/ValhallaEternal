@@ -54,9 +54,9 @@ Goddess Of Plowing, Agriculture & Protection
 
 ### Boons
 - Bounty of the lands | Increases yield from harvests (chance?)
-- Seeds of the Gods | Grow crops in any environment (starts with weaker crops, gains 1 per level)
-- Feed the Heroes | Chance to produce bonus food items? 
-- Prosperity | Fishing has a chance to produce bonus items? Fishing costs less stamina?
+- Seeds of the Gods | Grow crops in any environment (starts with weaker crops, gains 1 per level) - TODO
+- Quality Nourishment | Food Items provide higher values for you
+- Fishing Prosperity | Fishing has a chance to produce bonus items?
 
 ## Vör | Blackforest
 Goddess of Curiosity, Wisdom & Certainty
@@ -69,9 +69,9 @@ Goddess of Curiosity, Wisdom & Certainty
 
 ### Boons
 - Wisdom of the Ages | Recieve bonus XP (chance? random?)
-- Strike Now! | provides a burst of stamina when close to death
-- Curiosity | Every time you discover a recipe, gain a small amount of XP for a random skill
-- Knowledge is Power | Highest non-combat skill provides a bonus to all weapon skills
+- Strike Now! | provides a burst of stamina when close to death - TODO
+- Hunger For Knowledge | Every time you discover a recipe, gain a small amount of XP for a random skill
+- Bladebound Knowledge | Combat skills sometimes provide XP to other skills
 
 ## Baldur | Swamp
 God of Light, Purity & Invincibility
@@ -80,13 +80,13 @@ God of Light, Purity & Invincibility
 - Summon a wisp to light your way at night every x minutes/hits (toggleable)?
 
 ## Core
-- Cleanse | Reduces duration of poison, and fire on you
+- Purify | Reduces duration of poison, and fire on you
 
 ### Boons
-- Cleanse Wet | Reduces duration of wet on you
+- Cleanse Wet | Reduces duration of wet on you - TODO
 - Light of Baldur | Increases damage against undead
-- Stronger Shields | Increases shield block effectiveness
-- Arrow Catcher | Reduces projectile damage taken every x hits/minutes
+- Shield Wall | Increases shield block effectiveness
+- Arrow Catcher | Reduces projectile damage taken every x hits/minutes - TODO
 
 ## Skaði | Mountains
 Goddess of Winter, Mountains & Hunting
@@ -98,7 +98,7 @@ Goddess of Winter, Mountains & Hunting
 - Huntress Prowess | Creature kills have a chance to give you an arrow
 - Swift is the Shadow | Increases speed at night or on mountains?
 - Stormbound Rage | Deal bonus lightning damage during storms
-- Vegence is mine | Poisons the attacker (% of damage taken?)
+- Vegence is mine | Poisons the attacker (% of damage taken?) - TODO
 
 ## Syn | Plains
 Goddess of Refusal, Protection & Guardian of Valhalla
@@ -108,11 +108,12 @@ Goddess of Refusal, Protection & Guardian of Valhalla
 
 ### Boons
 
-- Refusal of the Unworthy | Prevents use of bows/crossbows, melee weapons deal +% dmg
+- Deadication to the Blade | reduces ranged damage by -%, melee weapons deal ++% dmg
 - Guardian of the Gates | Tower shields block is %+ stronger
-- Lineage of legend | Increases amount of gold or valuables found (chance?)
-- Ever Watchful | Recieve less damage from backstabs
-- Brutal Defiance | Enables Shield bash on your equipped shield, repeatedly blocking in succession releases a burst of damage
+- Wealth of the Ages | Chance for gold or other valuable on kill
+- Ever Watchful | Recieve less damage when staggered
+- Built Different | It takes more to stagger you
+- Brutal Defiance | Enables Shield bash on your equipped shield, repeatedly blocking in succession releases a burst of damage - TODO
 
 ## Freya | Mistlands
 Goddess of Love, Sex, Beauty, War & Seiðr Magic
@@ -133,8 +134,9 @@ Goddess of Death and Ruler of the Damned in the Underworld
 
 ### Boons
 - Hellfire Adaptation | Increases how long you can withstand incredible heat/ fire damage
-- Balance of duality | Recieve Eitr/stamina when taking damage
-- Haste the inevitable | Increases movement speed killing enemies
+- Balance of the Jotunn | Recieve stamina when taking damage
+- Balance of the Aesir | Recieve Eitr when taking damage
+- Haste the inevitable | killing enemies increases movement speed briefly
 - Death Control | Prevent death once (recharge 1 hour?), if you do not kill something in x seconds die
 
 

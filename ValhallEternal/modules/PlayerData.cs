@@ -163,7 +163,7 @@ namespace ValhallEternal.modules {
                 PlayerLevelData pld = UnpackPlayerData(player.m_customData[CustomDataKey]);
                 PlayerLevelConfiguration plc = PrestigeLevelConfigData.GetPlayerLevelConfiguration(pld.PlayerLevel);
                 SetPlayerConfig(plc, pld);
-                PlayerLevelDisplays.UpdateLocalPlayerLevelDisplay();
+                PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
             } else {
                 Logger.LogDebug("No saved player saved data found.");
             }

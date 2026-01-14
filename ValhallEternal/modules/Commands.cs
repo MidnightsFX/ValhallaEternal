@@ -29,7 +29,7 @@ namespace ValhallEternal.modules
                     Player.m_localPlayer.m_nview.GetZDO().Set(DataObjects.CustomLevelZKey, result);
                     Player.m_localPlayer.PlayerRemoveUniqueKey(DataObjects.CustomLevelZKey);
                     Player.m_localPlayer.AddUniqueKeyValue(DataObjects.CustomLevelZKey, $"{result}");
-                    PlayerLevelDisplays.UpdateLocalPlayerLevelDisplay();
+                    PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
                 }
             }
         }

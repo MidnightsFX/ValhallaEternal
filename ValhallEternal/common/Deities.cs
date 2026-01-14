@@ -1,8 +1,6 @@
-﻿using System;
+﻿using Jotunn.Managers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -44,6 +42,10 @@ namespace ValhallEternal.common
             AddDeityConfiguration(Deity.Syn, ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/syn_nobackground.png"));
 
             AddEffect("leafburstverticle", ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/boons/harvestbonus.prefab"));
+            AddEffect("vinepulseinward", ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/boons/naturegeneric.prefab"));
+            AddEffect("snowswirl", ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/boons/snowswirlsoft.prefab"));
+            AddEffect("goldenswirl", ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/boons/goldenswirl.prefab"));
+            
         }
 
         internal static void AddDeityConfiguration(Deity deity, Sprite image)
@@ -60,6 +62,7 @@ namespace ValhallEternal.common
         internal static void AddEffect(string key, GameObject asset) {
             if (!DeityEffects.ContainsKey(key)) {
                 DeityEffects.Add(key, asset);
+                PrefabManager.Instance.AddPrefab(asset);
             }
         }
 
