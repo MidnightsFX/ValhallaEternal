@@ -80,7 +80,15 @@ namespace ValhallEternal.common
                         ResetSkillPercentage = 0.5f,
                         TeleportToSpawn = true,
                         PrestigeLevelsGained = 1
+                    },
+                    PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
+                        { new DataObjects.PrestigeEffectDetails() {
+                            EffectType = PrestigeEffect.Aura,
+                            EffectValue = "natureAura",
+                            LevelRequirement = 1,
+                        }}
                     }
+                    
                 } },
                 }
             },

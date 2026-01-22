@@ -8,6 +8,7 @@ namespace ValhallEternal.modules
     {
         internal static void AddCommands() {
             CommandManager.Instance.AddConsoleCommand(new SetPlayerEternalLevel());
+            CommandManager.Instance.AddConsoleCommand(new ClearPlayerData());
         }
 
         internal class SetPlayerEternalLevel : ConsoleCommand
@@ -31,6 +32,17 @@ namespace ValhallEternal.modules
                     Player.m_localPlayer.AddUniqueKeyValue(DataObjects.CustomLevelZKey, $"{result}");
                     PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
                 }
+            }
+        }
+
+        internal class ClearPlayerData : ConsoleCommand {
+            public override string Name => "VE-remove-player-data";
+            public override string Help => "This clears ALL boon, oath, prestige, and player levels. REQUIRES A CLIENT RESTART";
+            //public override bool IsNetwork => false;
+            public override bool IsCheat => true;
+
+            public override void Run(string[] args) {
+                Player.m_localPlayer.m_customData.Remove(DataObjects.CustomDataKey);
             }
         }
     }

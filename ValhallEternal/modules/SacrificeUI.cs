@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using ValhallEternal.common;
+using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.modules
 {
@@ -161,6 +162,7 @@ namespace ValhallEternal.modules
                     // Clear known recipes and materials
                     Player.m_localPlayer.m_knownMaterial.Clear();
                     Player.m_localPlayer.m_knownRecipes.Clear();
+                    //Player.m_localPlayer.m_knownBiome.Clear();
                 }
                 if (selectedSacrifice.ResetPlayer.ResetSkillPercentage > 0f)
                 {
@@ -187,6 +189,17 @@ namespace ValhallEternal.modules
                     }
                 }
             }
+
+            if (selectedSacrifice.PrestigeOptions != null) {
+                foreach (PrestigeEffectDetails prestigeOption in selectedSacrifice.PrestigeOptions) {
+                    if (prestigeOption.PlayerMeetsPrestigeRequirements() == false) { continue; }
+
+                    PlayerData.AddVisualPrestigeEffectOptionToPlayerConfig(prestigeOption.EffectType, prestigeOption.EffectValue);
+                    Logger.LogDebug($"Adding prestige effect option {prestigeOption.EffectType} of type {prestigeOption.EffectValue} to player config.");
+                    PlayerData.SetActivePrestigeEffectForPlayer(prestigeOption.EffectType, prestigeOption.EffectValue);
+                }
+            }
+
             PlayerData.SavePlayerConfiguration();
             PlayerData.LoadPlayerConfiguration(Player.m_localPlayer);
             PrestigeDisplays.UpdateLocalPlayerLevelDisplay();

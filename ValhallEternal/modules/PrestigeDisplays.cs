@@ -1,16 +1,21 @@
 ﻿using HarmonyLib;
 using Jotunn.Managers;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ValhallEternal.common;
+using static ValhallEternal.common.DataObjects;
 using Vector3 = UnityEngine.Vector3;
 
 namespace ValhallEternal.modules
 {
-    static class PrestigeDisplays
+    internal static class PrestigeDisplays
     {
         static GameObject localPlayerVEHUD = null;
-        static TextMeshPro localPlayerLevelText = null;
+        static TextMeshProUGUI localPlayerLevelText = null;
+        internal static GameObject localPlayerWings = null;
+        internal static GameObject localPlayerAura = null;
 
         public static void CreateLocalHudElements(Transform targetTform) {
             if (localPlayerVEHUD == null) {
@@ -30,10 +35,11 @@ namespace ValhallEternal.modules
             if (localPlayerVEHUD != null && localPlayerLevelText == null) {
                 //Transform healthIco = __instance.m_healthPanel.transform.Find("healthicon");
                 //veLocalHud.transform.localPosition = new Vector3(healthIco.position.x - ValConfig.LocalLevelDisplayOffset.Value, healthIco.position.y);
+                Logger.LogDebug("Finding Level TextMeshPro component.");
                 Transform tform = localPlayerVEHUD.transform.Find("Level");
                 if (tform != null)
                 {
-                    localPlayerLevelText = tform.GetComponent<TextMeshPro>();
+                    localPlayerLevelText = tform.GetComponent<TextMeshProUGUI>();
                 }
                 else
                 {
@@ -42,9 +48,71 @@ namespace ValhallEternal.modules
             }
         }
 
-        public static void UpdateLocalPlayerLevelDisplay() {
+        public static void UpdateLocalPlayerLevelDisplay(int level = 0) {
+            if (!SceneManager.GetActiveScene().name.Equals("main")) { return; }
+            if (level == 0) { level = PlayerData.localPlayerConfig.PlayerLevel; }
             CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
-            SetupPlayerLevelDisplay(localPlayerVEHUD, PlayerData.localPlayerConfig.PlayerLevel);
+            SetupPlayerLevelDisplay(localPlayerVEHUD, level);
+        }
+
+        public static void SetupPlayerWingsDisplay(string selectedWings = null) {
+            if (selectedWings == null || Player.m_localPlayer == null) { return; }
+
+            if (PrestigeDisplays.localPlayerWings != null) { GameObject.Destroy(PrestigeDisplays.localPlayerWings); }
+            if (selectedWings == DataObjects.None) { return; }
+            if (Deities.PrestigeEffects[DataObjects.PrestigeEffect.Wings].ContainsKey(selectedWings)) {
+                // need to setup and use a visequip which links to the wings
+                PrestigeDisplays.localPlayerWings = UnityEngine.GameObject.Instantiate(Deities.PrestigeEffects[PrestigeEffect.Wings][selectedWings].EffectObject, Player.m_localPlayer.gameObject.transform);
+            } else {
+                Logger.LogWarning($"Selected wings {selectedWings} not found in Deities.PrestigeEffects");
+            }
+        }
+
+        public static void SetupPlayerAuraDisplay(string selectedAura = null) {
+            if (selectedAura == null || Player.m_localPlayer == null) { return; }
+
+            if (PrestigeDisplays.localPlayerAura != null) { GameObject.Destroy(PrestigeDisplays.localPlayerAura); }
+            if (selectedAura == DataObjects.None) { return; }
+            if (Deities.PrestigeEffects[DataObjects.PrestigeEffect.Aura].ContainsKey(selectedAura)) {
+                // need to setup and use a visequip which links to the wings
+                PrestigeDisplays.localPlayerAura = UnityEngine.GameObject.Instantiate(Deities.PrestigeEffects[PrestigeEffect.Aura][selectedAura].EffectObject, Player.m_localPlayer.gameObject.transform);
+            } else {
+                Logger.LogWarning($"Selected Aura {selectedAura} not found in Deities.PrestigeEffects");
+            }
+        }
+
+        internal static class EnablePlayerPrestigeDisplays
+        {
+            [HarmonyPatch(typeof(Player), nameof(Player.Awake))]
+            public static class EnableLocalPlayerPrestigeDisplays {
+                public static void Postfix(Player __instance)
+                {
+                    PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
+                    foreach(KeyValuePair<PrestigeEffect, string> kvp in PlayerData.localPlayerConfig.ActiveEffectsForPlayer) {
+                        switch (kvp.Key) {
+                            case PrestigeEffect.Wings:
+                                PrestigeDisplays.SetupPlayerWingsDisplay(kvp.Value);
+                                break;
+                                //case PrestigeEffect.LevelColor:
+                                //    // Set the player level color
+                                //    PlayerLevelColors.ApplyPlayerLevelColor(__instance, kvp.Value);
+                                //    break;
+                                //case PrestigeEffect.Footprints:
+                                //    // Set the player footprints
+                                //    PlayerFootprints.ApplyPlayerFootprints(__instance, kvp.Value);
+                                //    break;
+                                case PrestigeEffect.Aura:
+                                    // Set the player aura
+                                    PrestigeDisplays.SetupPlayerAuraDisplay(kvp.Value);
+                                    break;
+                                //case PrestigeEffect.Title:
+                                //    // Set the player title
+                                //    PlayerTitles.ApplyPlayerTitle(__instance, kvp.Value);
+                                //    break;
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -91,17 +159,12 @@ namespace ValhallEternal.modules
                 return;
             }
 
-            Logger.LogDebug($"Setting player HUD with level {levelnum}");
             hugGUI.SetActive(true);
-            // This should instead determine the display based on the level configuration sent from the server and the level of the target player
-            // Consider if this should have the option to convert to roman, nordic runes or language specific numbers
-            Logger.LogDebug($"Checking for Level text in GO:{hugGUI.name}");
-
-
-            TextMeshPro tmp = hugGUI.GetComponentInChildren<TextMeshPro>(true);
-            if (tmp != null) {
-                tmp.text = $"{levelnum}";
+            if (localPlayerLevelText == null) {
+                return;
             }
+            Logger.LogDebug($"Setting player HUD with level {levelnum}");
+            localPlayerLevelText.text = $"{levelnum}";
         }
     }
 }

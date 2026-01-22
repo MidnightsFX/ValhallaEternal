@@ -1,12 +1,7 @@
 ﻿using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
-using Jotunn.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UnityEngine;
 using ValhallEternal.common;
 using ValhallEternal.modules;
 
@@ -17,7 +12,8 @@ namespace ValhallEternal.boons {
         static int hastenDeathBringerEffectID = 0;
 
         internal static void AddHastenDeathStatus() {
-            SE_Stats hastenDeathBringerEffect = new SE_Stats() { m_speedModifier = 1.3f };
+            SE_Stats hastenDeathBringerEffect = ScriptableObject.CreateInstance<SE_Stats>();
+            hastenDeathBringerEffect.m_speedModifier = 1.3f;
             hastenDeathBringerEffect.name = "HastenDeathEffect";
             hastenDeathBringerEffect.m_name = "$ve_hasten_death_effect";
             hastenDeathBringerEffect.m_icon = DataObjects.hastenDeath;

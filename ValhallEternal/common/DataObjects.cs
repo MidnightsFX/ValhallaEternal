@@ -3,17 +3,19 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using ValhallEternal.modules;
 using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.common
 {
     public static class DataObjects {
         public static readonly string CustomLevelZKey = "VELevel";
-        public static readonly string CustomDataKey = "VEOathBoons";
+        public static readonly string CustomDataKey = "VE_DATA";
         internal static JsonSerializer serializer = new JsonSerializer() { NullValueHandling = NullValueHandling.Ignore};
         internal static JsonSerializer compactSerializer = new JsonSerializer() {
             NullValueHandling = NullValueHandling.Ignore,
@@ -43,11 +45,21 @@ namespace ValhallEternal.common
         public static readonly string HarvestingBonusColor = "#ffc87c";
         public static readonly string FishBountyBonusColor = "#619CFF";
 
+        public static readonly string None = "None";
+
         public enum DisplayStyle
         {
             Numeric,
             Roman,
             Nordic
+        }
+
+        public enum PrestigeEffect {
+            Wings,
+            Footprints,
+            Aura,
+            LevelColor,
+            Title
         }
 
         public enum Oaths
@@ -119,6 +131,8 @@ namespace ValhallEternal.common
             HastenTheInevitable,
             ReduceFirePoison,
             HungerForKnowledge,
+            BasicProtection,
+            ArrowCatcher
         }
 
         public static readonly List<Oaths> DamageReductionOaths = new List<Oaths>() {
@@ -146,7 +160,7 @@ namespace ValhallEternal.common
         }
 
         public static string LocalizeOathDesc(Oaths oath, float value = 0) {
-            if (value > 0) { return $"$ve_{oath}_desc {value}"; }
+            if (value > 0) { return string.Format($"$ve_{oath}_desc", value); }
             return $"$ve_{oath}_desc";
         }
 
@@ -203,6 +217,11 @@ namespace ValhallEternal.common
             public bool DealReductedDamageActive { get; set; } = false;
             public Dictionary<Oaths, float> TotalOaths { get; set; } = new Dictionary<Oaths, float>();
             public Dictionary<Boons, float> TotalBoons { get; set; } = new Dictionary<Boons, float>();
+            public Dictionary<PrestigeEffect, string> ActiveEffectsForPlayer { get; set; } = new Dictionary<PrestigeEffect, string>();
+            public Dictionary<PrestigeEffect, List<string>> AvailableEffectsForPlayer { get; set; } = new Dictionary<PrestigeEffect, List<string>>() {
+                {PrestigeEffect.Wings, new List<string>() { DataObjects.None } },
+                {PrestigeEffect.Aura, new List<string>() { DataObjects.None } },
+            };
 
             public bool HasOath(Oaths oath, out float OathValue)
             {
@@ -250,6 +269,10 @@ namespace ValhallEternal.common
             public Dictionary<Oaths, float> PlayerOaths { get; set; }
             [DataMember]
             public Dictionary<Boons, float> PlayerBoons { get; set; }
+            [DataMember]
+            public Dictionary<PrestigeEffect, string> ActiveEffectsForPlayer { get; set; }
+            [DataMember]
+            public Dictionary<PrestigeEffect, List<string>> AvailableEffectsForPlayer { get; set; }
         }
 
         public class PlayerResetData
@@ -258,6 +281,45 @@ namespace ValhallEternal.common
             public bool ResetKnownRecipes { get; set; } = true;
             public bool TeleportToSpawn { get; set; } = false;
             public int PrestigeLevelsGained { get; set; } = 1;
+        }
+
+        public class PrestigeEffectDetails {
+            public int LevelRequirement { get; set; }
+            public Dictionary<Oaths, float> PlayerOathRequirements { get; set; }
+            public Dictionary<Boons, float> PlayerBoonRequirements { get; set; }
+            public PrestigeEffect EffectType { get; set; }
+            public string EffectValue { get; set; }
+
+            public bool PlayerMeetsPrestigeRequirements() {
+                bool includePrestigeReward = false;
+                bool boonRequirementsMet = false;
+                bool oathRequirementsMet = false;
+                // Check boon requirements
+                if (PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0) {
+                    foreach (KeyValuePair<Boons, float> kvp in PlayerBoonRequirements) {
+                        if (PlayerData.HasBoonWithValue(kvp.Key, out float value) && value > kvp.Value) {
+                            boonRequirementsMet = true;
+                        }
+                    }
+                } else {
+                    boonRequirementsMet = true;
+                }
+                // check oath requirements
+                if (PlayerOathRequirements != null && PlayerOathRequirements.Count > 0) {
+                    foreach (KeyValuePair<Oaths, float> kvp in PlayerOathRequirements) {
+                        if (PlayerData.HasOathWithValue(kvp.Key, out float value) && value > kvp.Value) {
+                            oathRequirementsMet = true;
+                        }
+                    }
+                } else {
+                    oathRequirementsMet = true;
+                }
+                // Check player level
+                if (LevelRequirement <= PlayerData.localPlayerConfig.PlayerLevel && boonRequirementsMet && oathRequirementsMet) {
+                    includePrestigeReward = true;
+                }
+                return includePrestigeReward;
+            }
         }
 
         [Serializable]
@@ -274,6 +336,7 @@ namespace ValhallEternal.common
             public Dictionary<Oaths, float> PlayerOathChanges { get; set; }
             [DataMember]
             public Dictionary<Boons, float> PlayerBoonsChanges { get; set; }
+            public List<PrestigeEffectDetails> PrestigeOptions { get; set; }
 
             public string GetPlayerRequirementsDescription(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false, bool includeItemReference = true)
             {
@@ -315,7 +378,34 @@ namespace ValhallEternal.common
             {
                 StringBuilder sb = new StringBuilder();
 
+                if (PrestigeOptions != null && PrestigeOptions.Count > 0) {
+                    foreach(PrestigeEffectDetails ped in PrestigeOptions) {
+                        // Skip already registered effects
+                        if (PlayerData.PlayerHasPrestigeEffect(ped.EffectType, ped.EffectValue) == true) { continue; }
+                        if (ped.PlayerMeetsPrestigeRequirements()) {
+                            switch (ped.EffectType) {
+                                case PrestigeEffect.Wings:
+                                    sb.AppendLine($"{Localization.instance.Localize($"$ve_prestige_wings_granted $ve_{ped.EffectValue}_local")}");
+                                    break;
+                                case PrestigeEffect.Footprints:
+                                    sb.AppendLine($"{Localization.instance.Localize($"$ve_prestige_footprints_granted $ve_{ped.EffectValue}_local")}");
+                                    break;
+                                case PrestigeEffect.Aura:
+                                    sb.AppendLine($"{Localization.instance.Localize($"$ve_prestige_aura_granted $ve_{ped.EffectValue}_local")}");
+                                    break;
+                                case PrestigeEffect.LevelColor:
+                                    sb.AppendLine($"{Localization.instance.Localize($"$ve_prestige_levelcolor_granted $ve_{ped.EffectValue}_local")}");
+                                    break;
+                                case PrestigeEffect.Title:
+                                    sb.AppendLine($"{Localization.instance.Localize($"$ve_prestige_title_granted $ve_{ped.EffectValue}_local")}");
+                                    break;
+                            }
+                        }
+                    }
+                }
+
                 if (PlayerOathChanges != null && PlayerOathChanges.Count > 0) {
+                    if (sb.Length > 0) { sb.AppendLine(""); }
                     sb.AppendLine($"{Localization.instance.Localize("$ve_oath_changes")}");
                     foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges) {
                         if (kvp.Value > 0) {

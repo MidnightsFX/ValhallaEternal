@@ -4882,7 +4882,7 @@ ParticleSystemRenderer:
   m_VertexStreams: 000103042223
   m_UseCustomTrailVertexStreams: 0
   m_TrailVertexStreams: 00010304
-  m_Mesh: {fileID: -4099128405397368391, guid: 47f44effdb12cbf4db8db6030708e284, type: 3}
+  m_Mesh: {fileID: 5500812744502110525, guid: 83e203ca452584c4889da3ca4a762c1e, type: 3}
   m_Mesh1: {fileID: 0}
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
@@ -29223,7 +29223,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3060892791802668077
 Transform:
   m_ObjectHideFlags: 0
@@ -39011,7 +39011,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 178038232109084353}
-  - component: {fileID: 4871734965571119640}
   m_Layer: 0
   m_Name: NatureWings
   m_TagString: Untagged
@@ -39035,33 +39034,6 @@ Transform:
   - {fileID: 1582508706070877627}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4871734965571119640
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6133145851496916390}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -415060008, guid: 02f806226319f1d4b8ae0232b57e8b19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_bodyModel: {fileID: 0}
-  m_nViewOverride: {fileID: 0}
-  m_leftHand: {fileID: 0}
-  m_rightHand: {fileID: 0}
-  m_helmet: {fileID: 0}
-  m_backShield: {fileID: 0}
-  m_backMelee: {fileID: 0}
-  m_backTwohandedMelee: {fileID: 0}
-  m_backBow: {fileID: 0}
-  m_backTool: {fileID: 0}
-  m_backAtgeir: {fileID: 0}
-  m_clothColliders: []
-  m_models: []
-  m_isPlayer: 0
-  m_useAllTrails: 0
 --- !u!1 &6630381487498955416
 GameObject:
   m_ObjectHideFlags: 0
@@ -39079,7 +39051,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1872374976840151514
 Transform:
   m_ObjectHideFlags: 0
@@ -48889,7 +48861,7 @@ ParticleSystemRenderer:
   m_VertexStreams: 000103042223
   m_UseCustomTrailVertexStreams: 0
   m_TrailVertexStreams: 00010304
-  m_Mesh: {fileID: -4099128405397368391, guid: 47f44effdb12cbf4db8db6030708e284, type: 3}
+  m_Mesh: {fileID: 5500812744502110525, guid: 83e203ca452584c4889da3ca4a762c1e, type: 3}
   m_Mesh1: {fileID: 0}
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}

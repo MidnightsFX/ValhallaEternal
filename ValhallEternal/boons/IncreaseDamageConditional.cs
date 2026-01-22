@@ -10,6 +10,7 @@ namespace ValhallEternal.boons {
         public static class ModifyAttackDamages {
 
             static float perfectFormCharge = 0f;
+            static int arrowCatcherCharge = 0;
 
             [HarmonyPrefix]
             [HarmonyPatch(nameof(Character.RPC_Damage))]
@@ -58,6 +59,18 @@ namespace ValhallEternal.boons {
                         if (modifier < 0) { modifier = 0; }
                         hit.m_damage.Modify(modifier);
                         Logger.LogDebug($"[Everwatchful] modifying hit by x{modifier}.");
+                    }
+                    if (hit.m_ranged && PlayerData.HasBoonWithValue(DataObjects.Boons.ArrowCatcher, out float arrowCatcher)) {
+                        // Every 5th ranged hit
+                        if (arrowCatcherCharge < 5) { 
+                            arrowCatcherCharge++;
+                        } else {
+                            arrowCatcherCharge = 0;
+                            float modifier = (100 - arrowCatcher) * 0.001f;
+                            if (modifier < 0.1) { modifier = 0.1f; }
+                            hit.m_damage.Modify(modifier);
+                            Logger.LogDebug($"[ArrowCatcher] reducing damage {arrowCatcher}.");
+                        }
                     }
                     if (PlayerData.HasBoonWithValue(DataObjects.Boons.BalanceOfTheJotunn, out float bofJotunn)) {
                         Player.m_localPlayer.AddStamina(bofJotunn);
