@@ -13,10 +13,10 @@ namespace ValhallEternal.boons {
         private static class ReduceFireDamageApplied {
             private static void Prefix(Character __instance, ref float damage) {
                 if (__instance != null && __instance as Player == Player.m_localPlayer && PlayerData.HasBoonWithValue(common.DataObjects.Boons.ReduceFirePoison, out float value)) {
-                    float reduction = (100 - value) * 0.001f;
+                    float reduction = 1 - ((100 - value) * 0.001f);
                     // Cap damage to a minimum of 20%
                     if (reduction < 0.2) { reduction = 0.2f; }
-                    Logger.LogDebug($"[ReduceFirePoison] is reducing Fire {damage} by {reduction} = ({damage * reduction})");
+                    Logger.LogDebug($"[ReduceFirePoison] is reducing Fire {damage} by {reduction * 100}% = ({damage * reduction})");
                     damage *= reduction;
                 }
             }
@@ -26,10 +26,10 @@ namespace ValhallEternal.boons {
         private static class ReducePoisonDamageApplied {
             private static void Prefix(Character __instance, ref float damage) {
                 if (__instance != null && __instance as Player == Player.m_localPlayer && PlayerData.HasBoonWithValue(common.DataObjects.Boons.ReduceFirePoison, out float value)) {
-                    float reduction = (100 - value) * 0.001f;
+                    float reduction = 1 - ((100 - value) * 0.001f);
                     // Cap damage to a minimum of 20%
                     if (reduction < 0.2) { reduction = 0.2f; }
-                    Logger.LogDebug($"[ReduceFirePoison] is reducing Poison {damage} by {reduction} = ({damage * reduction})");
+                    Logger.LogDebug($"[ReduceFirePoison] is reducing Poison {damage} by {reduction * 100}% = ({damage * reduction})");
                     damage *= reduction;
                 }
             }

@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Jotunn.Managers;
+using Splatform;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,14 +13,21 @@ namespace ValhallEternal.modules
 
     public static class SacrificePatches
     {
+        static SacrificeUI invGUISacrifice;
+        static GameObject SacrificeEnableButton = null;
 
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class AddSacrificeUIButton
         {
-            static GameObject SacrificeEnableButton = null;
+            
             public static void Postfix(InventoryGui __instance)
             {
-                if (SacrificeEnableButton != null) { return; }
+                if (SacrificeEnableButton != null) {
+                    if (Player.m_localPlayer != null) {
+                        SacrificeEnableButton.SetActive(Player.m_localPlayer.NoCostCheat());
+                    }
+                    return;
+                }
 
                 SacrificeEnableButton = GUIManager.Instance.CreateButton(
                     text: Localization.instance.Localize("$ve_sacrifice_button"),
@@ -32,8 +40,9 @@ namespace ValhallEternal.modules
                 Button bclose = SacrificeEnableButton.GetComponent<Button>();
                 bclose.interactable = true;
 
-                SacrificeEnableButton.AddComponent<SacrificeUI>();
-                bclose.onClick.AddListener(SacrificeUI.Instance.Show);
+                invGUISacrifice = SacrificeEnableButton.AddComponent<SacrificeUI>();
+                bclose.onClick.AddListener(invGUISacrifice.Show);
+                SacrificeEnableButton.SetActive(false);
             }
         }
 
@@ -42,54 +51,76 @@ namespace ValhallEternal.modules
         {
             public static void Postfix()
             {
-                SacrificeUI.Instance.Hide();
+                invGUISacrifice.Hide();
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Show))]
+        public static class HideSacrificeUI_InventoryOpen {
+            public static void Postfix() {
+                if (SacrificeEnableButton != null && Player.m_localPlayer != null) {
+                    SacrificeEnableButton.SetActive(Player.m_localPlayer.NoCostCheat());
+                }
             }
         }
     }
 
 
 
-    internal class SacrificeUI : MonoBehaviour
-    {
-        // UI instance for this player
-        public static SacrificeUI Instance => _instance ??= new SacrificeUI();
-        private static SacrificeUI _instance;
+    internal class SacrificeUI : MonoBehaviour, Hoverable, Interactable {
 
-        private static GameObject SacrificePanel;
-        private static GameObject ScrollAreaView;
-        private static GameObject ScrollContentArea;
-        private static ToggleGroup SacrificeChoiceGroup;
-        private static GameObject SacrificeChoiceContainer;
-        private static GameObject ChoiceSelectButton;
-        private static GameObject ManualCloseButton;
-        private static GameObject DeitySelectorDropdown;
+        private GameObject SacrificePanel;
+        private GameObject ScrollAreaView;
+        private GameObject ScrollContentArea;
+        private ToggleGroup SacrificeChoiceGroup;
+        private GameObject SacrificeChoiceContainer;
+        private GameObject ChoiceSelectButton;
+        private GameObject ManualCloseButton;
+        private GameObject DeitySelectorDropdown;
 
 
         //private static Text SacrificeRequirements;
         //private static Text BoonChanges;
         //private static Text OathChanges;
         //private static Text PrestigeResetDetails;
-        private static Text DeityName;
-        private static Text DeityDescription;
-        private static Image DeityImage;
+        private Text DeityName;
+        private Text DeityDescription;
+        private Image DeityImage;
+        private Text WarningText;
 
-        private static List<Toggle> SacrificeToggleOptions = new List<Toggle>();
-        private static string SelectedChoice = "none";
-        private static Deities.Deity SelectedDeity;
+        private List<Toggle> SacrificeToggleOptions = new List<Toggle>();
+        private string SelectedChoice = "none";
+        private Deities.Deity SelectedDeity;
+
+        public bool enableExclusiveDeityMode;
+        public Deities.Deity ExclusiveDeity;
 
         public void Awake()
         {
-            _instance = this;
+            //_instance = this;
+        }
+
+        public void Update() {
+            if (SacrificePanel == null) { return; }
+            if (SacrificePanel.activeSelf && Input.GetKeyDown(KeyCode.Escape)) {
+                // Jotunn.Logger.LogInfo("Shrine UI detected close commands.");
+                Hide();
+                GUIManager.BlockInput(false);
+            }
         }
 
         public void Show()
         {
-            if (SacrificePanel == null)
-            {
+            if (SacrificePanel == null) {
                 CreateStaticUIObjects();
-                //LoadStaticAssets();
-                SetChoiceList(Deities.Deity.Gefjun);
+                Deities.Deity selectDeity = Deities.Deity.Gefjun;
+                if (enableExclusiveDeityMode == true) {
+                    selectDeity = ExclusiveDeity;
+                    DeitySelectorDropdown.SetActive(false);
+                }
+                SetChoiceList(selectDeity);
             }
+            GUIManager.BlockInput(true);
             SacrificePanel.SetActive(true);
         }
 
@@ -101,6 +132,18 @@ namespace ValhallEternal.modules
                 SacrificePanel.SetActive(false);
             }
             GUIManager.BlockInput(false);
+        }
+
+        public void Toggle() {
+            if (SacrificePanel != null) {
+                if (SacrificePanel.activeSelf == true) {
+                    Hide();
+                } else {
+                    Show();
+                }
+            } else {
+                Show();
+            }
         }
 
         public void UpdateSelectedDiety(int _actionID)
@@ -118,16 +161,50 @@ namespace ValhallEternal.modules
                 Logger.LogWarning("No sacrifice choice selected.");
                 return;
             }
+            bool requirementsMet = true;
             Logger.LogInfo($"Completing sacrifice choice: {SelectedChoice} for deity {SelectedDeity}");
             DataObjects.Sacrifice selectedSacrifice = SacrificeData.AllSacrifices[SelectedDeity][SelectedChoice];
-            // Remove items
+            // Check requirements first
             if (selectedSacrifice.ItemRequirements != null) {
-                foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements)
-                {
+
+                Dictionary<string, int> playerItems = Player.m_localPlayer.m_inventory.GetItemTotalsByName();
+
+                foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements) {
+                    if (!playerItems.ContainsKey(itemReq.Key)) {
+                        requirementsMet = false;
+                        Logger.LogDebug($"Player did not have {itemReq.Value} of item {itemReq.Key}");
+                        break;
+                    }
+                }
+            }
+            if (selectedSacrifice.PlayerKeyRequirements != null) {
+                foreach (string key in selectedSacrifice.PlayerKeyRequirements) {
+                    // TODO: config for having key removal be global vs player unique
+                    Logger.LogDebug($"Removing unique key {key} from player.");
+                    if (Player.m_localPlayer.PlayerHasUniqueKey(key) == false) {
+                        requirementsMet = false;
+                        Logger.LogDebug($"Player did not have the required key: {key}");
+                        break;
+                    }
+                }
+            }
+
+            if (requirementsMet == false && Player.m_localPlayer.NoCostCheat() == false) {
+                Logger.LogWarning("Player did not meet the requirements, canceling.");
+                WarningText.text = $"Requirements not met";
+                return;
+            } else {
+                Logger.LogDebug("Player has met requirements.");
+            }
+
+            // Only remove the items if all requirements can be satisfied
+            if (selectedSacrifice.ItemRequirements != null) {
+                foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements) {
                     Logger.LogDebug($"Removing {itemReq.Value} of item {itemReq.Key} from player inventory.");
                     Player.m_localPlayer.m_inventory.RemoveItem(itemReq.Key, itemReq.Value);
                 }
             }
+
             // Remove players keys
             if (selectedSacrifice.PlayerKeyRequirements != null) {
                 foreach (string key in selectedSacrifice.PlayerKeyRequirements)
@@ -200,11 +277,16 @@ namespace ValhallEternal.modules
                 }
             }
 
+            WarningText.text = "";
+            GUIManager.BlockInput(false);
             PlayerData.SavePlayerConfiguration();
             PlayerData.LoadPlayerConfiguration(Player.m_localPlayer);
             PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
-            SacrificeUI.Instance.Hide();
+            Hide();
             UpdateSelectedDiety(-1); //refresh list, to show newly available options
+            if (enableExclusiveDeityMode) {
+                SetChoiceList(SelectedDeity);
+            }
         }
 
         private void CreateStaticUIObjects()
@@ -309,6 +391,23 @@ namespace ValhallEternal.modules
             desctextgo.resizeTextMaxSize = 20;
             desctextgo.alignment = TextAnchor.UpperLeft;
 
+            var warning = GUIManager.Instance.CreateText(
+                text: "",
+                parent: SacrificePanel.transform,
+                anchorMin: new Vector2(0.5f, 0.5f),
+                anchorMax: new Vector2(0.5f, 0.5f),
+                position: new Vector2(335f, -350f),
+                font: GUIManager.Instance.AveriaSerifBold,
+                fontSize: 14,
+                color: GUIManager.Instance.ValheimYellow,
+                outline: true,
+                outlineColor: Color.black,
+                width: 250f,
+                height: 40f,
+                addContentSizeFitter: false);
+            warning.name = "Warning";
+            WarningText = warning.GetComponent<Text>();
+
             ManualCloseButton = GUIManager.Instance.CreateButton(
                 text: Localization.instance.Localize("$ve_close"),
                 parent: SacrificePanel.transform,
@@ -335,6 +434,9 @@ namespace ValhallEternal.modules
             Button bselect = ChoiceSelectButton.GetComponent<Button>();
             //bselect.interactable = false;
             bselect.onClick.AddListener(CompleteSacrifice);
+
+
+
 
             Logger.LogDebug("Setting up scroll entry");
             // Scroll area
@@ -533,7 +635,7 @@ namespace ValhallEternal.modules
 
             SelectedDeity = selectedDiety;
             int y_value = -40;
-            Logger.LogDebug($"Setting up {selectedDiety}.");
+            //Logger.LogDebug($"Setting up {selectedDiety}.");
             foreach (KeyValuePair<string, DataObjects.Sacrifice> entry in SacrificeData.AllSacrifices[selectedDiety])
             {
                 bool has_required_keys = true;
@@ -576,32 +678,32 @@ namespace ValhallEternal.modules
                 }
 
                 // Skip if failing a check
-                Logger.LogDebug($"Check for listing requirement  required_keys met: {has_required_keys}, required_boons met: {has_required_boons}, required_oaths met: {has_required_oaths}");
+                //Logger.LogDebug($"Check for listing requirement  required_keys met: {has_required_keys}, required_boons met: {has_required_boons}, required_oaths met: {has_required_oaths}");
                 if (has_required_keys == false && ValConfig.KeyRequirementsHideChoices.Value == true) { continue; }
                 if (has_required_boons == false && ValConfig.BoonRequirementsHideChoices.Value == true) { continue; }
                 if (has_required_oaths == false && ValConfig.OathRequirementsHideChoices.Value == true) { continue; }
 
                 // Required items are not a hard failure
-                Logger.LogDebug("Creating Choice Container");
+                //Logger.LogDebug("Creating Choice Container");
 
                 var newSacrificeChoice = GameObject.Instantiate(SacrificeChoiceContainer, ScrollContentArea.transform);
                 newSacrificeChoice.SetActive(true);
                 var rect = newSacrificeChoice.GetComponent<RectTransform>();
                 rect.localPosition = new Vector3() { x = 250, y = y_value };
-                Logger.LogDebug("Created container");
+                //Logger.LogDebug("Created container");
 
                 newSacrificeChoice.transform.Find("ChoiceHeader/ChoiceName").GetComponent<Text>().text = entry.Value.Name;
                 newSacrificeChoice.name = $"choice_{entry.Value.Name}";
-                Logger.LogDebug("Set choice name");
+                //Logger.LogDebug("Set choice name");
 
                 newSacrificeChoice.transform.Find("ChoiceDesc").GetComponent<Text>().text = entry.Value.Description;
-                Logger.LogDebug("Set choice Desc");
+                //Logger.LogDebug("Set choice Desc");
 
                 newSacrificeChoice.transform.Find("RequirementDesc").GetComponent<Text>().text = entry.Value.GetTotalDescription();
-                Logger.LogDebug("Set requirement Desc");
+                //Logger.LogDebug("Set requirement Desc");
 
                 if (entry.Value.ItemRequirements != null) {
-                    Logger.LogDebug("Setting up item requirements.");
+                    //Logger.LogDebug("Setting up item requirements.");
                     Transform itemrequirementsParent = newSacrificeChoice.transform.Find("ItemRequirements");
                     if (itemrequirementsParent == null) {
                         Logger.LogWarning("Item requirements parent not found.");
@@ -610,7 +712,7 @@ namespace ValhallEternal.modules
                     int item_x_offset = 0;
                     foreach (KeyValuePair<string, int> itemReq in entry.Value.ItemRequirements)
                     {
-                        Logger.LogDebug($"Item Requirement: {itemReq.Key} x{itemReq.Value}");
+                        //Logger.LogDebug($"Item Requirement: {itemReq.Key} x{itemReq.Value}");
                         GameObject prefab = PrefabManager.Instance.GetPrefab(itemReq.Key);
                         if (prefab != null)
                         {
@@ -625,7 +727,7 @@ namespace ValhallEternal.modules
                                 ilayout.minHeight = 50;
                                 ilayout.minWidth = 50;
                                 itemImage.sprite = itemDrop.m_itemData.GetIcon();
-                                Logger.LogDebug("Added Icon.");
+                                //Logger.LogDebug("Added Icon.");
 
                                 GameObject itemCount = GUIManager.Instance.CreateText(
                                     text: $"{itemReq.Value}",
@@ -649,11 +751,11 @@ namespace ValhallEternal.modules
                                 itemCount.transform.localPosition = new Vector3(item_x_offset, 0f);
                                 itemImageGO.transform.localPosition = new Vector3(item_x_offset, 0f);
                                 item_x_offset += 45;
-                                Logger.LogDebug("Repositioned Icon and Text.");
+                                //Logger.LogDebug("Repositioned Icon and Text.");
                             }
                         }
                     }
-                    Logger.LogDebug("Set up Item requirements.");
+                    //Logger.LogDebug("Set up Item requirements.");
                 }
                 
 
@@ -662,10 +764,27 @@ namespace ValhallEternal.modules
                 toggle.onValueChanged.AddListener((isOn) => {
                     SelectedChoice = entry.Key;
                 });
-                Logger.LogDebug("Created onclick");
+                //Logger.LogDebug("Created onclick");
                 SacrificeToggleOptions.Add(toggle);
                 y_value -= 180;
             }
+        }
+
+        public bool Interact(Humanoid user, bool hold, bool alt) {
+            Toggle();
+            return true;
+        }
+
+        public bool UseItem(Humanoid user, ItemDrop.ItemData item) {
+            return false;
+        }
+
+        public string GetHoverText() {
+            return Localization.instance.Localize($"[<color=yellow><b>$KEY_Use</b></color>] $ve_shrine_of_the_gods");
+        }
+
+        public string GetHoverName() {
+            return Localization.instance.Localize($"$ve_tribute_shrine");
         }
     }
 }

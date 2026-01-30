@@ -1,7 +1,7 @@
 ﻿using Jotunn.Managers;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
@@ -9,6 +9,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 using ValhallEternal.modules;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.common
@@ -16,17 +18,9 @@ namespace ValhallEternal.common
     public static class DataObjects {
         public static readonly string CustomLevelZKey = "VELevel";
         public static readonly string CustomDataKey = "VE_DATA";
-        internal static JsonSerializer serializer = new JsonSerializer() { NullValueHandling = NullValueHandling.Ignore};
-        internal static JsonSerializer compactSerializer = new JsonSerializer() {
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            Formatting = Formatting.None,
-            };
-        internal static JsonSerializerSettings compactSerializationSettings = new JsonSerializerSettings {
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            Formatting = Formatting.None,
-        };
+        public static IDeserializer yamldeserializer = new DeserializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+        public static ISerializer yamlserializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults).Build();
+        public static ISerializer yamlserializerJsonCompat = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).JsonCompatible().Build();
 
         public static Sprite boonbackground;
         public static Sprite hastenDeath;
@@ -40,7 +34,7 @@ namespace ValhallEternal.common
         }
 
         const string color_increase = "#b9f2ff";
-        const string colore_decrease = "#ff4040";
+        const string color_decrease = "#ff4040";
 
         public static readonly string HarvestingBonusColor = "#ffc87c";
         public static readonly string FishBountyBonusColor = "#619CFF";
@@ -68,6 +62,7 @@ namespace ValhallEternal.common
             DealLessBluntDamage,
             DealLessPierceDamage,
             DealLessSlashDamage,
+            DealLessAllDamage,
             LowerSkillGainBow,
             LowerSkillGainSword,
             LowerSkillGainClub,
@@ -95,7 +90,6 @@ namespace ValhallEternal.common
             QualityNourishment,
             FishingProsperity,
             GefjunFeasts,
-            ThirstForKnowledge,
             RandomXPBonus,
             KnowledgeIsPower,
             HuntressArrowReturn,
@@ -161,7 +155,7 @@ namespace ValhallEternal.common
 
         public static string LocalizeOathDesc(Oaths oath, float value = 0) {
             if (value > 0) { return string.Format($"$ve_{oath}_desc", value); }
-            return $"$ve_{oath}_desc";
+            return $"$ve_{oath}_desc_noval";
         }
 
         public static string LocalizeBoon(Boons boon) {
@@ -169,23 +163,8 @@ namespace ValhallEternal.common
         }
 
         public static string LocalizeBoonDesc(Boons boon, float value = 0) {
-            if (value > 0) {
-                bool has_percent = false;
-                string valueformatted = value.ToString("0.0");
-                switch (boon) {
-                    case Boons.IncreasePickableYields:
-                    case Boons.FishingProsperity:
-                        valueformatted = $"{(value * 100).ToString("0.0")}%";
-                        break;
-                }
-                string result = $"$ve_{boon}_desc <color={colore_decrease}>{valueformatted}</color>";
-                if (has_percent) {
-                    result += "%";
-                }
-
-                return result;
-            }
-            return $"$ve_{boon}_desc";
+            if (value > 0) { return string.Format($"$ve_{boon}_desc", value); }
+            return $"$ve_{boon}_desc_noval";
         }
 
         public interface IProbability
@@ -343,32 +322,32 @@ namespace ValhallEternal.common
                 StringBuilder sb = new StringBuilder();
                 if (PlayerOathRequirements != null && PlayerOathRequirements.Count > 0 || PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0 || PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0)
                 {
-                    sb.AppendLine($"Requires the following.");
+                    sb.AppendLine(Localization.instance.Localize("$ve_requires"));
                 }
 
                 if (includeOathsInDescription && PlayerOathRequirements != null && PlayerOathRequirements.Count > 0) {
                     foreach (KeyValuePair<Oaths, float> oath in PlayerOathRequirements)
                     {
-                        sb.AppendLine(Localization.instance.Localize($"{LocalizeOath(oath.Key)} -($ve_oath)- $ve_level_required"));
+                        sb.AppendLine(Localization.instance.Localize($"{LocalizeOath(oath.Key)} <color={color_decrease}>-($ve_oath)-</color> $ve_level_required {oath.Value}"));
                     }
                 }
                 if (sb.Length > 0) { sb.AppendLine(""); }
                 if (includeBoonsInDescription && PlayerBoonRequirements != null && PlayerBoonRequirements.Count > 0) {
                     foreach (KeyValuePair<Boons, float> boon in PlayerBoonRequirements)
                     {
-                        sb.AppendLine(Localization.instance.Localize($"Boon: {LocalizeBoon(boon.Key)} -($ve_boon)- $ve_level_required {boon.Value}"));
+                        sb.AppendLine(Localization.instance.Localize($"{LocalizeBoon(boon.Key)} <color={color_increase}>-($ve_boon)-</color> $ve_level_required {boon.Value}"));
                     }
                     sb.AppendLine("");
                 }
                 if (includeKeysInDescription && PlayerKeyRequirements != null && PlayerKeyRequirements.Count > 0) {
                     foreach (string key in PlayerKeyRequirements)
                     {
-                        sb.AppendLine($"PlayerKey {key}");
+                        sb.AppendLine(Localization.instance.Localize($"$ve_playerkey {key}"));
                     }
                     sb.AppendLine("");
                 }
                 if (includeItemReference && ItemRequirements != null && ItemRequirements.Count > 0) {
-                    sb.AppendLine("Item Requirements:");
+                    sb.AppendLine(Localization.instance.Localize("$ve_item_req"));
                 }
 
                 return sb.ToString();
@@ -409,9 +388,9 @@ namespace ValhallEternal.common
                     sb.AppendLine($"{Localization.instance.Localize("$ve_oath_changes")}");
                     foreach (KeyValuePair<Oaths, float> kvp in PlayerOathChanges) {
                         if (kvp.Value > 0) {
-                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={color_increase}>+{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key)}\n"));
+                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={color_increase}>+{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key, kvp.Value)}\n"));
                         } else {
-                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={colore_decrease}>-{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key)}\n"));
+                            sb.AppendLine(Localization.instance.Localize($"  « <size=18>{LocalizeOath(kvp.Key)}</size> <color={color_decrease}>-{kvp.Value}</color> | {LocalizeOathDesc(kvp.Key, kvp.Value)}\n"));
                         }
                     }
                 }
@@ -428,7 +407,7 @@ namespace ValhallEternal.common
                         {
                             sb.AppendLine(Localization.instance.Localize($"  » <size=18>{LocalizeBoon(kvp.Key)}</size> <color={color_increase}>+{kvp.Value}</color> | {LocalizeBoonDesc(kvp.Key)}\n"));
                         } else {
-                            sb.AppendLine(Localization.instance.Localize($"  » <size=18>{LocalizeBoon(kvp.Key)}</size> <color={colore_decrease}>-{kvp.Value}</color> | {LocalizeBoonDesc(kvp.Key)}\n"));
+                            sb.AppendLine(Localization.instance.Localize($"  » <size=18>{LocalizeBoon(kvp.Key)}</size> <color={color_decrease}>-{kvp.Value}</color> | {LocalizeBoonDesc(kvp.Key)}\n"));
                         }
                     }
                 }
@@ -440,21 +419,21 @@ namespace ValhallEternal.common
                 StringBuilder sb = new StringBuilder();
                 if (ResetPlayer != null)
                 {
-                    sb.AppendLine("This is a prestige increase.");
+                    sb.AppendLine(Localization.instance.Localize("$ve_this_prestige"));
                     if (ResetPlayer.ResetSkillPercentage > 0) {
-                        sb.AppendLine($"All skills will be reduced by: <color={colore_decrease}>{ResetPlayer.ResetSkillPercentage*100}%</color>");
+                        sb.AppendLine(Localization.instance.Localize($"$ve_skill_decrease <color={color_decrease}>{ResetPlayer.ResetSkillPercentage*100}%</color>"));
                     }
                     if (ResetPlayer.ResetKnownRecipes) {
-                        sb.AppendLine("All known recipes will be forgotten.");
+                        sb.AppendLine(Localization.instance.Localize("$ve_forget_all_recipes"));
                     }
                     if (ResetPlayer.TeleportToSpawn) {
-                        sb.AppendLine("You will be teleported to spawn.");
+                        sb.AppendLine(Localization.instance.Localize("$ve_teleport_to_spawn"));
                     }
                     if (ResetPlayer.PrestigeLevelsGained > 0) {
-                        sb.AppendLine($"You will gain <color={color_increase}>{ResetPlayer.PrestigeLevelsGained}</color> Prestige levels.");
+                        sb.AppendLine(Localization.instance.Localize($"$ve_you_gain <color={color_increase}>{ResetPlayer.PrestigeLevelsGained}</color> $ve_prestige_levels"));
                     }
                     if (ResetPlayer.PrestigeLevelsGained < 0) {
-                        sb.AppendLine($"You will loose <color={colore_decrease}>{ResetPlayer.PrestigeLevelsGained}</color> Prestige levels.");
+                        sb.AppendLine(Localization.instance.Localize($"$ve_you_loose <color={color_decrease}>{ResetPlayer.PrestigeLevelsGained}</color> $ve_prestige_levels"));
                     }
                 }
 

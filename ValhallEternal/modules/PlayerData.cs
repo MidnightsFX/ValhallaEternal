@@ -1,13 +1,11 @@
 ﻿using HarmonyLib;
-using Newtonsoft.Json;
-using PlayFab.ProfilesModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using ValhallEternal.common;
+using static Mono.Security.X509.X520;
 using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.modules {
@@ -170,6 +168,15 @@ namespace ValhallEternal.modules {
 
         }
 
+        public static bool PlayerHasAnyPrestigeEffect() {
+            if (localPlayerConfig.AvailableEffectsForPlayer != null) {
+                foreach(var entry in localPlayerConfig.AvailableEffectsForPlayer) {
+                    if (entry.Value.Count > 1) { return true; }
+                }
+            }
+            return false;
+        }
+
         public static bool PlayerHasPrestigeEffect(PrestigeEffect type, string name) {
             if (localPlayerConfig.AvailableEffectsForPlayer != null && localPlayerConfig.AvailableEffectsForPlayer.ContainsKey(type) && localPlayerConfig.AvailableEffectsForPlayer[type].Contains(name) == false) {
                 return true;
@@ -230,11 +237,11 @@ namespace ValhallEternal.modules {
         }
 
         public static string PackPlayerDataToString(PlayerLevelData playerData) {
-            return JsonConvert.SerializeObject(playerData, compactSerializationSettings);
+            return DataObjects.yamlserializerJsonCompat.Serialize(playerData);
         }
 
         public static PlayerLevelData UnpackPlayerData(string packedPlayerData) {
-            return JsonConvert.DeserializeObject<PlayerLevelData>(packedPlayerData);
+            return DataObjects.yamldeserializer.Deserialize<PlayerLevelData>(packedPlayerData);
         }
     }
 }

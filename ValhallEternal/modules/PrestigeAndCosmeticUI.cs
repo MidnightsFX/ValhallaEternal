@@ -13,15 +13,17 @@ using static ValhallEternal.common.DataObjects;
 namespace ValhallEternal.modules {
     public static class PrestigeAndCosmeticUI {
 
+        static GameObject CosmeticsButton = null;
+
         [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
         public static class AddSacrificeUIButton {
-            static GameObject SacrificeEnableButton = null;
+            
             public static void Postfix(InventoryGui __instance) {
                 // This only gets added once you have prestiged
-                if (PlayerData.localPlayerConfig.PlayerLevel == 0) { return; }
-                if (SacrificeEnableButton != null) { return; }
+                //if (PlayerData.localPlayerConfig.PlayerLevel == 0) { return; }
+                if (CosmeticsButton != null) { return; }
 
-                SacrificeEnableButton = GUIManager.Instance.CreateButton(
+                CosmeticsButton = GUIManager.Instance.CreateButton(
                     text: Localization.instance.Localize("$ve_prestige_options"),
                     parent: __instance.m_infoPanel.transform,
                     anchorMin: new Vector2(1f, 1f),
@@ -29,11 +31,12 @@ namespace ValhallEternal.modules {
                     position: new Vector2(-628f, -90f),
                     width: 90f,
                     height: 60f);
-                Button bclose = SacrificeEnableButton.GetComponent<Button>();
+                Button bclose = CosmeticsButton.GetComponent<Button>();
                 bclose.interactable = true;
 
-                SacrificeEnableButton.AddComponent<PrestigeUI>();
+                CosmeticsButton.AddComponent<PrestigeUI>();
                 bclose.onClick.AddListener(PrestigeUI.Instance.Show);
+                CosmeticsButton.SetActive(false);
             }
         }
 
@@ -41,6 +44,16 @@ namespace ValhallEternal.modules {
         public static class HideSacrificeUI_InventoryClose {
             public static void Postfix() {
                 PrestigeUI.Instance.Hide();
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Show))]
+        public static class HideSacrificeUI_InventoryOpen {
+            public static void Postfix() {
+                if (CosmeticsButton != null && Player.m_localPlayer != null) {
+                    if (PlayerData.PlayerHasAnyPrestigeEffect() == false) { return; }
+                    CosmeticsButton.SetActive(true);
+                }
             }
         }
 

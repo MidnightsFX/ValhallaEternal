@@ -14,14 +14,14 @@ namespace ValhallEternal.boons {
             [HarmonyPostfix]
             [HarmonyPatch(nameof(Player.AddKnownRecipe))]
             public static void ThirstForKnowledgeXPGain(Player __instance) {
-                if (PlayerData.HasBoonWithValue(DataObjects.Boons.ThirstForKnowledge, out float KnowledgeThirst)) {
+                if (PlayerData.HasBoonWithValue(DataObjects.Boons.HungerForKnowledge, out float KnowledgeThirst)) {
                     int roll = UnityEngine.Random.Range(0, 100);
                     if (roll <= KnowledgeThirst) {
                         Skills.SkillType[] skills = (Skills.SkillType[])Enum.GetValues(typeof(Skills.SkillType));
                         
                         Skills.SkillType selectedSkill = skills[UnityEngine.Random.Range(0, skills.Length - 1)];
-                        __instance.RaiseSkill(selectedSkill, KnowledgeThirst * 3);
-                        Logger.LogDebug($"[ThirstForKnowledgeXPGain] giving XP for {selectedSkill} {KnowledgeThirst * 3}");
+                        __instance.RaiseSkill(selectedSkill, KnowledgeThirst);
+                        Logger.LogDebug($"[HungerForKnowledgeXPGain] giving XP for {selectedSkill} {KnowledgeThirst}");
                     }
                 }
             }

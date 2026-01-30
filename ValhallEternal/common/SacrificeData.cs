@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.UI;
+using static UnityEngine.PostProcessing.BloomModel;
 using static ValhallEternal.common.DataObjects;
 using static ValhallEternal.common.Deities;
 
@@ -62,19 +64,24 @@ namespace ValhallEternal.common
                     }
                 } },
                 { "T4",new() {
-                    Name = "Life Devotion to Gefjun",
-                    Description = "Grants access to increasing tiers of Gefjuns special feasts. TODO",
+                    Name = "Devotion for Gefjun",
+                    Description = "Provides a small amount of permenant armor. This is a prestige level.",
                     ItemRequirements = new Dictionary<string, int>()
                     {
-                        { "TrophyFader", 1 },
+                        { "TrophyEikthyr", 1 },
+
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
-                        { Boons.GefjunFeasts, 1 },
+                        { Boons.BasicProtection, 1 },
                     },
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
                         { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.FishingProsperity, 1 }
                     },
                     ResetPlayer = new PlayerResetData {
                         ResetSkillPercentage = 0.5f,
@@ -85,7 +92,7 @@ namespace ValhallEternal.common
                         { new DataObjects.PrestigeEffectDetails() {
                             EffectType = PrestigeEffect.Aura,
                             EffectValue = "natureAura",
-                            LevelRequirement = 1,
+                            LevelRequirement = 5,
                         }}
                     }
                     
@@ -136,169 +143,7 @@ namespace ValhallEternal.common
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
-                        { Boons.HungerForKnowledge, 2 },
-                    }
-                }
-                } }
-            },
-            { Deity.Skaldi, new Dictionary<string,Sacrifice>() {
-                { "T1",new() {
-                    Name = "Swift is the Shadow",
-                    Description = "A tribute to Skaði. Under the cover of darkness or in mountains she hastens your sprint.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyUlv", 5 },
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.SwiftShadow, 1 }
-                    }
-                } },
-                { "T2",new() {
-                    Name = "Huntress Prowess",
-                    Description = "Skaði gives you a chance to gain arrows from creature kills.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyWolf", 10 },
-                        { "TrophyFenring", 2 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.SwiftShadow, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.HuntressArrowReturn, 2 }
-                    }
-                } },
-                { "T3",new() {
-                    Name = "Stormbound Rage",
-                    Description = "Skaði teaches you to channel the rage of the storm, you deal bonus lightning damage during storms.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyCultist_Hildir", 1 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.HuntressArrowReturn, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.StormboundRage, 2 },
-                    }
-                }
-                } }
-            },
-            { Deity.Freya, new Dictionary<string,Sacrifice>() {
-                { "T1",new() {
-                    Name = "Seiðr of Plenty",
-                    Description = "Freya invokes magic to increase your Eitr reserves and your Eitr regeneration.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophySeeker", 5 },
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseEitrRegen, 1 },
-                        { Boons.IncreaseBaseEitr, 3 }
-                    }
-                } },
-                { "T2",new() {
-                    Name = "Goddess of War",
-                    Description = "Freya imbues some knowledge of battle to you, increasing your stamina regeneration.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyGjall", 3 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseEitrRegen, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseStaminaRegen, 3 }
-                    }
-                } },
-                { "T3",new() {
-                    Name = "Perfect Form",
-                    Description = "Freya teach you precision in the art of war. This gives you an innate chance to deal critical damage.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyCultist_Hildir", 1 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseStaminaRegen, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.PerfectForm, 2 },
-                    }
-                }
-                } }
-            },
-            { Deity.Hel, new Dictionary<string,Sacrifice>() {
-                { "T1",new() {
-                    Name = "Hellfire Adaptation",
-                    Description = "A tribute to Hel. Your resistance to extreme heat increases.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyCharredMelee", 2 },
-                        { "TrophyCharredArcher", 2 },
-                        { "TrophyVolture", 2 },
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseHeatResistance, 3 },
-                    }
-                } },
-                { "T2",new() {
-                    Name = "Balance of the Jotunn",
-                    Description = "Taking damage returns some eitr.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyMorgen", 1 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseHeatResistance, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.ReturnStaminaOnDamage, 4 }
-                    }
-                } },
-                { "T2.1",new() {
-                    Name = "Balance of the Aesir",
-                    Description = "Taking damage returns some stamina.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyMorgen", 1 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.IncreaseHeatResistance, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.ReturnEitrOnDamage, 4 },
-                    }
-                } },
-                { "T3",new() {
-                    Name = "Haste the inevitable",
-                    Description = "Hel hastens your movement after a kill",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
-                        { "TrophyFallenValkyrie", 1 },
-                    },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
-                        { Boons.ReturnStaminaOnDamage, 1 },
-                        { Boons.ReturnEitrOnDamage, 1 }
-                    },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
-                        { Boons.MovementSpeedOnKill, 2 },
+                        { Boons.HungerForKnowledge, 5 },
                     }
                 }
                 } }
@@ -337,7 +182,9 @@ namespace ValhallEternal.common
                     Description = "Significantly reduces poison duration, reduces fire damage taken. TODO",
                     ItemRequirements = new Dictionary<string, int>()
                     {
-                        { "TrophyWraith", 1 },
+                        { "TrophyEikthyr", 1 },
+                        { "TrophyTheElder", 1 },
+                        { "TrophyBonemass", 1 },
                     },
                     PlayerBoonRequirements = new Dictionary<Boons, float>()
                     {
@@ -345,11 +192,94 @@ namespace ValhallEternal.common
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
-                        { Boons.ReduceFirePoison, 2 },
+                        { Boons.ReduceFirePoison, 3 },
+                    },
+                    PlayerOathChanges = new Dictionary<Oaths, float>()
+                    {
+                        { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    ResetPlayer = new PlayerResetData {
+                        ResetSkillPercentage = 0.5f,
+                        TeleportToSpawn = true,
+                        PrestigeLevelsGained = 1
+                    },
+                    PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
+                        { new DataObjects.PrestigeEffectDetails() {
+                            EffectType = PrestigeEffect.Aura,
+                            EffectValue = "lightAura",
+                            LevelRequirement = 10,
+                        }}
                     }
                 }
                 } }
             },
+            { Deity.Skaldi, new Dictionary<string,Sacrifice>() {
+                { "T1",new() {
+                    Name = "Swift is the Shadow",
+                    Description = "A tribute to Skaði. Under the cover of darkness or in mountains she hastens your sprint.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyWolf", 10 },
+                        { "TrophyUlv", 5 },
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.SwiftShadow, 1 }
+                    }
+                } },
+                { "T2",new() {
+                    Name = "Stormbound Rage",
+                    Description = "Skaði teaches you to channel the rage of the storm, you deal bonus lightning damage during storms.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyCultist_Hildir", 1 },
+                        { "TrophyFenring", 2 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.SwiftShadow, 2 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.StormboundRage, 2 },
+                    }
+                }},
+                { "T3",new() {
+                    Name = "Huntress Prowess",
+                    Description = "Skaði gives you a chance to gain arrows from creature kills.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyEikthyr", 1 },
+                        { "TrophyTheElder", 1 },
+                        { "TrophyBonemass", 1 },
+                        { "TrophyDragonQueen", 1 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.SwiftShadow, 1 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.HuntressArrowReturn, 2 }
+                    },
+                    PlayerOathChanges = new Dictionary<Oaths, float>()
+                    {
+                        { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    ResetPlayer = new PlayerResetData {
+                        ResetSkillPercentage = 0.5f,
+                        TeleportToSpawn = true,
+                        PrestigeLevelsGained = 1
+                    },
+                    PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
+                        { new DataObjects.PrestigeEffectDetails() {
+                            EffectType = PrestigeEffect.Aura,
+                            EffectValue = "frostAura",
+                            LevelRequirement = 10,
+                        }}
+                    }
+                }},
+            }},
             { Deity.Syn, new Dictionary<string,Sacrifice>() {
                 { "T1",new() {
                     Name = "Built Different",
@@ -360,7 +290,7 @@ namespace ValhallEternal.common
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
-                        { Boons.BuiltDifferent, 3 },
+                        { Boons.BuiltDifferent, 2 },
                     }
                 } },
                 { "T2",new() {
@@ -380,7 +310,7 @@ namespace ValhallEternal.common
                     }
                 } },
                 { "T3",new() {
-                    Name = "Deadication to the Blade",
+                    Name = "Dedication to the Blade",
                     Description = "Increases melee damage done, reduces your ranged damage done.",
                     ItemRequirements = new Dictionary<string, int>()
                     {
@@ -389,21 +319,181 @@ namespace ValhallEternal.common
                     },
                     PlayerBoonRequirements = new Dictionary<Boons, float>()
                     {
-                        { Boons.DedicationToTheBlade, 1 }
+                        { Boons.WealthOfAges, 1 }
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
-                        { Boons.DedicationToTheBlade, 1 },
-                        { Boons.IncreaseMeleeDamage, 3 },
+                        { Boons.DedicationToTheBlade, 2.5f },
+                        { Boons.IncreaseMeleeDamage, 5 },
+                    },
+                    PlayerOathChanges = new Dictionary<Oaths, float>()
+                    {
+                        { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    ResetPlayer = new PlayerResetData {
+                        ResetSkillPercentage = 0.5f,
+                        TeleportToSpawn = true,
+                        PrestigeLevelsGained = 1
                     }
-                }
-                } }
-            }
+                }}
+            }},
+            { Deity.Freya, new Dictionary<string,Sacrifice>() {
+                { "T1",new() {
+                    Name = "Seiðr of Plenty",
+                    Description = "Freya invokes magic to increase your Eitr reserves and your Eitr regeneration.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophySeeker", 5 },
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseEitrRegen, 1 },
+                        { Boons.IncreaseBaseEitr, 3 }
+                    }
+                } },
+                { "T1.1",new() {
+                    Name = "Goddess of War",
+                    Description = "Freya imbues some knowledge of battle to you, increasing your stamina regeneration.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyGjall", 3 },
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseStaminaRegen, 3 }
+                    }
+                } },
+                { "T2",new() {
+                    Name = "Perfect Form",
+                    Description = "Freya teach you precision in the art of war. This gives you an innate chance to deal critical damage.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyCultist_Hildir", 1 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseStaminaRegen, 1 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.PerfectForm, 2 },
+                    }
+                }}
+            }},
+            { Deity.Hel, new Dictionary<string,Sacrifice>() {
+                { "T1",new() {
+                    Name = "Hellfire Adaptation",
+                    Description = "A tribute to Hel. Your resistance to extreme heat increases.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyCharredMelee", 2 },
+                        { "TrophyCharredArcher", 2 },
+                        { "TrophyVolture", 2 },
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseHeatResistance, 3 },
+                    }
+                } },
+                { "T2",new() {
+                    Name = "Balance of the Jotunn",
+                    Description = "Taking damage returns some eitr.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyMorgen", 1 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseHeatResistance, 1 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.ReturnStaminaOnDamage, 3 }
+                    }
+                } },
+                { "T2.1",new() {
+                    Name = "Balance of the Aesir",
+                    Description = "Taking damage returns some stamina.",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyFallenValkyrie", 1 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.IncreaseHeatResistance, 1 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.ReturnEitrOnDamage, 3 },
+                    }
+                } },
+                { "T3",new() {
+                    Name = "Hasten the inevitable",
+                    Description = "Hel hastens your movement after a kill",
+                    ItemRequirements = new Dictionary<string, int>()
+                    {
+                        { "TrophyFallenValkyrie", 1 },
+                    },
+                    PlayerBoonRequirements = new Dictionary<Boons, float>()
+                    {
+                        { Boons.ReturnStaminaOnDamage, 1 },
+                        { Boons.ReturnEitrOnDamage, 1 }
+                    },
+                    PlayerBoonsChanges = new Dictionary<Boons, float>()
+                    {
+                        { Boons.MovementSpeedOnKill, 2 },
+                    },
+                    PlayerOathChanges = new Dictionary<Oaths, float>()
+                    {
+                        { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    ResetPlayer = new PlayerResetData {
+                        ResetSkillPercentage = 0.5f,
+                        TeleportToSpawn = true,
+                        PrestigeLevelsGained = 1
+                    },
+                    PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
+                        { new DataObjects.PrestigeEffectDetails() {
+                            EffectType = PrestigeEffect.Aura,
+                            EffectValue = "fireAura",
+                            LevelRequirement = 15,
+                        }},
+                        { new DataObjects.PrestigeEffectDetails() {
+                            EffectType = PrestigeEffect.Aura,
+                            EffectValue = "darkAura",
+                            LevelRequirement = 20,
+                        }}
+                    }
+                }}
+            }}
         };
 
         public static void SetupSacrificeData()
         {
+            // Load the default configuration
             AllSacrifices = DefaultSacrifices;
+            try {
+                UpdateYamlConfig(File.ReadAllText(ValConfig.sacrificeCfgPath));
+            } catch (Exception e) {
+                AllSacrifices = DefaultSacrifices;
+                Logger.LogWarning($"There was an error updating the Sacrifice Data, defaults will be used. Exception: {e}");
+            }
+        }
+
+        public static string YamlDefaultConfig() {
+            var yaml = DataObjects.yamlserializer.Serialize(DefaultSacrifices);
+            return yaml;
+        }
+
+        public static bool UpdateYamlConfig(string yaml) {
+            try {
+                AllSacrifices = DataObjects.yamldeserializer.Deserialize<Dictionary<Deity, Dictionary<string, Sacrifice>>>(yaml);
+                Logger.LogDebug("Loaded new Sacrifice Data.");
+            } catch (Exception ex) {
+                Logger.LogError($"Failed to parse Sacrifices.yaml YAML: {ex.Message}");
+                return false;
+            }
+            return true;
         }
     }
 }

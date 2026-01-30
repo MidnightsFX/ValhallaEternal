@@ -28,6 +28,19 @@ namespace ValhallEternal.common
             return false;
         }
 
+        public static Dictionary<string, int> GetItemTotalsByName(this Inventory inv) {
+            List<ItemDrop.ItemData> user_inventory = inv.GetAllItems();
+            Dictionary<string, int> itemCountByName = new Dictionary<string, int>();
+            foreach (ItemDrop.ItemData user_item in user_inventory) {
+                if (itemCountByName.ContainsKey(user_item.m_dropPrefab.name)) {
+                    itemCountByName[user_item.m_dropPrefab.name] += user_item.m_stack;
+                } else {
+                    itemCountByName.Add(user_item.m_dropPrefab.name, user_item.m_stack);
+                }
+            }
+            return itemCountByName;
+        }
+
         public static float GetTotalDamageNoHarvestValues(this DamageTypes dmgs, float poisonMod = 0.5f) {
             float total = dmgs.m_frost + dmgs.m_fire + dmgs.m_spirit + dmgs.m_lightning + dmgs.m_blunt + dmgs.m_slash + dmgs.m_pierce;
             total += (dmgs.m_poison * poisonMod);

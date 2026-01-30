@@ -55,7 +55,8 @@ namespace ValhallEternal.boons {
 
             [HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
             private static void Postfix(CharacterDrop __instance) {
-                //if (Player.m_localPlayer == null || ) { return; }
+                // Does not apply to tamed
+                if (__instance.m_character.IsTamed()) { return; }
                 // Determine if the player was the last hitter?
 
                 // Huntress arrow scavange effect

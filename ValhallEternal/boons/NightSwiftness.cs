@@ -1,17 +1,9 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 using ValhallEternal.common;
 using ValhallEternal.modules;
 
 namespace ValhallEternal.boons {
     internal class NightSwiftness {
-
-
 
         [HarmonyPatch(typeof(Character))]
         public static class RunningSpeedPatch {

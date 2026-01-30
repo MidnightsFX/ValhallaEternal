@@ -49,6 +49,7 @@ namespace ValhallEternal
             //Locations.AddLocationsToWorldGen();
             Commands.AddCommands();
             Harmony.PatchAll(Assembly.GetExecutingAssembly());
+            Locations.SetupLocations();
             Jotunn.Logger.LogInfo("Live eternal in Valhalla.");
             
             // To learn more about Jotunn's features, go to
@@ -66,7 +67,7 @@ namespace ValhallEternal
             Localization = LocalizationManager.Instance.GetLocalization();
 
             // Ensure localization folder exists
-            var translationFolder = Path.Combine(BepInEx.Paths.ConfigPath, "ValhallEternal", "localizations");
+            var translationFolder = Path.Combine(BepInEx.Paths.ConfigPath, ValConfig.cfgFolder, "localizations");
             Directory.CreateDirectory(translationFolder);
             foreach (string embeddedResouce in typeof(ValhallEternal).Assembly.GetManifestResourceNames())
             {

@@ -5,7 +5,6 @@ using Jotunn.Managers;
 using System;
 using System.Collections;
 using System.IO;
-using System.Linq;
 
 namespace ValhallEternal.common;
 
@@ -14,7 +13,13 @@ public class ValConfig
     public static ConfigFile cfg;
     public static ConfigEntry<bool> EnableDebugMode;
     public static ConfigEntry<string> TributeLocationBiome;
-    public static ConfigEntry<int> MaxTributeLocationsGeneration;
+    public static ConfigEntry<int> MaxMeadowsLocations;
+    public static ConfigEntry<int> MaxBlackForestLocations;
+    public static ConfigEntry<int> MaxSwampLocations;
+    public static ConfigEntry<int> MaxMountainLocations;
+    public static ConfigEntry<int> MaxPlainsLocations;
+    public static ConfigEntry<int> MaxMistlandsLocations;
+    public static ConfigEntry<int> MaxAshlandsLocations;
     public static ConfigEntry<float> MinDistanceBetweenTributeLocations;
     public static ConfigEntry<float> ChanceOfHarvestBonusBoon;
 
@@ -24,9 +29,11 @@ public class ValConfig
 
     public static ConfigEntry<float> LocalLevelDisplayOffset;
 
-    const string cfgFolder = "Valhalla_Eternal";
-    const string PrestigeCfg = "Prestige.yaml";
-    internal static String prestigeCfgsPath = Path.Combine(Paths.ConfigPath, cfgFolder, PrestigeCfg);
+    public const string cfgFolder = "ValhallaEternal";
+    const string sacrificeyml = "Sacrifices.yaml";
+    //const string PrestigeCfg = "Prestige.yaml";
+    //internal static String prestigeCfgsPath = Path.Combine(Paths.ConfigPath, cfgFolder, PrestigeCfg);
+    internal static String sacrificeCfgPath = Path.Combine(Paths.ConfigPath, cfgFolder, sacrificeyml);
 
     private static CustomRPC prestigeRPC;
 
@@ -51,15 +58,21 @@ public class ValConfig
     public void SetupConfigRPCs() {
         prestigeRPC = NetworkManager.Instance.AddRPC("VALHALL_PRESTIGE", OnServerRecieveConfigs, OnClientReceivePrestigeConfigs);
 
-        SynchronizationManager.Instance.AddInitialSynchronization(prestigeRPC, SendDeathChoices);
+        SynchronizationManager.Instance.AddInitialSynchronization(prestigeRPC, SendSacrificeData);
     }
 
     // Create Configuration and load it.
     private void CreateConfigValues(ConfigFile Config)
     {
-        TributeLocationBiome = BindServerConfig("TributeLocation", "TributeLocationBiome", "Mistlands", "The biome which the tribute shrine will generate in.", acceptableValues: new AcceptableValueList<string>(Enum.GetNames(typeof(Heightmap.Biome))) { });
-        MaxTributeLocationsGeneration = BindServerConfig("TributeLocation", "MaxTributeLocationsGeneration", 10, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
-        MinDistanceBetweenTributeLocations = BindServerConfig("TributeLocation", "MinDistanceBetweenTributeLocations", 500f, "The minimum distance between any tribute locations. Larger values make this more spread out.", false, 0, 5000);
+        MaxMeadowsLocations = BindServerConfig("TributeLocations", "MaxMeadowsLocations", 10, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxBlackForestLocations = BindServerConfig("TributeLocations", "MaxBlackForestLocations", 15, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxSwampLocations = BindServerConfig("TributeLocations", "MaxSwampLocations", 15, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxMountainLocations = BindServerConfig("TributeLocations", "MaxMountainLocations", 15, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxPlainsLocations = BindServerConfig("TributeLocations", "MaxPlainsLocations", 15, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxMistlandsLocations = BindServerConfig("TributeLocations", "MaxMistlandsLocations", 15, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MaxAshlandsLocations = BindServerConfig("TributeLocations", "MaxAshlandsLocations", 7, "The maximum number of tribute locations that the world generator will try to place, these are not gaurenteed.", false, 0, 50);
+        MinDistanceBetweenTributeLocations = BindServerConfig("TributeLocations", "MinDistanceBetweenTributeLocations", 700f, "The minimum distance between any tribute locations. Larger values make this more spread out.", false, 0, 5000);
+
         LocalLevelDisplayOffset = BindServerConfig("LevelDisplay", "LocalLevelDisplayOffset", 50f, "The x pixel offset for the local players level display.");
 
         // Sacrifice Discovery
@@ -83,33 +96,29 @@ public class ValConfig
     {
         string externalConfigFolder = ValConfig.GetSecondaryConfigDirectoryPath();
         string[] presentFiles = Directory.GetFiles(externalConfigFolder);
-        bool foundDeathChoices = false;
+        bool foundSacrifices = false;
 
-        foreach (string configFile in presentFiles)
-        {
-            if (configFile.Contains(PrestigeCfg))
-            {
-                Logger.LogDebug($"Found Valhalla configurations: {configFile}");
-                prestigeCfgsPath = configFile;
-                foundDeathChoices = true;
+        foreach (string configFile in presentFiles) {
+            if (configFile.Contains(sacrificeyml)) {
+                Logger.LogDebug($"Found Sacrifice configurations: {configFile}");
+                sacrificeCfgPath = configFile;
+                foundSacrifices = true;
             }
         }
 
-        if (foundDeathChoices == false)
-        {
-            Logger.LogDebug("Valhalla Prestige Configs missing, recreating.");
-            using (StreamWriter writetext = new StreamWriter(prestigeCfgsPath))
-            {
+        if (foundSacrifices == false) {
+            Logger.LogDebug("Sacrifice Configs missing, recreating.");
+            using (StreamWriter writetext = new StreamWriter(sacrificeCfgPath)) {
                 String header = @"#################################################
-# Valhalla Eternal Prestige Configuration File
+# Valhalla Eternal Sacrifices Configuration File
 #################################################
 ";
                 writetext.WriteLine(header);
-                //writetext.WriteLine(DeathConfigurationData.DeathLevelsYamlDefaultConfig());
+                writetext.WriteLine(SacrificeData.YamlDefaultConfig());
             }
         }
 
-        SetupFileWatcher(PrestigeCfg);
+        SetupFileWatcher(sacrificeyml);
     }
 
     private void SetupFileWatcher(string filtername)
@@ -139,9 +148,9 @@ public class ValConfig
         Logger.LogDebug($"Filewatch changes from: ({fileInfo.Name}) {fileInfo.FullName}");
         switch (fileInfo.Name)
         {
-            case PrestigeCfg:
-                Logger.LogDebug("Triggering Death Choices Prestige config reload.");
-                //DeathConfigurationData.UpdateDeathLevelsConfig(filetext);
+            case sacrificeyml:
+                Logger.LogDebug("Triggering Sacrifice config reload.");
+                SacrificeData.UpdateYamlConfig(filetext);
                 prestigeRPC.SendPackage(ZNet.instance.m_peers, SendFileAsZPackage(e.FullPath));
                 break;
         }
@@ -168,10 +177,10 @@ public class ValConfig
         package.Write(filecontents);
         return package;
     }
-    private static ZPackage SendDeathChoices()
+    private static ZPackage SendSacrificeData()
     {
         // Read config file
-        return SendFileAsZPackage("");
+        return SendFileAsZPackage(sacrificeCfgPath);
     }
 
     /// <summary>
