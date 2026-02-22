@@ -64,22 +64,23 @@ namespace ValhallEternal.boons {
                     float roll = UnityEngine.Random.Range(0, 100);
                     float chance = arrowReturnVal;
                     if (chance > 10) { chance = 10f; }
-                    Logger.LogInfo($"[HuntressArrowReturn] Roll: {roll} vs Chance: {chance}");
+                    Logger.LogInfo($"[HuntressArrowReturn] Roll: {roll} <= {chance} | {roll <= chance}");
                     if (roll <= chance) {
                         List<LootReward> levelselectedOptions = ArrowReturnProbabilityRewards.Where(x => x.MinLevelRequired < arrowReturnVal && x.MaxLevelAllowed >= arrowReturnVal).ToList();
                         string selected = RandomSelectFromWeightedListWithExclusions(levelselectedOptions.Cast<IProbability>().ToList());
+                        Logger.LogDebug($"Selected Reward {selected}");
+                        List<LootReward> determined = ArrowReturnProbabilityRewards.Where(x => x.Name == selected).ToList();
+                        if (determined.Count > 0) {
+                            if (Deities.DeityEffects.ContainsKey("snowswirl")) {
+                                UnityEngine.Object.Instantiate(Deities.DeityEffects["snowswirl"], Player.m_localPlayer.transform.position, Quaternion.identity);
+                            }
 
-                        LootReward selectedReward = ArrowReturnProbabilityRewards.Where(x => x.Name == selected).First();
-
-                        if (Deities.DeityEffects.ContainsKey("snowswirl")) {
-                            UnityEngine.Object.Instantiate(Deities.DeityEffects["snowswirl"], Player.m_localPlayer.transform.position, Quaternion.identity);
+                            GameObject prefab = PrefabManager.Instance.GetPrefab(determined.First().Name);
+                            ItemDrop id = prefab.GetComponent<ItemDrop>();
+                            DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
+                            Logger.LogInfo($"[HuntressArrowReturn] providing +1 {id.m_itemData.m_shared.m_name}");
+                            Player.m_localPlayer.m_inventory.AddItem(prefab, 1);
                         }
-
-                        GameObject prefab = PrefabManager.Instance.GetPrefab(selectedReward.Name);
-                        ItemDrop id = prefab.GetComponent<ItemDrop>();
-                        DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
-                        Logger.LogInfo($"[HuntressArrowReturn] providing +1 {id.m_itemData.m_shared.m_name}");
-                        Player.m_localPlayer.m_inventory.AddItem(prefab, 1);
                     }
                 }
 
@@ -87,29 +88,33 @@ namespace ValhallEternal.boons {
                     float roll = UnityEngine.Random.Range(0, 100);
                     float chance = arrowReturnVal;
                     if (chance > 10) { chance = 10f; }
-                    Logger.LogInfo($"[WealthOfAges] Roll: {roll} vs Chance: {chance}");
+                    Logger.LogInfo($"[WealthOfAges] Roll: {roll} <= {chance} | {(roll <= chance)}");
                     if (roll <= chance) {
                         List<LootReward> levelselectedOptions = WealthProbabilityRewards.Where(x => x.MinLevelRequired < wealthValue && x.MaxLevelAllowed >= wealthValue).ToList();
                         string selected = RandomSelectFromWeightedListWithExclusions(levelselectedOptions.Cast<IProbability>().ToList());
-                        LootReward selectedReward = ArrowReturnProbabilityRewards.Where(x => x.Name == selected).First();
+                        Logger.LogDebug($"Selected Reward {selected}");
+                        List<LootReward> determined = ArrowReturnProbabilityRewards.Where(x => x.Name == selected).ToList();
+                        if (determined.Count > 0) {
+                            LootReward selectedReward = determined.First();
 
-                        if (Deities.DeityEffects.ContainsKey("goldenswirl")) {
-                            UnityEngine.Object.Instantiate(Deities.DeityEffects["goldenswirl"], __instance.transform.position, Quaternion.identity);
-                        }
-                        int amount = selectedReward.MinDropAmount;
-                        while (amount < selectedReward.MaxDropAmount) {
-                            if (UnityEngine.Random.Range(0, 100) < selectedReward.ChanceForDropIncrease) {
-                                amount++;
-                                continue;
+                            if (Deities.DeityEffects.ContainsKey("goldenswirl")) {
+                                UnityEngine.Object.Instantiate(Deities.DeityEffects["goldenswirl"], __instance.transform.position, Quaternion.identity);
                             }
-                            break;
-                        }
+                            int amount = selectedReward.MinDropAmount;
+                            while (amount < selectedReward.MaxDropAmount) {
+                                if (UnityEngine.Random.Range(0, 100) < selectedReward.ChanceForDropIncrease) {
+                                    amount++;
+                                    continue;
+                                }
+                                break;
+                            }
 
-                        GameObject prefab = PrefabManager.Instance.GetPrefab(selectedReward.Name);
-                        ItemDrop id = prefab.GetComponent<ItemDrop>();
-                        DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
-                        Logger.LogInfo($"[WealthOfAges] providing +{amount} {prefab.name}");
-                        DropItemsImmediate(new Dictionary<GameObject, int>() { { prefab, amount } }, __instance.transform.position, 0.5f);
+                            GameObject prefab = PrefabManager.Instance.GetPrefab(selectedReward.Name);
+                            ItemDrop id = prefab.GetComponent<ItemDrop>();
+                            DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
+                            Logger.LogInfo($"[WealthOfAges] providing +{amount} {prefab.name}");
+                            DropItemsImmediate(new Dictionary<GameObject, int>() { { prefab, amount } }, __instance.transform.position, 0.5f);
+                        }
                     }
                 }
             }
