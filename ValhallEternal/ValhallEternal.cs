@@ -22,7 +22,7 @@ namespace ValhallEternal
     {
         public const string PluginGUID = "MidnightsFX.ValhallaEternal";
         public const string PluginName = "ValhallEternal";
-        public const string PluginVersion = "0.0.1";
+        public const string PluginVersion = "0.7.0";
         
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html

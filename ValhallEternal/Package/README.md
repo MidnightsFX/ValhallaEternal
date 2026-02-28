@@ -1,4 +1,4 @@
-﻿# Valhalla Eternal
+# Valhalla Eternal
 What if killing the final biome boss was not the end of the game? Do you seek a challenge? Do you want to show off to your friends?
 
 This mod is designed to provide a reason to continue playing after your first victory. Some would consider this a Newgame+.
@@ -159,48 +159,7 @@ Planned, but not implemented (subject to change)
 
 ---
 
-
-TODO section more docs :) 
-
-## Prestige
-
-Earn prestige points by sacrificing all of the boss trophies.
-- This removes your boss keys
-- If you do not have boss keys you cant sacrifice (anti boss farm boosts)
-- Loose all known recipes when you sacrifice
-- Skills reset to 0 when sacrificed
-- Inventory cleared? / taken?
-- Clear equipped boss power
-- Teleport player to spawn
-
-Each level of prestige increases displayed level
-- Gain aura?
-- Gain wings?
-- Gain crown?
-
-Stats tracked for completion point (leaderboard)
-- Kills, kills with weapon?
-- Skill levels gained?
-- Deaths?
-- Time?
-- Built?
-- Harvested?
-
-## Oaths
-- Take increased Damage
-- Deal less damage of X type
-- Slower skill gain of X type
-- Cant use X weapon type
-- Limit potion use
-- Food expires faster
-- Lower movespeed
-- Less stamina regen
-- Lower stamina
-- Lower health
-- Lower carry weight
-- No helmet
-
-
-## Boons
-Boons come from the gods, and can only be leveled by spending a prestige point
-Some powerful boons come with Oaths
+## Planned Features
+- Titles! Have you killed a 20 Star Troll yet? No? Well Matt has, he has the title! Still limited to 5 star mobs? Try out [SLS](https://thunderstore.io/c/valheim/p/MidnightMods/StarLevelSystem/).
+- Bounties or Quests for the Dieties
+- Activated abilities or

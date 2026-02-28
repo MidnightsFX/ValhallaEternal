@@ -202,6 +202,7 @@ namespace ValhallEternal.modules {
             } else {
                 Player.m_localPlayer.m_customData.Add(CustomDataKey, packedData);
             }
+            Player.m_localPlayer.m_nview.GetZDO().Set(CustomLevelZKey, playerData.PlayerLevel);
         }
 
         public static List<Dropdown.OptionData> ListPlayerAvailablePrestigeEffect(PrestigeEffect effect = PrestigeEffect.Wings) {
@@ -224,6 +225,10 @@ namespace ValhallEternal.modules {
                 //PlayerLevelConfiguration plc = PrestigeLevelConfigData.GetPlayerLevelConfiguration(pld.PlayerLevel);
                 SetPlayerConfig(pld);
                 PrestigeDisplays.UpdateLocalPlayerLevelDisplay(pld.PlayerLevel);
+                // Set ZValue when loading from customdata
+                if (pld.PlayerLevel != 0 && player.m_nview.GetZDO().GetInt(DataObjects.CustomLevelZKey, 0) == 0) {
+                    player.m_nview.GetZDO().Set(DataObjects.CustomLevelZKey, pld.PlayerLevel);
+                }
 
                 // Modularize
                 if (pld.ActiveEffectsForPlayer != null && pld.ActiveEffectsForPlayer.ContainsKey(PrestigeEffect.Wings)) {

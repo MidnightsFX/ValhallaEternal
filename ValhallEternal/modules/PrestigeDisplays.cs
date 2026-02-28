@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using Jotunn.Managers;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +18,14 @@ namespace ValhallEternal.modules
         static TextMeshProUGUI localPlayerLevelText = null;
         internal static GameObject localPlayerWings = null;
         internal static GameObject localPlayerAura = null;
+
+        public static Dictionary<uint, PrestigeLevelHUD> extendedPlayerHUDS = new Dictionary<uint, PrestigeLevelHUD>();
+
+        public class PrestigeLevelHUD {
+            public GameObject hudroot { get; set; }
+            public GameObject root { get; set; }
+            public TextMeshProUGUI tmpGUI { get; set;}
+        }
 
         public static void CreateLocalHudElements(Transform targetTform) {
             if (localPlayerVEHUD == null) {
@@ -37,12 +47,9 @@ namespace ValhallEternal.modules
                 //veLocalHud.transform.localPosition = new Vector3(healthIco.position.x - ValConfig.LocalLevelDisplayOffset.Value, healthIco.position.y);
                 Logger.LogDebug("Finding Level TextMeshPro component.");
                 Transform tform = localPlayerVEHUD.transform.Find("Level");
-                if (tform != null)
-                {
+                if (tform != null) {
                     localPlayerLevelText = tform.GetComponent<TextMeshProUGUI>();
-                }
-                else
-                {
+                } else {
                     Logger.LogDebug("Could not find Level GO");
                 }
             }
@@ -52,7 +59,7 @@ namespace ValhallEternal.modules
             if (!SceneManager.GetActiveScene().name.Equals("main")) { return; }
             if (level == 0) { level = PlayerData.localPlayerConfig.PlayerLevel; }
             CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
-            SetupPlayerLevelDisplay(localPlayerVEHUD, level);
+            SetupLocalPlayerLevelDisplay(localPlayerVEHUD, level);
         }
 
         public static void SetupPlayerWingsDisplay(string selectedWings = null) {
@@ -117,7 +124,7 @@ namespace ValhallEternal.modules
 
 
         [HarmonyPatch(typeof(EnemyHud))]
-        public static class SetupCreatureLevelDisplay
+        public static class SetupOtherPlayerLevelDisplay
         {
             [HarmonyPatch(nameof(EnemyHud.ShowHud))]
             public static void Postfix(EnemyHud __instance, Character c)
@@ -130,28 +137,52 @@ namespace ValhallEternal.modules
                 if (otherplayer == null) { return; }
                 ZDO ozdo = otherplayer.m_nview.GetZDO();
                 if (ozdo == null) { return; }
+                uint otherplayerzid = otherplayer.GetZDOID().ID;
                 int playerVELevel = ozdo.GetInt(DataObjects.CustomLevelZKey, 0);
-                if (playerVELevel > 0) {
-                    // Add the players level to their hud display
-
-                    // Build/determine the enemy hud parent object and pass that in as the location where the level should be created
-                    Logger.LogDebug("Setting enemy hud player level");
-                    GameObject enemyHud = CreateEnemyHud(ehud.m_gui.transform);
-                    SetupPlayerLevelDisplay(enemyHud, playerVELevel);
+                Logger.LogDebug($"Player {otherplayer.GetPlayerName()}-{otherplayerzid} level {playerVELevel}");
+                if (extendedPlayerHUDS.ContainsKey(otherplayerzid)) {
+                    // check/update level
+                    if (playerVELevel == 0) {
+                        extendedPlayerHUDS[otherplayerzid].root.SetActive(false);
+                    } else {
+                        extendedPlayerHUDS[otherplayerzid].root.SetActive(true);
+                    }
+                    extendedPlayerHUDS[otherplayerzid].tmpGUI.text = $"{playerVELevel}";
+                } else {
+                    // Create the new local hud
+                    CreateEnemyHud(otherplayerzid, ehud.m_gui.transform, playerVELevel);
                 }
             }
         }
 
-        public static GameObject CreateEnemyHud(Transform targetTform)
-        {
-            Logger.LogDebug("Creating Enemy Player Hud.");
-            GameObject hud = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("VELocalHud");
-            GameObject enemyHudLevel = GameObject.Instantiate(hud, targetTform);
-            // adjust enemyHudLevel transforms to fit hud location
-            return enemyHudLevel;
+        [HarmonyPatch(typeof(EnemyHud))]
+        private static class CleanupOtherPlayerHUDS {
+            [HarmonyPatch(nameof(EnemyHud.UpdateHuds))]
+            private static void Postfix() {
+                // Cleanup hud extensions that no longer reference existing huds
+                if (extendedPlayerHUDS.Count == 0) { return; }
+                extendedPlayerHUDS = extendedPlayerHUDS.Where(x => x.Value.root != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
         }
 
-        public static void SetupPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
+        public static void CreateEnemyHud(uint otherplayerzid, Transform targetTform, int otherplayerlevel) {
+            Logger.LogDebug("Creating Enemy Player Hud.");
+            GameObject hud = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("VERemoteHud");
+            GameObject enemyHudLevel = GameObject.Instantiate(hud, targetTform);
+            enemyHudLevel.name = "VERemoteHud";
+            Transform tform = enemyHudLevel.transform.Find("Level");
+            TextMeshProUGUI text = tform.GetComponent<TextMeshProUGUI>();
+            if (otherplayerlevel == 0) { 
+                enemyHudLevel.SetActive(false);
+            } else {
+                text.text = $"{otherplayerlevel}";
+            }
+            // Adjust hud location
+            
+            extendedPlayerHUDS.Add(otherplayerzid, new PrestigeLevelHUD() { root = enemyHudLevel, tmpGUI = text, hudroot = targetTform.gameObject });
+        }
+
+        public static void SetupLocalPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
             if (levelnum == 0) {
                 // No level to display
                 Logger.LogInfo("Player level set to zero or not set, disabling display.");
@@ -160,11 +191,13 @@ namespace ValhallEternal.modules
             }
 
             hugGUI.SetActive(true);
-            if (localPlayerLevelText == null) {
+
+            // Set local player level
+            if (localPlayerLevelText != null) {
+                Logger.LogDebug($"Setting player HUD with level {levelnum}");
+                localPlayerLevelText.text = $"{levelnum}";
                 return;
             }
-            Logger.LogDebug($"Setting player HUD with level {levelnum}");
-            localPlayerLevelText.text = $"{levelnum}";
         }
     }
 }
