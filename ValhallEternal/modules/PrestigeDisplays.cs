@@ -185,7 +185,7 @@ namespace ValhallEternal.modules
         public static void SetupLocalPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
             if (levelnum == 0) {
                 // No level to display
-                Logger.LogInfo("Player level set to zero or not set, disabling display.");
+                //Logger.LogDebug("Player level set to zero or not set, disabling display.");
                 hugGUI.SetActive(false);
                 return;
             }
@@ -194,7 +194,7 @@ namespace ValhallEternal.modules
 
             // Set local player level
             if (localPlayerLevelText != null) {
-                Logger.LogDebug($"Setting player HUD with level {levelnum}");
+                //Logger.LogDebug($"Setting player HUD with level {levelnum}");
                 localPlayerLevelText.text = $"{levelnum}";
                 return;
             }

@@ -12,7 +12,7 @@ namespace ValhallEternal.boons {
         [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetBaseBlockPower), typeof(int))]
         private static class StrongerShieldBlock {
             private static void Postfix(ItemDrop.ItemData __instance, ref float __result) {
-                if (PlayerData.HasBoonWithValue(common.DataObjects.Boons.StrongerBlock, out float block)) {
+                if (PlayerData.HasBoonWithValue(common.DataObjects.Boons.PowerfulShield, out float block)) {
                     float modifier = 1f + ((100f + block) / 100f);
                     __result *= modifier;
                 }

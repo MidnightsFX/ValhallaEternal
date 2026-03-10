@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine.UI;
 using ValhallEternal.common;
-using static Mono.Security.X509.X520;
 using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.modules {
@@ -215,6 +214,13 @@ namespace ValhallEternal.modules {
             }
 
             return options;
+        }
+
+        public static string GetActivePrestigeEffectForType(PrestigeEffect type = PrestigeEffect.Wings) {
+            if (localPlayerConfig.ActiveEffectsForPlayer != null && localPlayerConfig.ActiveEffectsForPlayer.ContainsKey(type)) {
+                return localPlayerConfig.ActiveEffectsForPlayer[type];
+            }
+            return null;
         }
 
 

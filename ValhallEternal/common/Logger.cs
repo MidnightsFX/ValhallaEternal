@@ -11,14 +11,7 @@ namespace ValhallEternal
 
         public static void enableDebugLogging(object sender, EventArgs e)
         {
-            if (ValConfig.EnableDebugMode.Value)
-            {
-                Level = LogLevel.Debug;
-            }
-            else
-            {
-                Level = LogLevel.Info;
-            }
+            CheckEnableDebugLogging();
             // set log level
         }
 

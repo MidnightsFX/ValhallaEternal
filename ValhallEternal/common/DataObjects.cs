@@ -112,7 +112,6 @@ namespace ValhallEternal.common
             Everwatchful,
             BrutalDefiance,
             DamageAgainstUndead,
-            StrongerBlock,
             StrongerTowerBlock,
             DedicationToTheBlade,
             WealthOfAges,
@@ -315,6 +314,7 @@ namespace ValhallEternal.common
             public Dictionary<Oaths, float> PlayerOathChanges { get; set; }
             [DataMember]
             public Dictionary<Boons, float> PlayerBoonsChanges { get; set; }
+            public Dictionary<Boons, float> PlayerBoonLimit { get; set; }
             public List<PrestigeEffectDetails> PrestigeOptions { get; set; }
 
             public string GetPlayerRequirementsDescription(bool includeOathsInDescription = true, bool includeBoonsInDescription = true, bool includeKeysInDescription = false, bool includeItemReference = true)

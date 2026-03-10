@@ -148,6 +148,11 @@ namespace ValhallEternal.modules
 
         public void UpdateSelectedDiety(int _actionID)
         {
+            if (enableExclusiveDeityMode == true) {
+                SetChoiceList(ExclusiveDeity);
+                return;
+            }
+            
             Dropdown dropSelector = DeitySelectorDropdown.GetComponent<Dropdown>();
             Deities.Deity selectedDiety = (Deities.Deity)System.Enum.Parse(typeof(Deities.Deity), dropSelector.options[dropSelector.value].text);
 
@@ -170,7 +175,9 @@ namespace ValhallEternal.modules
                 Dictionary<string, int> playerItems = Player.m_localPlayer.m_inventory.GetItemTotalsByName();
 
                 foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements) {
-                    if (!playerItems.ContainsKey(itemReq.Key)) {
+                    bool hasItem = playerItems.ContainsKey(itemReq.Key);
+                    Logger.LogDebug($"Checking for tribute {itemReq.Value} of item {itemReq.Key} - {hasItem}");
+                    if (hasItem == false) {
                         requirementsMet = false;
                         Logger.LogDebug($"Player did not have {itemReq.Value} of item {itemReq.Key}");
                         break;
@@ -180,8 +187,9 @@ namespace ValhallEternal.modules
             if (selectedSacrifice.PlayerKeyRequirements != null) {
                 foreach (string key in selectedSacrifice.PlayerKeyRequirements) {
                     // TODO: config for having key removal be global vs player unique
-                    Logger.LogDebug($"Removing unique key {key} from player.");
-                    if (Player.m_localPlayer.PlayerHasUniqueKey(key) == false) {
+                    bool haskey = Player.m_localPlayer.PlayerHasUniqueKey(key);
+                    Logger.LogDebug($"Checking unique key {key} from player - {haskey}");
+                    if (haskey == false) {
                         requirementsMet = false;
                         Logger.LogDebug($"Player did not have the required key: {key}");
                         break;
@@ -200,8 +208,11 @@ namespace ValhallEternal.modules
             // Only remove the items if all requirements can be satisfied
             if (selectedSacrifice.ItemRequirements != null) {
                 foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements) {
-                    Logger.LogDebug($"Removing {itemReq.Value} of item {itemReq.Key} from player inventory.");
-                    Player.m_localPlayer.m_inventory.RemoveItem(itemReq.Key, itemReq.Value);
+                    bool removedItem = Player.m_localPlayer.GetInventory().RemoveItemByPrefab(itemReq.Key, itemReq.Value);
+                    if (removedItem == false) {
+                        Logger.LogWarning("Unable to remove all of the required items, are you trying to cheat the deity?");
+                        return;
+                    }
                 }
             }
 
@@ -438,7 +449,7 @@ namespace ValhallEternal.modules
 
 
 
-            Logger.LogDebug("Setting up scroll entry");
+            //Logger.LogDebug("Setting up scroll entry");
             // Scroll area
             ScrollAreaView = GUIManager.Instance.CreateScrollView(
                 SacrificePanel.transform,
@@ -469,7 +480,7 @@ namespace ValhallEternal.modules
             deityDropdown.value = 2; // Gefjun default
             deityDropdown.onValueChanged.AddListener(UpdateSelectedDiety);
 
-            Logger.LogDebug("Setting Template");
+            //Logger.LogDebug("Setting Template");
             // Setup the template for adding entries
 
             SacrificeChoiceContainer = Object.Instantiate(new GameObject("ChoiceTemplate"), SacrificePanel.transform);
@@ -641,13 +652,12 @@ namespace ValhallEternal.modules
                 bool has_required_keys = true;
                 bool has_required_boons = true;
                 bool has_required_oaths = true;
+                bool has_not_hit_boon_cap = true;
                 // Player required to check requirements
                 if (Player.m_localPlayer != null && ZoneSystem.instance != null) {
                     if (entry.Value.PlayerKeyRequirements != null) {
-                        foreach (string requiredKey in entry.Value.PlayerKeyRequirements)
-                        {
-                            if (!ZoneSystem.instance.GetGlobalKey(requiredKey) && !Player.m_localPlayer.PlayerHasUniqueKey(requiredKey))
-                            {
+                        foreach (string requiredKey in entry.Value.PlayerKeyRequirements) {
+                            if (!ZoneSystem.instance.GetGlobalKey(requiredKey) && !Player.m_localPlayer.PlayerHasUniqueKey(requiredKey)) {
                                 has_required_keys = false;
                                 break;
                             }
@@ -655,10 +665,8 @@ namespace ValhallEternal.modules
                     }
 
                     if (entry.Value.PlayerBoonRequirements != null) {
-                        foreach (KeyValuePair<DataObjects.Boons, float> boon in entry.Value.PlayerBoonRequirements)
-                        {
-                            if (PlayerData.localPlayerConfig.HasBoon(boon.Key, out float _) == false)
-                            {
+                        foreach (KeyValuePair<DataObjects.Boons, float> boon in entry.Value.PlayerBoonRequirements) {
+                            if (PlayerData.localPlayerConfig.HasBoon(boon.Key, out float _) == false) {
                                 has_required_boons = false;
                                 break;
                             }
@@ -666,11 +674,18 @@ namespace ValhallEternal.modules
                     }
 
                     if (entry.Value.PlayerOathRequirements != null) {
-                        foreach (KeyValuePair<DataObjects.Oaths, float> boon in entry.Value.PlayerOathRequirements)
-                        {
-                            if (PlayerData.localPlayerConfig.HasOath(boon.Key, out float _) == false)
-                            {
+                        foreach (KeyValuePair<DataObjects.Oaths, float> oath in entry.Value.PlayerOathRequirements) {
+                            if (PlayerData.localPlayerConfig.HasOath(oath.Key, out float _) == false) {
                                 has_required_oaths = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (entry.Value.PlayerBoonLimit != null) {
+                        foreach (KeyValuePair<DataObjects.Boons, float> boon in entry.Value.PlayerBoonLimit) {
+                            if (PlayerData.localPlayerConfig.HasBoon(boon.Key, out float value) == true && value >= boon.Value) {
+                                has_not_hit_boon_cap = false;
                                 break;
                             }
                         }
@@ -682,6 +697,7 @@ namespace ValhallEternal.modules
                 if (has_required_keys == false && ValConfig.KeyRequirementsHideChoices.Value == true) { continue; }
                 if (has_required_boons == false && ValConfig.BoonRequirementsHideChoices.Value == true) { continue; }
                 if (has_required_oaths == false && ValConfig.OathRequirementsHideChoices.Value == true) { continue; }
+                if (has_not_hit_boon_cap == false) { continue; }
 
                 // Required items are not a hard failure
                 //Logger.LogDebug("Creating Choice Container");
@@ -744,7 +760,7 @@ namespace ValhallEternal.modules
                                     width: 40f,
                                     height: 40f,
                                     addContentSizeFitter: false);
-                                Logger.LogDebug("Added Text.");
+                                //Logger.LogDebug("Added Text.");
                                 LayoutElement icountLE = itemCount.AddComponent<LayoutElement>();
                                 icountLE.minHeight = 10;
                                 icountLE.minWidth = 10;

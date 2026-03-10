@@ -127,6 +127,8 @@ namespace ValhallEternal.modules {
 
                 Dropdown wingselectordd = WingSelectorDropdown.GetComponent<Dropdown>();
                 wingselectordd.AddOptions(PlayerData.ListPlayerAvailablePrestigeEffect(PrestigeEffect.Wings));
+                string active_wing = PlayerData.GetActivePrestigeEffectForType(PrestigeEffect.Wings);
+                wingselectordd.value = wingselectordd.options.IndexOf(new Dropdown.OptionData(active_wing));
                 wingselectordd.onValueChanged.AddListener(UpdateSelectedWings);
                 //WingSelectorDropdown.SetActive(false);
 
@@ -141,6 +143,8 @@ namespace ValhallEternal.modules {
 
                 Dropdown auraSelectorDD = AuraSelectorDropdown.GetComponent<Dropdown>();
                 auraSelectorDD.AddOptions(PlayerData.ListPlayerAvailablePrestigeEffect(PrestigeEffect.Aura));
+                string active_aura = PlayerData.GetActivePrestigeEffectForType(PrestigeEffect.Aura);
+                wingselectordd.value = wingselectordd.options.IndexOf(new Dropdown.OptionData(active_aura));
                 auraSelectorDD.onValueChanged.AddListener(UpdateSelectedAura);
                 //AuraSelectorDropdown.SetActive(false);
 
@@ -176,12 +180,14 @@ namespace ValhallEternal.modules {
             public void UpdateSelectedWings(int _actionID) {
                 Dropdown dropSelector = WingSelectorDropdown.GetComponent<Dropdown>();
                 string selectWings = dropSelector.options[dropSelector.value].text;
+                Logger.LogDebug($"Applying selected visual: {selectWings}");
                 PrestigeDisplays.SetupPlayerWingsDisplay(selectWings);
             }
 
             public void UpdateSelectedAura(int _actionID) {
                 Dropdown dropSelector = WingSelectorDropdown.GetComponent<Dropdown>();
                 string selectedAura = dropSelector.options[dropSelector.value].text;
+                Logger.LogDebug($"Applying selected visual: {selectedAura}");
                 PrestigeDisplays.SetupPlayerAuraDisplay(selectedAura);
             }
 

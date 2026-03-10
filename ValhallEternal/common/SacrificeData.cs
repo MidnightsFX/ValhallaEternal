@@ -20,67 +20,67 @@ namespace ValhallEternal.common
                 { "T1",new() {
                     Name = "Bounty of the lands",
                     Description = "A tribute for the goddess of harvests, may your harvests be plenty.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyBoar", 10 },
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.IncreasePickableYields, 2 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.IncreasePickableYields, 100 }
                     }
                 } },
                 { "T2",new() {
                     Name = "Quality Nourishment",
                     Description = "Gefjun enhances your food, making every bite more nurishing.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyBoar", 8 },
                         { "TrophyDeer", 5 },
                         { "TrophyNeck", 2 },
                     },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.IncreasePickableYields, 1 }
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.QualityNourishment, 2 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.QualityNourishment, 100 }
                     }
                 } },
                 { "T3",new() {
                     Name = "Fishing Prosperity",
                     Description = "May no fish escape your grasp.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "Fish1", 10 },
                     },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.IncreasePickableYields, 1 }
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.FishingProsperity, 2 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.FishingProsperity, 100 }
                     }
                 } },
                 { "T4",new() {
                     Name = "Devotion for Gefjun",
                     Description = "Provides a small amount of permenant armor. This is a prestige level.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyEikthyr", 1 },
 
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.BasicProtection, 1 },
                     },
-                    PlayerOathChanges = new Dictionary<Oaths, float>()
-                    {
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.BasicProtection, 20 }
+                    },
+                    PlayerOathChanges = new Dictionary<Oaths, float>() {
                         { Oaths.DamageTakenIncrease, 5f }
                     },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.FishingProsperity, 1 }
                     },
                     ResetPlayer = new PlayerResetData {
@@ -103,13 +103,14 @@ namespace ValhallEternal.common
                 { "T1",new() {
                     Name = "Wisdom of the Ages",
                     Description = "A tribute to Vör. Grants you a chance to recieve bonus skill experiance.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyGreydwarf", 10 },
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.RandomXPBonus, 1 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.RandomXPBonus, 100 }
                     }
                 } },
                 { "T2",new() {
@@ -128,6 +129,9 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.BladeboundKnowledge, 2 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.BladeboundKnowledge, 100 }
                     }
                 } },
                 { "T3",new() {
@@ -144,6 +148,9 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.HungerForKnowledge, 5 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.HungerForKnowledge, 100 }
                     }
                 }
                 } }
@@ -152,29 +159,30 @@ namespace ValhallEternal.common
                 { "T1",new() {
                     Name = "Shield Wall",
                     Description = "A tribute to Baldur. Shields become more powerful in your hands.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyAbomination", 2 },
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.PowerfulShield, 3 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.PowerfulShield, 100 }
                     }
                 } },
                 { "T2",new() {
                     Name = "Light of Baldur",
                     Description = "You deal increased damage against undead.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyDraugr", 6 },
                     },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.PowerfulShield, 1 }
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.DamageAgainstUndead, 2 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.DamageAgainstUndead, 100 }
                     }
                 } },
                 { "T3",new() {
@@ -193,6 +201,9 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.ReduceFirePoison, 3 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.ReduceFirePoison, 80 }
                     },
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
@@ -217,31 +228,32 @@ namespace ValhallEternal.common
                 { "T1",new() {
                     Name = "Swift is the Shadow",
                     Description = "A tribute to Skaði. Under the cover of darkness or in mountains she hastens your sprint.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyWolf", 10 },
                         { "TrophyUlv", 5 },
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.SwiftShadow, 1 }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.SwiftShadow, 100 }
                     }
                 } },
                 { "T2",new() {
                     Name = "Stormbound Rage",
                     Description = "Skaði teaches you to channel the rage of the storm, you deal bonus lightning damage during storms.",
-                    ItemRequirements = new Dictionary<string, int>()
-                    {
+                    ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyCultist_Hildir", 1 },
                         { "TrophyFenring", 2 },
                     },
-                    PlayerBoonRequirements = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.SwiftShadow, 2 }
                     },
-                    PlayerBoonsChanges = new Dictionary<Boons, float>()
-                    {
+                    PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.StormboundRage, 2 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.StormboundRage, 100 }
                     }
                 }},
                 { "T3",new() {
@@ -265,6 +277,9 @@ namespace ValhallEternal.common
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
                         { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.HuntressArrowReturn, 100 }
                     },
                     ResetPlayer = new PlayerResetData {
                         ResetSkillPercentage = 0.5f,
@@ -291,7 +306,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.BuiltDifferent, 2 },
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.BuiltDifferent, 100 }
+                    },
                 } },
                 { "T2",new() {
                     Name = "Wealth of the Ages",
@@ -307,7 +325,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.WealthOfAges, 1 },
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.WealthOfAges, 100 }
+                    },
                 } },
                 { "T3",new() {
                     Name = "Dedication to the Blade",
@@ -334,7 +355,11 @@ namespace ValhallEternal.common
                         ResetSkillPercentage = 0.5f,
                         TeleportToSpawn = true,
                         PrestigeLevelsGained = 1
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.DedicationToTheBlade, 100 },
+                        { Boons.IncreaseMeleeDamage, 200 },
+                    },
                 }}
             }},
             { Deity.Freya, new Dictionary<string,Sacrifice>() {
@@ -349,7 +374,11 @@ namespace ValhallEternal.common
                     {
                         { Boons.IncreaseEitrRegen, 1 },
                         { Boons.IncreaseBaseEitr, 3 }
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.IncreaseEitrRegen, 100 },
+                        { Boons.IncreaseBaseEitr, 200 },
+                    },
                 } },
                 { "T1.1",new() {
                     Name = "Goddess of War",
@@ -361,7 +390,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.IncreaseStaminaRegen, 3 }
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.IncreaseStaminaRegen, 100 },
+                    },
                 } },
                 { "T2",new() {
                     Name = "Perfect Form",
@@ -377,7 +409,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.PerfectForm, 2 },
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.PerfectForm, 100 },
+                    },
                 }}
             }},
             { Deity.Hel, new Dictionary<string,Sacrifice>() {
@@ -393,7 +428,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.IncreaseHeatResistance, 3 },
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.IncreaseHeatResistance, 100 },
+                    },
                 } },
                 { "T2",new() {
                     Name = "Balance of the Jotunn",
@@ -409,7 +447,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.ReturnStaminaOnDamage, 3 }
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.ReturnStaminaOnDamage, 100 },
+                    },
                 } },
                 { "T2.1",new() {
                     Name = "Balance of the Aesir",
@@ -425,7 +466,10 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.ReturnEitrOnDamage, 3 },
-                    }
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.ReturnEitrOnDamage, 100 },
+                    },
                 } },
                 { "T3",new() {
                     Name = "Hasten the inevitable",
@@ -442,6 +486,9 @@ namespace ValhallEternal.common
                     PlayerBoonsChanges = new Dictionary<Boons, float>()
                     {
                         { Boons.MovementSpeedOnKill, 2 },
+                    },
+                    PlayerBoonLimit = new Dictionary<Boons, float>() {
+                        { Boons.MovementSpeedOnKill, 200 },
                     },
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
