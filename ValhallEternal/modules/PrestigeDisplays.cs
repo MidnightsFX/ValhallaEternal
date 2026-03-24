@@ -129,27 +129,33 @@ namespace ValhallEternal.modules
             [HarmonyPatch(nameof(EnemyHud.ShowHud))]
             public static void Postfix(EnemyHud __instance, Character c)
             {
-                if (c == null || !c.IsPlayer() || __instance == null) { return; }
+                if (c == null || __instance == null || !c.IsPlayer()) { return; }
                 EnemyHud.HudData ehud = __instance.m_huds[c];
                 if (ehud == null) { return; }
 
                 Player otherplayer = c as Player;
-                if (otherplayer == null) { return; }
+                if (otherplayer == null || otherplayer.m_nview == null || otherplayer.m_nview.GetZDO() == null) { return; }
                 ZDO ozdo = otherplayer.m_nview.GetZDO();
-                if (ozdo == null) { return; }
                 uint otherplayerzid = otherplayer.GetZDOID().ID;
                 int playerVELevel = ozdo.GetInt(DataObjects.CustomLevelZKey, 0);
                 Logger.LogDebug($"Player {otherplayer.GetPlayerName()}-{otherplayerzid} level {playerVELevel}");
                 if (extendedPlayerHUDS.ContainsKey(otherplayerzid)) {
                     // check/update level
                     if (playerVELevel == 0) {
-                        extendedPlayerHUDS[otherplayerzid].root.SetActive(false);
+                        if (extendedPlayerHUDS[otherplayerzid].root != null) {
+                            extendedPlayerHUDS[otherplayerzid].root.SetActive(false);
+                        }
                     } else {
-                        extendedPlayerHUDS[otherplayerzid].root.SetActive(true);
+                        if (extendedPlayerHUDS[otherplayerzid].root != null) {
+                            extendedPlayerHUDS[otherplayerzid].root.SetActive(true);
+                        }
                     }
-                    extendedPlayerHUDS[otherplayerzid].tmpGUI.text = $"{playerVELevel}";
+                    if (extendedPlayerHUDS[otherplayerzid].tmpGUI != null) {
+                        extendedPlayerHUDS[otherplayerzid].tmpGUI.text = $"{playerVELevel}";
+                    }
                 } else {
                     // Create the new local hud
+                    if (ehud.m_gui == null) { return; }
                     CreateEnemyHud(otherplayerzid, ehud.m_gui.transform, playerVELevel);
                 }
             }

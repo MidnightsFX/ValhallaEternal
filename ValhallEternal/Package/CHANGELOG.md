@@ -1,3 +1,9 @@
+**0.7.2**
+ ---
+ ```
+ - Fixes an error from enemy player huds being deleted before prestige data can be loaded
+ ```
+
 **0.7.1**
  ---
  ```
