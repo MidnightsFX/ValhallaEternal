@@ -24,11 +24,13 @@ namespace ValhallEternal.common
 
         public static Sprite boonbackground;
         public static Sprite hastenDeath;
+        public static GameObject BoonGrantedVFX;
 
         public static void LoadAssets()
         {
             boonbackground = ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/bottom_border_divider.png");
             hastenDeath = ValhallEternal.EmbeddedResourceBundle.LoadAsset<Sprite>("assets/art/hastenDeath.png");
+            BoonGrantedVFX = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("assets/boons/boongranted.prefab");
 
             boons.HastenTheInevitable.AddHastenDeathStatus();
         }

@@ -209,7 +209,7 @@ namespace ValhallEternal.modules
             if (selectedSacrifice.ItemRequirements != null) {
                 foreach (KeyValuePair<string, int> itemReq in selectedSacrifice.ItemRequirements) {
                     bool removedItem = Player.m_localPlayer.GetInventory().RemoveItemByPrefab(itemReq.Key, itemReq.Value);
-                    if (removedItem == false) {
+                    if (removedItem == false && Player.m_localPlayer.NoCostCheat() == false) {
                         Logger.LogWarning("Unable to remove all of the required items, are you trying to cheat the deity?");
                         return;
                     }
@@ -294,6 +294,8 @@ namespace ValhallEternal.modules
             PlayerData.LoadPlayerConfiguration(Player.m_localPlayer);
             PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
             Hide();
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$ve_sacrifice_success"));
+            GameObject.Instantiate(DataObjects.BoonGrantedVFX, Player.m_localPlayer.transform.position, Quaternion.identity);
             UpdateSelectedDiety(-1); //refresh list, to show newly available options
             if (enableExclusiveDeityMode) {
                 SetChoiceList(SelectedDeity);

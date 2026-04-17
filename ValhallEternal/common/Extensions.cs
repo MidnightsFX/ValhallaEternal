@@ -58,6 +58,7 @@ namespace ValhallEternal.common
                             }
                         } else {
                             user_item.m_stack -= remaining;
+                            remaining = 0;
                             break;
                         }
                     } else {

@@ -242,6 +242,9 @@ namespace ValhallEternal.modules {
                     PrestigeDisplays.SetupPlayerWingsDisplay(pld.ActiveEffectsForPlayer[PrestigeEffect.Wings]);
                 }
 
+                // Update player boon summary
+                Compendium.UpdateDietyPrestigeExplanations();
+
             } else {
                 Logger.LogDebug("No saved player saved data found.");
             }

@@ -1,3 +1,12 @@
+**0.7.3**
+ ---
+ ```
+ - Fixes boon sacrifices with many trophies being counted only once
+ - Adds a visual effect when granting a boon
+ - Adds a message when granting a boon
+ - Fixes compendium not updating when you gain a new boon, oath or prestige reward
+ ```
+
 **0.7.2**
  ---
  ```

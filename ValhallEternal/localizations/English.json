@@ -163,5 +163,6 @@
   "ve_DedicationToTheBlade_desc_noval": "Provides significantly increased melee damage and reduces all of your ranged damage.",
   "ve_IncreaseMeleeDamage": "Increase Melee Damage",
   "ve_IncreaseMeleeDamage_desc": "Increases the melee damage you do by {0#}%.",
-  "ve_IncreaseMeleeDamage_desc_noval": "Increases the melee damage you do."
+  "ve_IncreaseMeleeDamage_desc_noval": "Increases the melee damage you do.",
+  "ve_sacrifice_success": "Your sacrifice has been accepted."
 }
