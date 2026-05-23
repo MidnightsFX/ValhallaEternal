@@ -155,7 +155,7 @@ namespace ValhallEternal.common
         }
 
         public static string LocalizeOathDesc(Oaths oath, float value = 0) {
-            if (value > 0) { return string.Format($"$ve_{oath}_desc", value); }
+            if (value > 0) { return string.Format(Localization.instance.Localize($"$ve_{oath}_desc"), value); }
             return $"$ve_{oath}_desc_noval";
         }
 
@@ -164,7 +164,7 @@ namespace ValhallEternal.common
         }
 
         public static string LocalizeBoonDesc(Boons boon, float value = 0) {
-            if (value > 0) { return string.Format($"$ve_{boon}_desc", value); }
+            if (value > 0) { return string.Format(Localization.instance.Localize($"$ve_{boon}_desc"), value); }
             return $"$ve_{boon}_desc_noval";
         }
 

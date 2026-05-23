@@ -105,7 +105,7 @@
   "ve_IncreaseHeatResistance_desc": "Increases heat resistance by {0#}%.",
   "ve_IncreaseHeatResistance_desc_noval": "Increases heat resistance.",
   "ve_IncreaseEitrRegen": "Eitr Regen",
-  "ve_IncreaseEitrRegen_desc": "Increases Eitr regeneration {0#}.",
+  "ve_IncreaseEitrRegen_desc": "Increases Eitr regeneration {0}.",
   "ve_IncreaseEitrRegen_desc_noval": "Increases Eitr regeneration.",
   "ve_IncreaseBaseEitr": "Eitr Pool",
   "ve_IncreaseBaseEitr_desc": "Increases base Eitr by {0#}.",
