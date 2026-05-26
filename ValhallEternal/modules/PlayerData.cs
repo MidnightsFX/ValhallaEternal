@@ -202,6 +202,38 @@ namespace ValhallEternal.modules {
                 Player.m_localPlayer.m_customData.Add(CustomDataKey, packedData);
             }
             Player.m_localPlayer.m_nview.GetZDO().Set(CustomLevelZKey, playerData.PlayerLevel);
+            WritePrestigeEffectsToZDO();
+        }
+
+        public static string PackActiveEffectsForZDO(Dictionary<PrestigeEffect, string> active) {
+            if (active == null || active.Count == 0) { return ""; }
+            List<string> parts = new List<string>(active.Count);
+            foreach (KeyValuePair<PrestigeEffect, string> kvp in active) {
+                if (string.IsNullOrEmpty(kvp.Value) || kvp.Value == DataObjects.None) { continue; }
+                parts.Add($"{kvp.Key}={kvp.Value}");
+            }
+            return string.Join("|", parts);
+        }
+
+        public static Dictionary<PrestigeEffect, string> UnpackActiveEffectsFromZDO(string packed) {
+            Dictionary<PrestigeEffect, string> result = new Dictionary<PrestigeEffect, string>();
+            if (string.IsNullOrEmpty(packed)) { return result; }
+            foreach (string token in packed.Split('|')) {
+                int eq = token.IndexOf('=');
+                if (eq <= 0) { continue; }
+                if (System.Enum.TryParse(token.Substring(0, eq), out PrestigeEffect fx)) {
+                    result[fx] = token.Substring(eq + 1);
+                }
+            }
+            return result;
+        }
+
+        public static void WritePrestigeEffectsToZDO() {
+            if (Player.m_localPlayer == null || Player.m_localPlayer.m_nview == null) { return; }
+            ZDO zdo = Player.m_localPlayer.m_nview.GetZDO();
+            if (zdo == null) { return; }
+            PrestigeEffectsDictionaryZNetProperty storedEffects = new PrestigeEffectsDictionaryZNetProperty(CustomPrestigeFxZKey, Player.m_localPlayer.m_nview, null);
+            storedEffects.ForceSet(localPlayerConfig.ActiveEffectsForPlayer);
         }
 
         public static List<Dropdown.OptionData> ListPlayerAvailablePrestigeEffect(PrestigeEffect effect = PrestigeEffect.Wings) {
@@ -236,11 +268,21 @@ namespace ValhallEternal.modules {
                     player.m_nview.GetZDO().Set(DataObjects.CustomLevelZKey, pld.PlayerLevel);
                 }
 
-                // Modularize
-                if (pld.ActiveEffectsForPlayer != null && pld.ActiveEffectsForPlayer.ContainsKey(PrestigeEffect.Wings)) {
-                    Logger.LogDebug($"Setting up player wings display: {pld.ActiveEffectsForPlayer[PrestigeEffect.Wings]}");
-                    PrestigeDisplays.SetupPlayerWingsDisplay(pld.ActiveEffectsForPlayer[PrestigeEffect.Wings]);
+                if (pld.ActiveEffectsForPlayer != null) {
+                    foreach (KeyValuePair<PrestigeEffect, string> kvp in pld.ActiveEffectsForPlayer) {
+                        Logger.LogDebug($"Setting up player {kvp.Key} display: {kvp.Value}");
+                        switch (kvp.Key) {
+                            case PrestigeEffect.Wings:
+                                PrestigeDisplays.SetupPlayerWingsDisplay(kvp.Value);
+                                break;
+                            case PrestigeEffect.Aura:
+                                PrestigeDisplays.SetupPlayerAuraDisplay(kvp.Value);
+                                break;
+                        }
+                    }
                 }
+
+                WritePrestigeEffectsToZDO();
 
                 // Update player boon summary
                 Compendium.UpdateDietyPrestigeExplanations();

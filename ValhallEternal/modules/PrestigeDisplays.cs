@@ -171,6 +171,58 @@ namespace ValhallEternal.modules
             }
         }
 
+        internal class SpawnedPrestigeVisual {
+            public string Name { get; set; }
+            public GameObject Instance { get; set; }
+        }
+
+        [HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.UpdateVisuals))]
+        public static class SyncPrestigeVisuals {
+            private static readonly Dictionary<ZDOID, Dictionary<PrestigeEffect, SpawnedPrestigeVisual>> spawned = new Dictionary<ZDOID, Dictionary<PrestigeEffect, SpawnedPrestigeVisual>>();
+
+            public static void Postfix(VisEquipment __instance) {
+                if (__instance == null || __instance.m_nview == null) { return; }
+                ZDO zdo = __instance.m_nview.GetZDO();
+                if (zdo == null) { return; }
+                Player player = __instance.GetComponent<Player>();
+                if (player == null) { return; }
+
+                // Local player visuals are managed by SetupPlayer*Display via the cosmetics UI / load path.
+                if (player == Player.m_localPlayer) { return; }
+
+                PrestigeEffectsDictionaryZNetProperty storedEffects = new PrestigeEffectsDictionaryZNetProperty(CustomPrestigeFxZKey, Player.m_localPlayer.m_nview, null);
+                Dictionary<PrestigeEffect, string> desired = storedEffects.Get();
+
+                ZDOID id = zdo.m_uid;
+                if (!spawned.TryGetValue(id, out Dictionary<PrestigeEffect, SpawnedPrestigeVisual> perPlayer)) {
+                    perPlayer = new Dictionary<PrestigeEffect, SpawnedPrestigeVisual>();
+                    spawned[id] = perPlayer;
+                }
+
+                UpdateOtherPlayerVFX(player, perPlayer, PrestigeEffect.Wings, desired);
+                UpdateOtherPlayerVFX(player, perPlayer, PrestigeEffect.Aura, desired);
+            }
+
+            private static void UpdateOtherPlayerVFX(Player player, Dictionary<PrestigeEffect, SpawnedPrestigeVisual> perPlayer, PrestigeEffect fx, Dictionary<PrestigeEffect, string> desired) {
+                desired.TryGetValue(fx, out string playerDesiredVFX);
+                perPlayer.TryGetValue(fx, out SpawnedPrestigeVisual playerHasVFX);
+                if (playerHasVFX != null && playerHasVFX.Name == playerDesiredVFX && playerHasVFX.Instance != null) { return; }
+                if (playerHasVFX != null && playerHasVFX.Instance != null) { GameObject.Destroy(playerHasVFX.Instance); }
+
+                if (string.IsNullOrEmpty(playerDesiredVFX) || playerDesiredVFX == DataObjects.None
+                    || !Deities.PrestigeEffects.TryGetValue(fx, out Dictionary<string, Deities.PrestigeEffectDetails> byName)
+                    || !byName.TryGetValue(playerDesiredVFX, out Deities.PrestigeEffectDetails details)
+                    || details.EffectObject == null)
+                {
+                    perPlayer[fx] = new SpawnedPrestigeVisual { Name = null, Instance = null };
+                    return;
+                }
+
+                GameObject go = GameObject.Instantiate(details.EffectObject, player.gameObject.transform);
+                perPlayer[fx] = new SpawnedPrestigeVisual { Name = playerDesiredVFX, Instance = go };
+            }
+        }
+
         public static void CreateEnemyHud(uint otherplayerzid, Transform targetTform, int otherplayerlevel) {
             Logger.LogDebug("Creating Enemy Player Hud.");
             GameObject hud = ValhallEternal.EmbeddedResourceBundle.LoadAsset<GameObject>("VERemoteHud");

@@ -1,3 +1,12 @@
+**0.7.4**
+ ---
+ ```
+ - Enables visual auras and wings to be shown to other players
+ - Fixes automatic enablement/switching not working for auras
+ - Fixes oath of Damage taken not showing its percent value
+ - Improves compatibility when removing private keys with Ventures Progression mod
+ ```
+
 **0.7.3**
  ---
  ```

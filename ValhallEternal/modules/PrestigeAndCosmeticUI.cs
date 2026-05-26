@@ -144,7 +144,7 @@ namespace ValhallEternal.modules {
                 Dropdown auraSelectorDD = AuraSelectorDropdown.GetComponent<Dropdown>();
                 auraSelectorDD.AddOptions(PlayerData.ListPlayerAvailablePrestigeEffect(PrestigeEffect.Aura));
                 string active_aura = PlayerData.GetActivePrestigeEffectForType(PrestigeEffect.Aura);
-                wingselectordd.value = wingselectordd.options.IndexOf(new Dropdown.OptionData(active_aura));
+                auraSelectorDD.value = auraSelectorDD.options.IndexOf(new Dropdown.OptionData(active_aura));
                 auraSelectorDD.onValueChanged.AddListener(UpdateSelectedAura);
                 //AuraSelectorDropdown.SetActive(false);
 
@@ -182,13 +182,17 @@ namespace ValhallEternal.modules {
                 string selectWings = dropSelector.options[dropSelector.value].text;
                 Logger.LogDebug($"Applying selected visual: {selectWings}");
                 PrestigeDisplays.SetupPlayerWingsDisplay(selectWings);
+                PlayerData.SetActivePrestigeEffectForPlayer(PrestigeEffect.Wings, selectWings);
+                PlayerData.SavePlayerConfiguration();
             }
 
             public void UpdateSelectedAura(int _actionID) {
-                Dropdown dropSelector = WingSelectorDropdown.GetComponent<Dropdown>();
+                Dropdown dropSelector = AuraSelectorDropdown.GetComponent<Dropdown>();
                 string selectedAura = dropSelector.options[dropSelector.value].text;
                 Logger.LogDebug($"Applying selected visual: {selectedAura}");
                 PrestigeDisplays.SetupPlayerAuraDisplay(selectedAura);
+                PlayerData.SetActivePrestigeEffectForPlayer(PrestigeEffect.Aura, selectedAura);
+                PlayerData.SavePlayerConfiguration();
             }
 
             public void ApplySelectedEffects() {

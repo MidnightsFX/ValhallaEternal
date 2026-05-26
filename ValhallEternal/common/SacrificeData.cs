@@ -69,7 +69,6 @@ namespace ValhallEternal.common
                     Description = "Provides a small amount of permenant armor. This is a prestige level.",
                     ItemRequirements = new Dictionary<string, int>() {
                         { "TrophyEikthyr", 1 },
-
                     },
                     PlayerBoonsChanges = new Dictionary<Boons, float>() {
                         { Boons.BasicProtection, 1 },
@@ -82,6 +81,15 @@ namespace ValhallEternal.common
                     },
                     PlayerBoonRequirements = new Dictionary<Boons, float>() {
                         { Boons.FishingProsperity, 1 }
+                    },
+                    PlayerKeyRequirements = new List<string> {
+                        "defeated_eikthyr",
+                        "defeated_gdking",
+                        "defeated_bonemass",
+                        "defeated_dragon",
+                        "defeated_goblinking",
+                        "defeated_queen",
+                        "defeated_fader"
                     },
                     ResetPlayer = new PlayerResetData {
                         ResetSkillPercentage = 0.5f,
@@ -214,6 +222,15 @@ namespace ValhallEternal.common
                         TeleportToSpawn = true,
                         PrestigeLevelsGained = 1
                     },
+                    PlayerKeyRequirements = new List<string> {
+                        "defeated_eikthyr",
+                        "defeated_gdking",
+                        "defeated_bonemass",
+                        "defeated_dragon",
+                        "defeated_goblinking",
+                        "defeated_queen",
+                        "defeated_fader"
+                    },
                     PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
                         { new DataObjects.PrestigeEffectDetails() {
                             EffectType = PrestigeEffect.Aura,
@@ -286,6 +303,15 @@ namespace ValhallEternal.common
                         TeleportToSpawn = true,
                         PrestigeLevelsGained = 1
                     },
+                    PlayerKeyRequirements = new List<string> {
+                        "defeated_eikthyr",
+                        "defeated_gdking",
+                        "defeated_bonemass",
+                        "defeated_dragon",
+                        "defeated_goblinking",
+                        "defeated_queen",
+                        "defeated_fader"
+                    },
                     PrestigeOptions = new List<DataObjects.PrestigeEffectDetails>() {
                         { new DataObjects.PrestigeEffectDetails() {
                             EffectType = PrestigeEffect.Aura,
@@ -350,6 +376,15 @@ namespace ValhallEternal.common
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
                         { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    PlayerKeyRequirements = new List<string> {
+                        "defeated_eikthyr",
+                        "defeated_gdking",
+                        "defeated_bonemass",
+                        "defeated_dragon",
+                        "defeated_goblinking",
+                        "defeated_queen",
+                        "defeated_fader"
                     },
                     ResetPlayer = new PlayerResetData {
                         ResetSkillPercentage = 0.5f,
@@ -493,6 +528,15 @@ namespace ValhallEternal.common
                     PlayerOathChanges = new Dictionary<Oaths, float>()
                     {
                         { Oaths.DamageTakenIncrease, 5f }
+                    },
+                    PlayerKeyRequirements = new List<string> {
+                        "defeated_eikthyr",
+                        "defeated_gdking",
+                        "defeated_bonemass",
+                        "defeated_dragon",
+                        "defeated_goblinking",
+                        "defeated_queen",
+                        "defeated_fader"
                     },
                     ResetPlayer = new PlayerResetData {
                         ResetSkillPercentage = 0.5f,

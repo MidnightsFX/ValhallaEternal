@@ -186,10 +186,13 @@ namespace ValhallEternal.modules
             }
             if (selectedSacrifice.PlayerKeyRequirements != null) {
                 foreach (string key in selectedSacrifice.PlayerKeyRequirements) {
-                    // TODO: config for having key removal be global vs player unique
-                    bool haskey = Player.m_localPlayer.PlayerHasUniqueKey(key);
-                    Logger.LogDebug($"Checking unique key {key} from player - {haskey}");
-                    if (haskey == false) {
+                    // Boss-kill keys (defeated_*) live in ZoneSystem global keys in vanilla, and in
+                    // VentureValheim's per-player private keys when its private-key mode is on
+                    // (VV patches GetGlobalKey to return true when the player owns the private key).
+                    bool hasGlobal = ZoneSystem.instance != null && ZoneSystem.instance.GetGlobalKey(key);
+                    bool hasUnique = Player.m_localPlayer.PlayerHasUniqueKey(key);
+                    Logger.LogDebug($"Checking key {key} from player - global:{hasGlobal} unique:{hasUnique}");
+                    if (!hasGlobal && !hasUnique) {
                         requirementsMet = false;
                         Logger.LogDebug($"Player did not have the required key: {key}");
                         break;
@@ -220,9 +223,18 @@ namespace ValhallEternal.modules
             if (selectedSacrifice.PlayerKeyRequirements != null) {
                 foreach (string key in selectedSacrifice.PlayerKeyRequirements)
                 {
-                    // TODO: config for having key removal be global vs player unique
-                    Logger.LogDebug($"Removing unique key {key} from player.");
-                    Player.m_localPlayer.RemoveUniqueKey(key);
+                    Logger.LogDebug($"Removing key {key} from player progression.");
+                    // Vanilla path: boss-kill keys live in ZoneSystem global keys.
+                    // VentureValheim local/hosted: their RPC_RemoveGlobalKey postfix
+                    // mirrors this into their private key list automatically.
+                    if (ZoneSystem.instance != null && ZoneSystem.instance.GetGlobalKey(key)) {
+                        ZoneSystem.instance.RemoveGlobalKey(key);
+                    }
+                    // Player-unique keys (e.g. Vegvisir m_setsPlayerKey).
+                    Player.m_localPlayer.PlayerRemoveUniqueKey(key);
+                    // VentureValheim dedicated server: RPC_RemoveGlobalKey runs on the
+                    // server and skips the private-key mirror, so remove client-side too.
+                    ProgressionCompat.TryRemovePrivateKey(key);
                 }
             }
             // Make boon changes

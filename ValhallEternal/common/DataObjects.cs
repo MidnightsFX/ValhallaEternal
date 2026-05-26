@@ -2,25 +2,24 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 using ValhallEternal.modules;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using static ValhallEternal.common.DataObjects;
 
 namespace ValhallEternal.common
 {
     public static class DataObjects {
         public static readonly string CustomLevelZKey = "VELevel";
         public static readonly string CustomDataKey = "VE_DATA";
+        public static readonly string CustomPrestigeFxZKey = "VE_PrestigeFx";
         public static IDeserializer yamldeserializer = new DeserializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
         public static ISerializer yamlserializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitDefaults).Build();
         public static ISerializer yamlserializerJsonCompat = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).JsonCompatible().Build();
+        public static BinaryFormatter binFormatter = new BinaryFormatter();
 
         public static Sprite boonbackground;
         public static Sprite hastenDeath;
@@ -255,8 +254,7 @@ namespace ValhallEternal.common
             public Dictionary<PrestigeEffect, List<string>> AvailableEffectsForPlayer { get; set; }
         }
 
-        public class PlayerResetData
-        {
+        public class PlayerResetData {
             public float ResetSkillPercentage { get; set; } = .5f;
             public bool ResetKnownRecipes { get; set; } = true;
             public bool TeleportToSpawn { get; set; } = false;
@@ -454,6 +452,61 @@ namespace ValhallEternal.common
                 if (reqdesc.Length > 0) { totaldesc += "\n"; }
                 totaldesc += reqdesc;
                 return totaldesc;
+            }
+        }
+
+        public abstract class ZNetProperty<T> {
+            public string Key {
+                get; private set;
+            }
+            public T DefaultValue {
+                get; private set;
+            }
+            protected readonly ZNetView zNetView;
+
+            protected ZNetProperty(string key, ZNetView zNetView, T defaultValue) {
+                Key = key;
+                DefaultValue = defaultValue;
+                this.zNetView = zNetView;
+            }
+
+            private void ClaimOwnership() {
+                if (!zNetView.IsOwner()) {
+                    zNetView.ClaimOwnership();
+                }
+            }
+
+            public void Set(T value) {
+                SetValue(value);
+            }
+
+            public void ForceSet(T value) {
+                ClaimOwnership();
+                Set(value);
+            }
+
+            public abstract T Get();
+
+            protected abstract void SetValue(T value);
+        }
+
+        public class PrestigeEffectsDictionaryZNetProperty : ZNetProperty<Dictionary<PrestigeEffect, string>> {
+            public PrestigeEffectsDictionaryZNetProperty(string key, ZNetView zNetView, Dictionary<PrestigeEffect, string> defaultValue) : base(key, zNetView, defaultValue) {
+            }
+
+            public override Dictionary<PrestigeEffect, string> Get() {
+                var stored = zNetView.GetZDO().GetByteArray(Key);
+                // we can't deserialize a null buffer
+                if (stored == null) { return new Dictionary<PrestigeEffect, string>(); }
+                MemoryStream mStream = new MemoryStream(stored);
+                return (Dictionary<PrestigeEffect, string>)binFormatter.Deserialize(mStream);
+            }
+
+            protected override void SetValue(Dictionary<PrestigeEffect, string> value) {
+                MemoryStream mStream = new MemoryStream();
+                binFormatter.Serialize(mStream, value);
+
+                zNetView.GetZDO().Set(Key, mStream.ToArray());
             }
         }
     }
