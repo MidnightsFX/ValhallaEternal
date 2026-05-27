@@ -64,7 +64,7 @@ namespace ValhallEternal.boons {
                     float roll = UnityEngine.Random.Range(0, 100);
                     float chance = arrowReturnVal;
                     if (chance > 10) { chance = 10f; }
-                    Logger.LogInfo($"[HuntressArrowReturn] Roll: {roll} <= {chance} | {roll <= chance}");
+                    Logger.LogDebug($"[HuntressArrowReturn] Roll: {roll} <= {chance} | {roll <= chance}");
                     if (roll <= chance) {
                         List<LootReward> levelselectedOptions = ArrowReturnProbabilityRewards.Where(x => x.MinLevelRequired < arrowReturnVal && x.MaxLevelAllowed >= arrowReturnVal).ToList();
                         string selected = RandomSelectFromWeightedListWithExclusions(levelselectedOptions.Cast<IProbability>().ToList());
@@ -78,7 +78,7 @@ namespace ValhallEternal.boons {
                             GameObject prefab = PrefabManager.Instance.GetPrefab(determined.First().Name);
                             ItemDrop id = prefab.GetComponent<ItemDrop>();
                             DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
-                            Logger.LogInfo($"[HuntressArrowReturn] providing +1 {id.m_itemData.m_shared.m_name}");
+                            Logger.LogDebug($"[HuntressArrowReturn] providing +1 {id.m_itemData.m_shared.m_name}");
                             Player.m_localPlayer.m_inventory.AddItem(prefab, 1);
                         }
                     }
@@ -88,7 +88,7 @@ namespace ValhallEternal.boons {
                     float roll = UnityEngine.Random.Range(0, 100);
                     float chance = arrowReturnVal;
                     if (chance > 10) { chance = 10f; }
-                    Logger.LogInfo($"[WealthOfAges] Roll: {roll} <= {chance} | {(roll <= chance)}");
+                    Logger.LogDebug($"[WealthOfAges] Roll: {roll} <= {chance} | {(roll <= chance)}");
                     if (roll <= chance) {
                         List<LootReward> levelselectedOptions = WealthProbabilityRewards.Where(x => x.MinLevelRequired < wealthValue && x.MaxLevelAllowed >= wealthValue).ToList();
                         string selected = RandomSelectFromWeightedListWithExclusions(levelselectedOptions.Cast<IProbability>().ToList());
@@ -112,7 +112,7 @@ namespace ValhallEternal.boons {
                             GameObject prefab = PrefabManager.Instance.GetPrefab(selectedReward.Name);
                             ItemDrop id = prefab.GetComponent<ItemDrop>();
                             DamageText.instance.ShowText(DamageText.TextType.Bonus, Player.m_localPlayer.transform.position + Vector3.up * 0.2f, $"+1 {Localization.instance.Localize(id.m_itemData.m_shared.m_name)}", player: true);
-                            Logger.LogInfo($"[WealthOfAges] providing +{amount} {prefab.name}");
+                            Logger.LogDebug($"[WealthOfAges] providing +{amount} {prefab.name}");
                             DropItemsImmediate(new Dictionary<GameObject, int>() { { prefab, amount } }, __instance.transform.position, 0.5f);
                         }
                     }

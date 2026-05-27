@@ -190,7 +190,7 @@ namespace ValhallEternal.modules
                 // Local player visuals are managed by SetupPlayer*Display via the cosmetics UI / load path.
                 if (player == Player.m_localPlayer) { return; }
 
-                PrestigeEffectsDictionaryZNetProperty storedEffects = new PrestigeEffectsDictionaryZNetProperty(CustomPrestigeFxZKey, Player.m_localPlayer.m_nview, null);
+                PrestigeEffectsDictionaryZNetProperty storedEffects = new PrestigeEffectsDictionaryZNetProperty(CustomPrestigeFxZKey, player.m_nview, null);
                 Dictionary<PrestigeEffect, string> desired = storedEffects.Get();
 
                 ZDOID id = zdo.m_uid;

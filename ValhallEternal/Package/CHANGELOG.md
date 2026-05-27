@@ -1,3 +1,10 @@
+**0.7.5**
+ ---
+ ```
+ - Improves multiplayer visual display
+ - Reduces logging of some rare effects
+ ```
+
 **0.7.4**
  ---
  ```
