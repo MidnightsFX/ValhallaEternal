@@ -22,7 +22,7 @@ namespace ValhallEternal
     {
         public const string PluginGUID = "MidnightsFX.ValhallaEternal";
         public const string PluginName = "ValhallEternal";
-        public const string PluginVersion = "0.7.5";
+        public const string PluginVersion = "0.7.6";
         
         // Use this class to add your own localization to the game
         // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
@@ -48,7 +48,6 @@ namespace ValhallEternal
             //PlayerLevelDisplays.LoadAssets();
             //Locations.AddLocationsToWorldGen();
             Commands.AddCommands();
-            Harmony.PatchAll(Assembly.GetExecutingAssembly());
             Locations.SetupLocations();
             Jotunn.Logger.LogInfo("Live eternal in Valhalla.");
             

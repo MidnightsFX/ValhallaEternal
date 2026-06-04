@@ -1,3 +1,9 @@
+**0.7.6**
+ ---
+ ```
+ - Fixes double damage from Oath of Damage Taken
+ ```
+
 **0.7.5**
  ---
  ```
