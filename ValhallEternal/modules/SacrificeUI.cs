@@ -816,5 +816,11 @@ namespace ValhallEternal.modules
         public string GetHoverName() {
             return Localization.instance.Localize($"$ve_tribute_shrine");
         }
+
+        public float GetHoverOffset() {
+            // Hoverable gained this member in the Sept 2026 game update. Every vanilla implementer
+            // returns a serialized m_hoverOffset; zero keeps the shrine's hover text where it was.
+            return 0f;
+        }
     }
 }

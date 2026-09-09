@@ -41,7 +41,7 @@ namespace ValhallEternal.boons
             static uint lastpicked;
             public static void Prefix(Pickable __instance, Humanoid character)
             {
-                if (__instance.m_picked) {
+                if (__instance.m_picked || __instance.m_itemPrefab == null) {
                     return;
                 }
                 if (UnallowedPickables.Contains(__instance.m_itemPrefab.name))

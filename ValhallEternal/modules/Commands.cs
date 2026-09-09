@@ -11,14 +11,13 @@ namespace ValhallEternal.modules
             CommandManager.Instance.AddConsoleCommand(new ClearPlayerData());
         }
 
-        internal class SetPlayerEternalLevel : ConsoleCommand
+        internal class SetPlayerEternalLevel : AdminConsoleCommand
         {
             public override string Name => "VE-Set-Player-Level";
             public override string Help => "Format: [level]";
             //public override bool IsNetwork => false;
-            //public override bool IsCheat => true;
 
-            public override void Run(string[] args)
+            protected override void Execute(string[] args)
             {
                 if (args.Length < 1)
                 {
@@ -35,13 +34,12 @@ namespace ValhallEternal.modules
             }
         }
 
-        internal class ClearPlayerData : ConsoleCommand {
+        internal class ClearPlayerData : AdminConsoleCommand {
             public override string Name => "VE-remove-player-data";
             public override string Help => "This clears ALL boon, oath, prestige, and player levels. REQUIRES A CLIENT RESTART";
             //public override bool IsNetwork => false;
-            public override bool IsCheat => true;
 
-            public override void Run(string[] args) {
+            protected override void Execute(string[] args) {
                 Player.m_localPlayer.m_customData.Remove(DataObjects.CustomDataKey);
             }
         }
