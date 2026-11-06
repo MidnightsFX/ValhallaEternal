@@ -1,0 +1,159 @@
+﻿using HarmonyLib;
+using Jotunn.Managers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using AesirLineage.common;
+using static AesirLineage.common.DataObjects;
+using Vector3 = UnityEngine.Vector3;
+
+namespace AesirLineage.modules
+{
+    internal static class PrestigeDisplays
+    {
+        static GameObject localPlayerVEHUD = null;
+        static TextMeshProUGUI localPlayerLevelText = null;
+
+        public static Dictionary<uint, PrestigeLevelHUD> extendedPlayerHUDS = new Dictionary<uint, PrestigeLevelHUD>();
+
+        public class PrestigeLevelHUD {
+            public GameObject hudroot { get; set; }
+            public GameObject root { get; set; }
+            public TextMeshProUGUI tmpGUI { get; set;}
+        }
+
+        public static void CreateLocalHudElements(Transform targetTform) {
+            if (localPlayerVEHUD == null) {
+                Logger.LogDebug("Creating Local Player Level Display HUD Elements.");
+                GameObject veLocalHud = AesirLineage.EmbeddedResourceBundle.LoadAsset<GameObject>("VELocalHud");
+                localPlayerVEHUD = GameObject.Instantiate(veLocalHud, targetTform);
+                if (Hud.m_instance != null) {
+                    // This will get the X set correctly, but need to set Y
+                    Transform minimapTform = Hud.m_instance.m_rootObject.transform.Find("MiniMap/small");
+                    if (minimapTform != null) {
+                        localPlayerVEHUD.transform.position = minimapTform.position;
+                        //localPlayerVEHUD.transform.localPosition = minimapTform.localPosition;
+                        localPlayerVEHUD.transform.localPosition = new Vector3(x: localPlayerVEHUD.transform.localPosition.x - 108, y: localPlayerVEHUD.transform.localPosition.y - 10);
+                    }
+                }
+            }
+            if (localPlayerVEHUD != null && localPlayerLevelText == null) {
+                //Transform healthIco = __instance.m_healthPanel.transform.Find("healthicon");
+                //veLocalHud.transform.localPosition = new Vector3(healthIco.position.x - ValConfig.LocalLevelDisplayOffset.Value, healthIco.position.y);
+                Logger.LogDebug("Finding Level TextMeshPro component.");
+                Transform tform = localPlayerVEHUD.transform.Find("Level");
+                if (tform != null) {
+                    localPlayerLevelText = tform.GetComponent<TextMeshProUGUI>();
+                } else {
+                    Logger.LogDebug("Could not find Level GO");
+                }
+            }
+        }
+
+        public static void UpdateLocalPlayerLevelDisplay(int level = 0) {
+            if (!SceneManager.GetActiveScene().name.Equals("main")) { return; }
+            if (level == 0) { level = PlayerData.PrestigeLevel; }
+            CreateLocalHudElements(GUIManager.CustomGUIFront.transform);
+            SetupLocalPlayerLevelDisplay(localPlayerVEHUD, level);
+        }
+
+        internal static class EnablePlayerPrestigeDisplays
+        {
+            [HarmonyPatch(typeof(Player), nameof(Player.Awake))]
+            public static class EnableLocalPlayerPrestigeDisplays {
+                public static void Postfix(Player __instance)
+                {
+                    if (__instance != Player.m_localPlayer) { return; }
+                    PrestigeDisplays.UpdateLocalPlayerLevelDisplay();
+                }
+            }
+        }
+
+
+        [HarmonyPatch(typeof(EnemyHud))]
+        public static class SetupOtherPlayerLevelDisplay
+        {
+            [HarmonyPatch(nameof(EnemyHud.ShowHud))]
+            public static void Postfix(EnemyHud __instance, Character c)
+            {
+                if (c == null || __instance == null || !c.IsPlayer()) { return; }
+                EnemyHud.HudData ehud = __instance.m_huds[c];
+                if (ehud == null) { return; }
+
+                Player otherplayer = c as Player;
+                if (otherplayer == null || otherplayer.m_nview == null || otherplayer.m_nview.GetZDO() == null) { return; }
+                ZDO ozdo = otherplayer.m_nview.GetZDO();
+                uint otherplayerzid = otherplayer.GetZDOID().ID;
+                int playerPrestigeLevel = ozdo.GetInt(DataObjects.CustomLevelZKey, 0);
+                Logger.LogDebug($"Player {otherplayer.GetPlayerName()}-{otherplayerzid} level {playerPrestigeLevel}");
+                if (extendedPlayerHUDS.ContainsKey(otherplayerzid)) {
+                    // check/update level
+                    if (playerPrestigeLevel == 0) {
+                        if (extendedPlayerHUDS[otherplayerzid].root != null) {
+                            extendedPlayerHUDS[otherplayerzid].root.SetActive(false);
+                        }
+                    } else {
+                        if (extendedPlayerHUDS[otherplayerzid].root != null) {
+                            extendedPlayerHUDS[otherplayerzid].root.SetActive(true);
+                        }
+                    }
+                    if (extendedPlayerHUDS[otherplayerzid].tmpGUI != null) {
+                        extendedPlayerHUDS[otherplayerzid].tmpGUI.text = $"{playerPrestigeLevel}";
+                    }
+                } else {
+                    // Create the new local hud
+                    if (ehud.m_gui == null) { return; }
+                    CreateEnemyHud(otherplayerzid, ehud.m_gui.transform, playerPrestigeLevel);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(EnemyHud))]
+        private static class CleanupOtherPlayerHUDS {
+            [HarmonyPatch(nameof(EnemyHud.UpdateHuds))]
+            private static void Postfix() {
+                // Cleanup hud extensions that no longer reference existing huds
+                if (extendedPlayerHUDS.Count == 0) { return; }
+                extendedPlayerHUDS = extendedPlayerHUDS.Where(x => x.Value.root != null).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
+        }
+
+        public static void CreateEnemyHud(uint otherplayerzid, Transform targetTform, int otherplayerlevel) {
+            Logger.LogDebug("Creating Enemy Player Hud.");
+            GameObject hud = AesirLineage.EmbeddedResourceBundle.LoadAsset<GameObject>("VERemoteHud");
+            GameObject enemyHudLevel = GameObject.Instantiate(hud, targetTform);
+            enemyHudLevel.name = "VERemoteHud";
+            Transform tform = enemyHudLevel.transform.Find("Level");
+            TextMeshProUGUI text = tform.GetComponent<TextMeshProUGUI>();
+            if (otherplayerlevel == 0) { 
+                enemyHudLevel.SetActive(false);
+            } else {
+                text.text = $"{otherplayerlevel}";
+            }
+            // Adjust hud location
+            
+            extendedPlayerHUDS.Add(otherplayerzid, new PrestigeLevelHUD() { root = enemyHudLevel, tmpGUI = text, hudroot = targetTform.gameObject });
+        }
+
+        public static void SetupLocalPlayerLevelDisplay(GameObject hugGUI, int levelnum) {
+            if (levelnum == 0) {
+                // No level to display
+                //Logger.LogDebug("Player level set to zero or not set, disabling display.");
+                hugGUI.SetActive(false);
+                return;
+            }
+
+            hugGUI.SetActive(true);
+
+            // Set local player level
+            if (localPlayerLevelText != null) {
+                //Logger.LogDebug($"Setting player HUD with level {levelnum}");
+                localPlayerLevelText.text = $"{levelnum}";
+                return;
+            }
+        }
+    }
+}

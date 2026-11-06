@@ -1,0 +1,1506 @@
+﻿// A copy of Auga's API 2.0.0 stub (Auga/API/API.cs in the Auga repo), whole and unchanged below these lines.
+// API makes it the stub, whose calls find Auga.dll at runtime (see Forward at the end of API.cs), and
+// AUGA_API_INTERNAL keeps its types internal to this mod. Replace both files together with a newer copy.
+#define API
+#define AUGA_API_INTERNAL
+
+using System;
+using JetBrains.Annotations;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+#if ! API
+using System.Linq;
+using System.Threading;
+using AugaUnity;
+using Object = UnityEngine.Object;
+#else
+using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
+using BepInEx.Bootstrap;
+#endif
+
+namespace Auga
+{
+    // Compiled into Auga.dll as the real API, and into other mods (with API defined) as the stub: there every method
+    // forwards to Auga's own Auga.API at runtime (see Forward at the end). Define AUGA_API_INTERNAL as well to keep
+    // the stub's types internal to the mod.
+    [PublicAPI]
+#if AUGA_API_INTERNAL
+    internal static class API
+#else
+    public static class API
+#endif
+    {
+        public static string RedText = "#CD2121";
+        public static string Red = "#AD1616";
+        public static string Brown1 = "#EAE1D9";
+        public static string Brown2 = "#D1C9C2";
+        public static string Brown3 = "#A39689";
+        public static string Brown4 = "#706457";
+        public static string Brown5 = "#2E2620";
+        public static string Brown6 = "#EAE1D9";
+        public static string Brown7 = "#181410";
+        public static string Blue = "#216388";
+        public static string LightBlue = "#1AACEF";
+        public static string Gold = "#B98A12";
+        public static string BrightGold = "#EAA800";
+        public static string BrightestGold = "#FFBF1B";
+        public static string GoldDark = "#755608";
+        public static string Green = "#1B9B37";
+
+        [UsedImplicitly]
+        public static bool IsLoaded()
+        {
+#if ! API
+            return true;
+#else
+            return RealApi() != null;
+#endif
+        }
+        // Fonts & Assets
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static Font GetBoldFont()
+        {
+#if ! API
+            return Auga.Assets.SourceSansProBold;
+#else
+            return Forward<Font>(nameof(GetBoldFont), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Font GetSemiBoldFont()
+        {
+#if ! API
+            return Auga.Assets.SourceSansProSemiBold;
+#else
+            return Forward<Font>(nameof(GetSemiBoldFont), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Font GetRegularFont()
+        {
+#if ! API
+            return Auga.Assets.SourceSansProRegular;
+#else
+            return Forward<Font>(nameof(GetRegularFont), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Sprite GetItemBackgroundSprite()
+        {
+#if ! API
+            return Auga.Assets.ItemBackgroundSprite;
+#else
+            return Forward<Sprite>(nameof(GetItemBackgroundSprite), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        // TextMeshPro fonts (the game's text is TextMeshPro; the classic Font getters above are the old API)
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static TMP_FontAsset GetBoldFontAsset()
+        {
+#if ! API
+            return AugaPanelRestyler.BoldFont;
+#else
+            return Forward<TMP_FontAsset>(nameof(GetBoldFontAsset), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static TMP_FontAsset GetSemiBoldFontAsset()
+        {
+#if ! API
+            return AugaSettingsBuilder.SemiBoldFont;
+#else
+            return Forward<TMP_FontAsset>(nameof(GetSemiBoldFontAsset), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static TMP_FontAsset GetRegularFontAsset()
+        {
+#if ! API
+            return AugaPanelRestyler.RegularFont;
+#else
+            return Forward<TMP_FontAsset>(nameof(GetRegularFontAsset), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        // Restyling: Auga's look on a mod's own panel and widgets
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Restyles a whole panel in place: the background becomes an Auga panel, vanilla buttons become Auga
+        /// buttons (listeners, labels and gamepad hints carried over), scrollbars, sliders and toggles get the Auga
+        /// widgets, texts get Auga's fonts and colours. Each part can be left out.
+        /// </summary>
+        [UsedImplicitly]
+        public static void Panel_Restyle(GameObject panel, bool replaceBackground = true, bool replaceButtons = true, bool replaceScrollbars = true, bool restyleTexts = true)
+        {
+#if ! API
+            if (panel == null)
+                return;
+            AugaPanelRestyler.Restyle(panel.transform, new RestyleOptions
+            {
+                ReplaceBackground = replaceBackground,
+                ReplaceButtons = replaceButtons,
+                ReplaceScrollbars = replaceScrollbars,
+                RestyleTexts = restyleTexts,
+            });
+#else
+            Forward(nameof(Panel_Restyle), new[] { typeof(GameObject), typeof(bool), typeof(bool), typeof(bool), typeof(bool) }, new object[] { panel, replaceBackground, replaceButtons, replaceScrollbars, restyleTexts });
+#endif
+        }
+
+        /// <summary>Auga's font and colour on one text: bold or regular Source Sans Pro, and a colour when given (a hex string such as Brown1).</summary>
+        [UsedImplicitly]
+        public static void Text_Restyle(TMP_Text text, bool bold = false, string colorHex = null)
+        {
+#if ! API
+            if (text == null)
+                return;
+            var font = bold ? AugaPanelRestyler.BoldFont : AugaPanelRestyler.RegularFont;
+            if (font != null)
+                text.font = font;
+            if (!string.IsNullOrEmpty(colorHex) && ColorUtility.TryParseHtmlString(colorHex, out var color))
+                text.color = color;
+#else
+            Forward(nameof(Text_Restyle), new[] { typeof(TMP_Text), typeof(bool), typeof(string) }, new object[] { text, bold, colorHex });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Scrollbar_Restyle(Scrollbar scrollbar, bool vertical = true)
+        {
+#if ! API
+            if (scrollbar != null)
+                AugaPanelRestyler.RestyleScrollbarInPlace(scrollbar, vertical);
+#else
+            Forward(nameof(Scrollbar_Restyle), new[] { typeof(Scrollbar), typeof(bool) }, new object[] { scrollbar, vertical });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Slider_Restyle(Slider slider)
+        {
+#if ! API
+            if (slider != null)
+                AugaPanelRestyler.RestyleSliderInPlace(slider);
+#else
+            Forward(nameof(Slider_Restyle), new[] { typeof(Slider) }, new object[] { slider });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Toggle_Restyle(Toggle toggle)
+        {
+#if ! API
+            if (toggle != null)
+                AugaPanelRestyler.RestyleToggleInPlace(toggle);
+#else
+            Forward(nameof(Toggle_Restyle), new[] { typeof(Toggle) }, new object[] { toggle });
+#endif
+        }
+
+        // Automatic restyling
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Keeps Auga from restyling this mod's UI by itself. Auga gives every mod that declares a BepInDependency on
+        /// it Auga's look at runtime: the UI prefabs in its asset bundles, the widgets it builds with Jotunn's
+        /// GUIManager and what it adds to Auga's screens. A mod that styles itself through this API calls this first
+        /// thing in Awake, before it loads a bundle or builds UI.
+        /// </summary>
+        [UsedImplicitly]
+        public static void AutoRestyle_Exclude(string pluginGUID)
+        {
+#if ! API
+            AutoRestyle.Exclude(pluginGUID);
+#else
+            Forward(nameof(AutoRestyle_Exclude), new[] { typeof(string) }, new object[] { pluginGUID });
+#endif
+        }
+
+        // Panels & Buttons
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static GameObject Panel_Create(Transform parent, Vector2 size, string name, bool withCornerDecoration)
+        {
+#if ! API
+            if (Auga.Assets.PanelBase == null)
+            {
+                Auga.LogError("Panel_Create: Auga.Assets.PanelBase is null");
+                return null;
+            }
+
+            var panel = Object.Instantiate(Auga.Assets.PanelBase, parent);
+            panel.name = name;
+            if (!withCornerDecoration)
+            {
+                foreach (Transform child in panel.transform.Find("Background"))
+                {
+                    Object.Destroy(child.gameObject);
+                }
+            }
+
+            var rt = (RectTransform)panel.transform;
+            rt.pivot = rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+
+            return panel;
+#else
+            return Forward<GameObject>(nameof(Panel_Create), new[] { typeof(Transform), typeof(Vector2), typeof(string), typeof(bool) }, new object[] { parent, size, name, withCornerDecoration });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button SmallButton_Create(Transform parent, string name, string labelText)
+        {
+#if ! API
+            var button = Object.Instantiate(Auga.Assets.ButtonSmall, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+#else
+            return Forward<Button>(nameof(SmallButton_Create), new[] { typeof(Transform), typeof(string), typeof(string) }, new object[] { parent, name, labelText });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button MediumButton_Create(Transform parent, string name, string labelText)
+        {
+#if ! API
+            var button = Object.Instantiate(Auga.Assets.ButtonMedium, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+#else
+            return Forward<Button>(nameof(MediumButton_Create), new[] { typeof(Transform), typeof(string), typeof(string) }, new object[] { parent, name, labelText });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button FancyButton_Create(Transform parent, string name, string labelText)
+        {
+#if ! API
+            var button = Object.Instantiate(Auga.Assets.ButtonFancy, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+#else
+            return Forward<Button>(nameof(FancyButton_Create), new[] { typeof(Transform), typeof(string), typeof(string) }, new object[] { parent, name, labelText });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button SettingsButton_Create(Transform parent, string name, string labelText)
+        {
+#if ! API
+            var button = Object.Instantiate(Auga.Assets.ButtonSettings, parent);
+            button.name = name;
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.text = Localization.instance.Localize(labelText);
+            }
+
+            return button.GetComponent<ColorButtonText>();
+#else
+            return Forward<Button>(nameof(SettingsButton_Create), new[] { typeof(Transform), typeof(string), typeof(string) }, new object[] { parent, name, labelText });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button DiamondButton_Create(Transform parent, string name, [CanBeNull] Sprite icon)
+        {
+#if ! API
+            var button = Object.Instantiate(Auga.Assets.DiamondButton, parent);
+            button.name = name;
+
+            var image = button.GetComponentInChildren<Image>();
+            if (icon == null)
+            {
+                image.enabled = false;
+            }
+            else
+            {
+                image.sprite = icon;
+            }
+
+            return button.GetComponent<Button>();
+#else
+            return Forward<Button>(nameof(DiamondButton_Create), new[] { typeof(Transform), typeof(string), typeof(Sprite) }, new object[] { parent, name, icon });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject Divider_CreateSmall(Transform parent, string name, float width = -1)
+        {
+#if ! API
+            var divider = Object.Instantiate(Auga.Assets.DividerSmall, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return divider;
+#else
+            return Forward<GameObject>(nameof(Divider_CreateSmall), new[] { typeof(Transform), typeof(string), typeof(float) }, new object[] { parent, name, width });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Tuple<GameObject, GameObject> Divider_CreateMedium(Transform parent, string name, float width = -1)
+        {
+#if ! API
+            var divider = Object.Instantiate(Auga.Assets.DividerMedium, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return new Tuple<GameObject, GameObject>(divider, divider.transform.Find("Content").gameObject);
+#else
+            return Forward<Tuple<GameObject, GameObject>>(nameof(Divider_CreateMedium), new[] { typeof(Transform), typeof(string), typeof(float) }, new object[] { parent, name, width });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Tuple<GameObject, GameObject> Divider_CreateLarge(Transform parent, string name, float width = -1)
+        {
+#if ! API
+            var divider = Object.Instantiate(Auga.Assets.DividerLarge, parent);
+            divider.name = name;
+            if (width >= 0)
+            {
+                divider.RectTransform().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            }
+
+            return new Tuple<GameObject, GameObject>(divider, divider.transform.Find("Content").gameObject);
+#else
+            return Forward<Tuple<GameObject, GameObject>>(nameof(Divider_CreateLarge), new[] { typeof(Transform), typeof(string), typeof(float) }, new object[] { parent, name, width });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Button_SetTextColors(Button button, Color normal, Color highlighted, Color pressed, Color selected, Color disabled, Color baseTextColor)
+        {
+#if ! API
+            var colorValues = button.GetComponent<ColorButtonTextValues>();
+            if (colorValues != null)
+            {
+                colorValues.TextColors.normalColor = normal;
+                colorValues.TextColors.highlightedColor = highlighted;
+                colorValues.TextColors.pressedColor = pressed;
+                colorValues.TextColors.selectedColor = selected;
+                colorValues.TextColors.disabledColor = disabled;
+            }
+
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.color = baseTextColor;
+            }
+#else
+            Forward(nameof(Button_SetTextColors), new[] { typeof(Button), typeof(Color), typeof(Color), typeof(Color), typeof(Color), typeof(Color), typeof(Color) }, new object[] { button, normal, highlighted, pressed, selected, disabled, baseTextColor });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Button_OverrideTextColor(Button button, Color color)
+        {
+#if ! API
+            var colorValues = button.GetComponent<ColorButtonTextValues>();
+            if (colorValues != null)
+            {
+                Object.Destroy(colorValues);
+            }
+
+            var text = button.GetComponentInChildren<TMP_Text>();
+            if (text != null)
+            {
+                text.color = color;
+            }
+#else
+            Forward(nameof(Button_OverrideTextColor), new[] { typeof(Button), typeof(Color) }, new object[] { button, color });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeSimpleTooltip(GameObject obj)
+        {
+#if ! API
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.SimpleTooltip;
+#else
+            Forward(nameof(Tooltip_MakeSimpleTooltip), new[] { typeof(GameObject) }, new object[] { obj });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeItemTooltip(GameObject obj, ItemDrop.ItemData item)
+        {
+#if ! API
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var itemTooltip = obj.GetComponent<ItemTooltip>();
+            if (itemTooltip == null)
+            {
+                itemTooltip = obj.AddComponent<ItemTooltip>();
+            }
+
+            itemTooltip.Item = item;
+#else
+            Forward(nameof(Tooltip_MakeItemTooltip), new[] { typeof(GameObject), typeof(ItemDrop.ItemData) }, new object[] { obj, item });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeFoodTooltip(GameObject obj, Player.Food food)
+        {
+#if ! API
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var foodTooltip = obj.GetComponent<FoodTooltip>();
+            if (foodTooltip == null)
+            {
+                foodTooltip = obj.AddComponent<FoodTooltip>();
+            }
+
+            foodTooltip.Food = food;
+#else
+            Forward(nameof(Tooltip_MakeFoodTooltip), new[] { typeof(GameObject), typeof(Player.Food) }, new object[] { obj, food });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeStatusEffectTooltip(GameObject obj, StatusEffect statusEffect)
+        {
+#if ! API
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var statusEffectTooltip = obj.GetComponent<StatusTooltip>();
+            if (statusEffectTooltip == null)
+            {
+                statusEffectTooltip = obj.AddComponent<StatusTooltip>();
+            }
+
+            statusEffectTooltip.StatusEffect = statusEffect;
+#else
+            Forward(nameof(Tooltip_MakeStatusEffectTooltip), new[] { typeof(GameObject), typeof(StatusEffect) }, new object[] { obj, statusEffect });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void Tooltip_MakeSkillTooltip(GameObject obj, Skills.Skill skill)
+        {
+#if ! API
+            var uiTooltip = obj.GetComponent<UITooltip>();
+            if (uiTooltip == null)
+            {
+                uiTooltip = obj.AddComponent<UITooltip>();
+            }
+
+            uiTooltip.m_tooltipPrefab = Auga.Assets.InventoryTooltip;
+
+            var skillTooltip = obj.GetComponent<SkillTooltip>();
+            if (skillTooltip == null)
+            {
+                skillTooltip = obj.AddComponent<SkillTooltip>();
+            }
+
+            skillTooltip.Skill = skill;
+#else
+            Forward(nameof(Tooltip_MakeSkillTooltip), new[] { typeof(GameObject), typeof(Skills.Skill) }, new object[] { obj, skill });
+#endif
+        }
+
+        // Player Panel Tabs
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static bool PlayerPanel_HasTab(string tabID)
+        {
+#if ! API
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.HasPlayerPanelTab(tabID);
+#else
+            return Forward<bool>(nameof(PlayerPanel_HasTab), new[] { typeof(string) }, new object[] { tabID });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static PlayerPanelTabData PlayerPanel_AddTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance != null)
+            {
+                var data = new PlayerPanelTabData();
+
+                WorkbenchPanelController.instance.AddPlayerPanelTab(tabID, tabIcon, tabTitleText, onTabSelected, out data.TabTitle, out var tabButton, out data.ContentGO);
+                // a tab with this ID already exists: nothing was added
+                if (tabButton == null)
+                {
+                    return null;
+                }
+
+                data.Index = WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count - 1;
+                data.TabButtonGO = tabButton.gameObject;
+                // the links stay after the tabs
+                PlayerPanelLinks.KeepLast();
+
+                return data;
+            }
+
+            return null;
+#else
+            return Forward<PlayerPanelTabData>(nameof(PlayerPanel_AddTab), new[] { typeof(string), typeof(Sprite), typeof(string), typeof(Action<int>) }, new object[] { tabID, tabIcon, tabTitleText, onTabSelected });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_IsTabActive(GameObject tabButton)
+        {
+#if ! API
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActive(tabButton);
+#else
+            return Forward<bool>(nameof(PlayerPanel_IsTabActive), new[] { typeof(GameObject) }, new object[] { tabButton });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button PlayerPanel_GetTabButton(int index)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance != null && index >= 0 && index < WorkbenchPanelController.instance.DefaultTabController.TabButtons.Count)
+            {
+                return WorkbenchPanelController.instance.DefaultTabController.TabButtons[index].Button;
+            }
+            return null;
+#else
+            return Forward<Button>(nameof(PlayerPanel_GetTabButton), new[] { typeof(int) }, new object[] { index });
+#endif
+        }
+
+        // Player Panel Links
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Buttons in the player panel's tab row that call your action instead of opening a tab. Auga keeps them and
+        // builds them into every inventory screen, so register once, at any time after Auga has loaded.
+        [UsedImplicitly]
+        public static bool PlayerPanel_AddLink(string linkID, Sprite icon, string tooltip, Action onClick)
+        {
+#if ! API
+            return PlayerPanelLinks.Add(linkID, icon, tooltip, onClick);
+#else
+            return Forward<bool>(nameof(PlayerPanel_AddLink), new[] { typeof(string), typeof(Sprite), typeof(string), typeof(Action) }, new object[] { linkID, icon, tooltip, onClick });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_HasLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Has(linkID);
+#else
+            return Forward<bool>(nameof(PlayerPanel_HasLink), new[] { typeof(string) }, new object[] { linkID });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_SetLinkVisible(string linkID, bool visible)
+        {
+#if ! API
+            return PlayerPanelLinks.SetVisible(linkID, visible);
+#else
+            return Forward<bool>(nameof(PlayerPanel_SetLinkVisible), new[] { typeof(string), typeof(bool) }, new object[] { linkID, visible });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool PlayerPanel_RemoveLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Remove(linkID);
+#else
+            return Forward<bool>(nameof(PlayerPanel_RemoveLink), new[] { typeof(string) }, new object[] { linkID });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject PlayerPanel_GetLink(string linkID)
+        {
+#if ! API
+            return PlayerPanelLinks.Get(linkID);
+#else
+            return Forward<GameObject>(nameof(PlayerPanel_GetLink), new[] { typeof(string) }, new object[] { linkID });
+#endif
+        }
+
+        // Workbench Tabs
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static bool Workbench_HasWorkbenchTab(string tabID)
+        {
+#if ! API
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.HasWorkbenchTab(tabID);
+#else
+            return Forward<bool>(nameof(Workbench_HasWorkbenchTab), new[] { typeof(string) }, new object[] { tabID });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static WorkbenchTabData Workbench_AddWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance != null)
+            {
+                var data = new WorkbenchTabData();
+
+                WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, false, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                // a tab with this ID already exists: nothing was added
+                if (tabButtonX == null)
+                {
+                    return null;
+                }
+
+                data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
+                data.TabButtonGO = tabButtonX.gameObject;
+                data.RequirementsPanelGO = requirementsPanelX.gameObject;
+                data.ItemInfoGO = itemInfoX.gameObject;
+
+                return data;
+            }
+
+            return null;
+#else
+            return Forward<WorkbenchTabData>(nameof(Workbench_AddWorkbenchTab), new[] { typeof(string), typeof(Sprite), typeof(string), typeof(Action<int>) }, new object[] { tabID, tabIcon, tabTitleText, onTabSelected });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static WorkbenchTabData Workbench_AddVanillaWorkbenchTab(string tabID, Sprite tabIcon, string tabTitleText, Action<int> onTabSelected)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance != null)
+            {
+                var data = new WorkbenchTabData();
+
+                WorkbenchPanelController.instance.AddWorkbenchTab(tabID, tabIcon, tabTitleText, onTabSelected, true, out data.TabTitle, out var tabButtonX, out var requirementsPanelX, out var itemInfoX);
+                // a tab with this ID already exists: nothing was added
+                if (tabButtonX == null)
+                {
+                    return null;
+                }
+
+                data.Index = WorkbenchPanelController.instance.WorkbenchTabController.TabButtons.Count - 1;
+                data.TabButtonGO = tabButtonX.gameObject;
+                data.RequirementsPanelGO = requirementsPanelX.gameObject;
+                data.ItemInfoGO = itemInfoX.gameObject;
+
+                return data;
+            }
+
+            return null;
+#else
+            return Forward<WorkbenchTabData>(nameof(Workbench_AddVanillaWorkbenchTab), new[] { typeof(string), typeof(Sprite), typeof(string), typeof(Action<int>) }, new object[] { tabID, tabIcon, tabTitleText, onTabSelected });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static bool Workbench_IsTabActive(GameObject tabButton)
+        {
+#if ! API
+            return WorkbenchPanelController.instance != null && WorkbenchPanelController.instance.IsTabActive(tabButton);
+#else
+            return Forward<bool>(nameof(Workbench_IsTabActive), new[] { typeof(GameObject) }, new object[] { tabButton });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button Workbench_GetCraftingTabButton()
+        {
+#if ! API
+            return WorkbenchPanelController.instance?.WorkbenchTabController.TabButtons[0].GetComponent<Button>();
+#else
+            return Forward<Button>(nameof(Workbench_GetCraftingTabButton), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static Button Workbench_GetUpgradeTabButton()
+        {
+#if ! API
+            return WorkbenchPanelController.instance?.WorkbenchTabController.TabButtons[1].GetComponent<Button>();
+#else
+            return Forward<Button>(nameof(Workbench_GetUpgradeTabButton), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject Workbench_CreateNewResultsPanel()
+        {
+#if ! API
+            return WorkbenchPanelController.instance?.CraftingPanel.CreateResultsPanel();
+#else
+            return Forward<GameObject>(nameof(Workbench_CreateNewResultsPanel), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+
+        // Tooltip Text Boxes
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if ! API
+        private static bool TextBoxCheck(GameObject tooltipTextBoxGO, out TooltipTextBox tooltipTextBox)
+        {
+            tooltipTextBox = tooltipTextBoxGO.GetComponent<TooltipTextBox>();
+            if (tooltipTextBox == null)
+            {
+                Auga.LogError("Must call TooltipTextBox interface method with a game object with a TooltipTextBox component on it.");
+                return false;
+            }
+
+            return true;
+        }
+#endif
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize = true)
+        {
+#if ! API
+            TooltipTextBox_AddLine(tooltipTextBoxGO, t, s, localize, false);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(Text), typeof(object), typeof(bool) }, new object[] { tooltipTextBoxGO, t, s, localize });
+#endif
+        }
+        
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, Text t, object s, bool localize, bool overwrite)
+        {
+#if ! API
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            // the old API handed out classic Text components; the boxes are TextMeshPro now, so a Text maps onto
+            // the TextMeshPro text on the same object, or the box's own text
+            var target = t != null ? t.GetComponent<TMP_Text>() : null;
+            tooltipTextBox.AddLine(target != null ? target : tooltipTextBox.Text, s, localize, overwrite);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(Text), typeof(object), typeof(bool), typeof(bool) }, new object[] { tooltipTextBoxGO, t, s, localize, overwrite });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize = true)
+        {
+#if ! API
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,localize,false);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(bool) }, new object[] { tooltipTextBoxGO, a, localize });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, bool localize, bool overwrite)
+        {
+#if ! API
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            tooltipTextBox.AddLine(a, localize, overwrite);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(bool), typeof(bool) }, new object[] { tooltipTextBoxGO, a, localize, overwrite });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize = true)
+        {
+#if ! API
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,b,localize,false);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(bool) }, new object[] { tooltipTextBoxGO, a, b, localize });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, bool localize, bool overwrite)
+        {
+#if ! API
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            tooltipTextBox.AddLine(a, b, localize, overwrite);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(bool), typeof(bool) }, new object[] { tooltipTextBoxGO, a, b, localize, overwrite });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize = true)
+        {
+#if ! API
+            TooltipTextBox_AddLine(tooltipTextBoxGO,a,b,parenthetical,localize,false);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(object), typeof(bool) }, new object[] { tooltipTextBoxGO, a, b, parenthetical, localize });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddLine(GameObject tooltipTextBoxGO, object a, object b, object parenthetical, bool localize, bool overwrite)
+        {
+#if ! API
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            tooltipTextBox.AddLine(a, b, parenthetical, localize, overwrite);
+#else
+            Forward(nameof(TooltipTextBox_AddLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(object), typeof(bool), typeof(bool) }, new object[] { tooltipTextBoxGO, a, b, parenthetical, localize, overwrite });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize = true)
+        {
+#if ! API
+            TooltipTextBox_AddUpgradeLine(tooltipTextBoxGO,label,value1,value2,color2, localize,false);
+#else
+            Forward(nameof(TooltipTextBox_AddUpgradeLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(object), typeof(string), typeof(bool) }, new object[] { tooltipTextBoxGO, label, value1, value2, color2, localize });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void TooltipTextBox_AddUpgradeLine(GameObject tooltipTextBoxGO, object label, object value1, object value2, string color2, bool localize, bool overwrite)
+        {
+#if ! API
+            if (!TextBoxCheck(tooltipTextBoxGO, out var tooltipTextBox))
+            {
+                return;
+            }
+
+            tooltipTextBox.AddUpgradeLine(label, value1, value2, color2, localize, overwrite);
+#else
+            Forward(nameof(TooltipTextBox_AddUpgradeLine), new[] { typeof(GameObject), typeof(object), typeof(object), typeof(object), typeof(string), typeof(bool), typeof(bool) }, new object[] { tooltipTextBoxGO, label, value1, value2, color2, localize, overwrite });
+#endif
+        }
+
+
+        // Complex Tooltip
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if ! API
+        private static bool ComplexTooltipCheck(GameObject complexTooltipGO, out ComplexTooltip complexTooltip)
+        {
+            complexTooltip = complexTooltipGO.GetComponent<ComplexTooltip>();
+            if (complexTooltip == null)
+            {
+                Auga.LogError("Must call ComplexTooltip interface method with a game object with a ComplexTooltip component on it.");
+                return false;
+            }
+
+            return true;
+        }
+#endif
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddItemTooltipCreatedListener(Action<GameObject, ItemDrop.ItemData> listener)
+        {
+#if ! API
+            ComplexTooltip.OnComplexTooltipGeneratedForItem += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+#else
+            Forward(nameof(ComplexTooltip_AddItemTooltipCreatedListener), new[] { typeof(Action<GameObject, ItemDrop.ItemData>) }, new object[] { listener });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddFoodTooltipCreatedListener(Action<GameObject, Player.Food> listener)
+        {
+#if ! API
+            ComplexTooltip.OnComplexTooltipGeneratedForFood += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+#else
+            Forward(nameof(ComplexTooltip_AddFoodTooltipCreatedListener), new[] { typeof(Action<GameObject, Player.Food>) }, new object[] { listener });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddStatusEffectTooltipCreatedListener(Action<GameObject, StatusEffect> listener)
+        {
+#if ! API
+            ComplexTooltip.OnComplexTooltipGeneratedForStatusEffect += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+#else
+            Forward(nameof(ComplexTooltip_AddStatusEffectTooltipCreatedListener), new[] { typeof(Action<GameObject, StatusEffect>) }, new object[] { listener });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddSkillTooltipCreatedListener(Action<GameObject, Skills.Skill> listener)
+        {
+#if ! API
+            ComplexTooltip.OnComplexTooltipGeneratedForSkill += (complexTooltip, item) => listener(complexTooltip.gameObject, item);
+#else
+            Forward(nameof(ComplexTooltip_AddSkillTooltipCreatedListener), new[] { typeof(Action<GameObject, Skills.Skill>) }, new object[] { listener });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_AddItemStatPreprocessor(Func<ItemDrop.ItemData, string, string, Tuple<string, string>> itemStatPreprocessor)
+        {
+#if ! API
+            ComplexTooltip.AddItemStatPreprocessor(itemStatPreprocessor);
+#else
+            Forward(nameof(ComplexTooltip_AddItemStatPreprocessor), new[] { typeof(Func<ItemDrop.ItemData, string, string, Tuple<string, string>>) }, new object[] { itemStatPreprocessor });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_ClearTextBoxes(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.ClearTextBoxes();
+#else
+            Forward(nameof(ComplexTooltip_ClearTextBoxes), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddTwoColumnTextBox(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.TwoColumnTextBoxPrefab).gameObject;
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddTwoColumnTextBox), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddCenteredTextBox(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.CenteredTextBoxPrefab).gameObject;
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddCenteredTextBox), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddUpgradeLabels(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.UpgradeLabelsPrefab).gameObject;
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddUpgradeLabels), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddUpgradeTwoColumnTextBox(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.UpgradeTwoColumnTextBoxPrefab).gameObject;
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddUpgradeTwoColumnTextBox), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddCheckBoxTextBox(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddTextBox(complexTooltip.CheckBoxTextBoxPrefab).gameObject;
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddCheckBoxTextBox), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject ComplexTooltip_AddDivider(GameObject complexTooltipGO)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return null;
+            }
+
+            return complexTooltip.AddDivider();
+#else
+            return Forward<GameObject>(nameof(ComplexTooltip_AddDivider), new[] { typeof(GameObject) }, new object[] { complexTooltipGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetTopic(GameObject complexTooltipGO, string topic)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetTopic(topic);
+#else
+            Forward(nameof(ComplexTooltip_SetTopic), new[] { typeof(GameObject), typeof(string) }, new object[] { complexTooltipGO, topic });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetSubtitle(GameObject complexTooltipGO, string topic)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetSubtitle(topic);
+#else
+            Forward(nameof(ComplexTooltip_SetSubtitle), new[] { typeof(GameObject), typeof(string) }, new object[] { complexTooltipGO, topic });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetDescription(GameObject complexTooltipGO, string desc)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetDescription(desc);
+#else
+            Forward(nameof(ComplexTooltip_SetDescription), new[] { typeof(GameObject), typeof(string) }, new object[] { complexTooltipGO, desc });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetIcon(GameObject complexTooltipGO, Sprite icon)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetIcon(icon);
+#else
+            Forward(nameof(ComplexTooltip_SetIcon), new[] { typeof(GameObject), typeof(Sprite) }, new object[] { complexTooltipGO, icon });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_EnableDescription(GameObject complexTooltipGO, bool enabled)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.EnableDescription(enabled);
+#else
+            Forward(nameof(ComplexTooltip_EnableDescription), new[] { typeof(GameObject), typeof(bool) }, new object[] { complexTooltipGO, enabled });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static string ComplexTooltip_GenerateItemSubtext(GameObject complexTooltipGO, ItemDrop.ItemData item)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return string.Empty;
+            }
+
+            return complexTooltip.GenerateItemSubtext(item);
+#else
+            return Forward<string>(nameof(ComplexTooltip_GenerateItemSubtext), new[] { typeof(GameObject), typeof(ItemDrop.ItemData) }, new object[] { complexTooltipGO, item });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetItem(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetItem(item, quality, variant);
+#else
+            Forward(nameof(ComplexTooltip_SetItem), new[] { typeof(GameObject), typeof(ItemDrop.ItemData), typeof(int), typeof(int) }, new object[] { complexTooltipGO, item, quality, variant });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetItemNoTextBoxes(GameObject complexTooltipGO, ItemDrop.ItemData item, int quality = -1, int variant = -1)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetItemNoTextBoxes(item, quality, variant);
+#else
+            Forward(nameof(ComplexTooltip_SetItemNoTextBoxes), new[] { typeof(GameObject), typeof(ItemDrop.ItemData), typeof(int), typeof(int) }, new object[] { complexTooltipGO, item, quality, variant });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetFood(GameObject complexTooltipGO, Player.Food food)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetFood(food);
+#else
+            Forward(nameof(ComplexTooltip_SetFood), new[] { typeof(GameObject), typeof(Player.Food) }, new object[] { complexTooltipGO, food });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetStatusEffect(GameObject complexTooltipGO, StatusEffect statusEffect)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetStatusEffect(statusEffect);
+#else
+            Forward(nameof(ComplexTooltip_SetStatusEffect), new[] { typeof(GameObject), typeof(StatusEffect) }, new object[] { complexTooltipGO, statusEffect });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void ComplexTooltip_SetSkill(GameObject complexTooltipGO, Skills.Skill skill)
+        {
+#if ! API
+            if (!ComplexTooltipCheck(complexTooltipGO, out var complexTooltip))
+            {
+                return;
+            }
+
+            complexTooltip.SetSkill(skill);
+#else
+            Forward(nameof(ComplexTooltip_SetSkill), new[] { typeof(GameObject), typeof(Skills.Skill) }, new object[] { complexTooltipGO, skill });
+#endif
+        }
+
+
+        // Requirements Panel
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if ! API
+        private static bool RequirementsPanelCheck(GameObject requirementsPanelGO, out CraftingRequirementsPanel requirementsPanel)
+        {
+            requirementsPanel = requirementsPanelGO.GetComponent<CraftingRequirementsPanel>();
+            if (requirementsPanel == null)
+            {
+                Auga.LogError("Must call RequirementsPanel interface method with a game object with a CraftingRequirementsPanel component on it.");
+                return false;
+            }
+
+            return true;
+        }
+#endif
+        [UsedImplicitly]
+        public static Image RequirementsPanel_GetIcon(GameObject requirementsPanelGO)
+        {
+#if ! API
+            return !RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel) ? null : requirementsPanel.Icon;
+#else
+            return Forward<Image>(nameof(RequirementsPanel_GetIcon), new[] { typeof(GameObject) }, new object[] { requirementsPanelGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static GameObject[] RequirementsPanel_RequirementList(GameObject requirementsPanelGO)
+        {
+#if ! API
+            return !RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel) ? null : requirementsPanel.RequirementList;
+#else
+            return Forward<GameObject[]>(nameof(RequirementsPanel_RequirementList), new[] { typeof(GameObject) }, new object[] { requirementsPanelGO });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void RequirementsPanel_SetWires(GameObject requirementsPanelGO, RequirementWireState[] wireStates, bool canCraft)
+        {
+#if ! API
+            if (!RequirementsPanelCheck(requirementsPanelGO, out var requirementsPanel))
+            {
+                return;
+            }
+
+            var convertedWireStates = wireStates.Select(wireState => (WireState)wireState).ToList();
+            requirementsPanel.WireFrame.Set(convertedWireStates, canCraft);
+#else
+            Forward(nameof(RequirementsPanel_SetWires), new[] { typeof(GameObject), typeof(RequirementWireState[]), typeof(bool) }, new object[] { requirementsPanelGO, wireStates, canCraft });
+#endif
+        }
+
+
+        // Custom Variant Panel
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        [UsedImplicitly]
+        public static TMP_Text CustomVariantPanel_Enable(string buttonLabel, Action<bool> onShow)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance == null)
+            {
+                return null;
+            }
+
+            return WorkbenchPanelController.instance.CraftingPanel.EnableCustomVariantDialog(buttonLabel, onShow);
+#else
+            return Forward<TMP_Text>(nameof(CustomVariantPanel_Enable), new[] { typeof(string), typeof(Action<bool>) }, new object[] { buttonLabel, onShow });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void CustomVariantPanel_SetButtonLabel(string buttonLabel)
+        {
+#if ! API
+            if (WorkbenchPanelController.instance == null)
+            {
+                return;
+            }
+
+            WorkbenchPanelController.instance.CraftingPanel.SetCustomVariantButtonLabel(buttonLabel);
+#else
+            Forward(nameof(CustomVariantPanel_SetButtonLabel), new[] { typeof(string) }, new object[] { buttonLabel });
+#endif
+        }
+
+        [UsedImplicitly]
+        public static void CustomVariantPanel_Disable()
+        {
+#if ! API
+            WorkbenchPanelController.instance?.CraftingPanel.DisableCustomVariantDialog();
+#else
+            Forward(nameof(CustomVariantPanel_Disable), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+        
+        [UsedImplicitly]
+        public static CraftingControls GetCraftingControls()
+        {
+#if ! API
+            if (AugaCraftingControls.Instance == null)
+                return new CraftingControls();
+            
+            var controls = new CraftingControls
+            {
+                Multicraft = AugaCraftingControls.Instance.multicraft,
+                PlusButton = AugaCraftingControls.Instance.plusButton,
+                MinusButton = AugaCraftingControls.Instance.minusButton,
+                CraftAmountText = AugaCraftingControls.Instance.craftAmountText,
+                CraftAmountBG = AugaCraftingControls.Instance.craftAmountBg,
+                CraftButton = AugaCraftingControls.Instance.craftButton,
+                Amount = AugaCraftingControls.Instance.aaa,
+                InputAmount = AugaCraftingControls.Instance.inputAmount,
+                InputText = AugaCraftingControls.Instance.inputText
+            };
+
+            return controls;
+#else
+            return Forward<CraftingControls>(nameof(GetCraftingControls), Type.EmptyTypes, Array.Empty<object>());
+#endif
+        }
+
+#if API
+        // The stub's way to the real API. Nothing is rewritten or patched: this finds Auga's own Auga.API through
+        // BepInEx and calls the method with the same name and parameter types. Without Auga every call returns the
+        // type's default. The types API.Common.cs declares exist once in the mod and once in Auga.dll, so they are
+        // converted on the way: an enum (or enum array) by value, a data class field by field.
+        private const string AugaPluginID = "randyknapp.mods.auga";
+        private static Type _realApi;
+        private static readonly Dictionary<string, List<KeyValuePair<Type[], MethodInfo>>> _targets = new Dictionary<string, List<KeyValuePair<Type[], MethodInfo>>>();
+
+        // a miss is not remembered: a mod that loads before Auga binds on a later call
+        private static Type RealApi()
+        {
+            if (_realApi == null && Chainloader.PluginInfos.TryGetValue(AugaPluginID, out var info) && info.Instance != null)
+                _realApi = info.Instance.GetType().Assembly.GetType("Auga.API");
+            return _realApi;
+        }
+
+        private static T Forward<T>(string name, Type[] types, object[] args)
+        {
+            var result = Forward(name, types, args);
+            return result == null ? default : (T)ConvertTo(result, typeof(T));
+        }
+
+        private static object Forward(string name, Type[] types, object[] args)
+        {
+            var target = Target(name, types);
+            if (target == null)
+                return null;
+            var parameters = target.GetParameters();
+            for (var i = 0; i < args.Length; i++)
+                args[i] = ConvertTo(args[i], parameters[i].ParameterType);
+            try
+            {
+                return target.Invoke(null, args);
+            }
+            catch (TargetInvocationException e) when (e.InnerException != null)
+            {
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                throw;
+            }
+        }
+
+        private static MethodInfo Target(string name, Type[] types)
+        {
+            var api = RealApi();
+            if (api == null)
+                return null;
+            if (!_targets.TryGetValue(name, out var overloads))
+                _targets[name] = overloads = new List<KeyValuePair<Type[], MethodInfo>>();
+            foreach (var overload in overloads)
+            {
+                if (SameTypes(overload.Key, types))
+                    return overload.Value;
+            }
+            var method = api.GetMethod(name, BindingFlags.Public | BindingFlags.Static, null, Array.ConvertAll(types, t => RealType(t, api.Assembly)), null);
+            if (method == null)
+                Debug.LogWarning($"[Auga API] The installed Auga has no {name}({string.Join(", ", Array.ConvertAll(types, t => t.Name))}), so the call does nothing.");
+            overloads.Add(new KeyValuePair<Type[], MethodInfo>(types, method));
+            return method;
+        }
+
+        private static bool SameTypes(Type[] a, Type[] b)
+        {
+            if (a.Length != b.Length)
+                return false;
+            for (var i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i])
+                    return false;
+            }
+            return true;
+        }
+
+        // the mod's own copy of a type from API.Common.cs stands for Auga's type of the same name
+        private static Type RealType(Type type, Assembly auga)
+        {
+            if (type.IsArray)
+                return RealType(type.GetElementType(), auga).MakeArrayType();
+            return type.Assembly == typeof(API).Assembly ? auga.GetType(type.FullName) ?? type : type;
+        }
+
+        private static object ConvertTo(object value, Type wanted)
+        {
+            if (value == null || wanted.IsInstanceOfType(value))
+                return value;
+            if (wanted.IsEnum)
+                return Enum.ToObject(wanted, Convert.ToInt32(value));
+            if (wanted.IsArray && value is Array array)
+            {
+                var element = wanted.GetElementType();
+                var converted = Array.CreateInstance(element, array.Length);
+                for (var i = 0; i < array.Length; i++)
+                    converted.SetValue(ConvertTo(array.GetValue(i), element), i);
+                return converted;
+            }
+            if (wanted.Assembly != typeof(API).Assembly && value.GetType().Assembly != typeof(API).Assembly)
+                return value;
+            var copy = Activator.CreateInstance(wanted);
+            foreach (var field in wanted.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var source = value.GetType().GetField(field.Name, BindingFlags.Public | BindingFlags.Instance);
+                if (source != null)
+                    field.SetValue(copy, ConvertTo(source.GetValue(value), field.FieldType));
+            }
+            return copy;
+        }
+#endif
+    }
+}

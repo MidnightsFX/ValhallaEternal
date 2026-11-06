@@ -12,9 +12,9 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
-
-/ValhallEternalUnity/Assets/AmplifyShaderEditor/
-/ValhallEternalUnity/Assets/Piloto Studio/
+Tools/*
+/AesirLineageUnity/Assets/AmplifyShaderEditor/
+/AesirLineageUnity/Assets/Piloto Studio/
 
 # Mono auto generated files
 mono_crash.*

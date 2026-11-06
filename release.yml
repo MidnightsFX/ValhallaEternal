@@ -5,7 +5,7 @@
 #   mod-tools print-config
 
 extends:  jotunn
-assembly: ValhallEternal
+assembly: AesirLineage
 
 # The Thunderstore/Hexium team these publish under.
 author_name: MidnightMods

@@ -1,12 +1,12 @@
 #!/bin/sh
 
 target="Debug"
-targetPath="ValhallEternal/bin/$target/net48"
-targetAssembly="ValhallEternal.dll"
+targetPath="AesirLineage/bin/$target/net48"
+targetAssembly="AesirLineage.dll"
 valheimPath=""
 bepinexPath=""
 deployPath=""
-projectPath="./ValhallEternal"
+projectPath="./AesirLineage"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
