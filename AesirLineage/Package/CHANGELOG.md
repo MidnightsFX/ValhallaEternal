@@ -5,7 +5,7 @@
  - Each deity now has a star map: earn that deity's star points and spend them on linked stars instead of raising boons one at a time.
  - Each shrine gives a quest to slay its biome's boss for a star point, then a short daily blessing that helps in that biome, and has a button to reset its deity's star map.
  - Points spent on stars are locked until you reset that deity's star map at one of its shrines.
- - Taking a star plays a sound for its tier, the same for every deity.
+ - Taking a star plays a mystical chime for its tier, the same for every deity.
  - Every power in the star map now explains how it works, both before and after you take its star.
  - Enemies finished off by burning or poison after your hit count as your kills, so kill powers trigger for them.
  - Powers that save you from death keep their cooldown when you die.
@@ -41,6 +41,8 @@
  - A short setup tutorial opens on first launch, and any time after from Mod Config, to choose how star points are earned, whether deity looks are shown and what Ascension costs.
  - Servers can turn deity looks off for everyone.
  - Each Ascension brings Eternal Hall's Ragnarök closer for everyone, while always leaving a little warning.
+ - With Eternal Hall, a deity's shrines can give you an island of your own in their biome, and take you back to it.
+ - Servers can change which boss opens which items for the progression lock in a file of its own.
  ```
 
 **0.7.8**

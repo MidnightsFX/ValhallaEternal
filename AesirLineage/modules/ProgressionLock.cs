@@ -11,14 +11,12 @@ namespace AesirLineage.modules {
     /// the boss before that biome is defeated. Off unless <c>EnableProgressionLock</c> is on.
     /// </summary>
     /// <remarks>
-    /// Each material below needs a boss, given as its place in <see cref="Deeds.BossOrder"/> (1 is Eikthyr,
-    /// 7 is Fader); a boss's own drops need that boss, and each tier of the game's battle and protection
-    /// idols (Upgrader1Weapon to Upgrader7Armor) the boss of its tier. Everything else needs the highest
-    /// boss among the ingredients of its recipe, followed down through every recipe, so items from other
-    /// mods are sealed by the materials they are made of. What a cooking station, oven, fermenter or
-    /// smelter turns an item into needs what that item needs. An upgrade counts the ingredients of every
-    /// level up to it. The sorting of materials up to the Ashlands follows VentureValheim's World
-    /// Advancement Progression; the Deep North's is from the game's own recipes.
+    /// <see cref="LockData"/> lists the prefabs each boss opens (built in, or <c>ProgressionLock.yaml</c>), as
+    /// levels: a place in <see cref="Deeds.BossOrder"/> (1 is Eikthyr, 7 is Fader), or 0 for never sealed. A
+    /// listed prefab needs exactly its level. Everything else needs the highest level among the ingredients
+    /// of its recipe, followed down through every recipe, so items from other mods are sealed by the
+    /// materials they are made of. What a cooking station, oven, fermenter or smelter turns an item into
+    /// needs what that item needs. An upgrade counts the ingredients of every level up to it.
     /// A player's level is <see cref="Deeds.BiomeLevel(Player, bool)"/>: the last boss in the order they
     /// have beaten, counting their own player keys, and the world's keys too when
     /// <c>ProgressionLockSource</c> is World. The game gives the player key only to the player whose
@@ -26,63 +24,6 @@ namespace AesirLineage.modules {
     /// Every check runs on the player's own machine.
     /// </remarks>
     internal static class ProgressionLock {
-        private static readonly Dictionary<string, int> BuiltIn = Sorted(
-            // Eikthyr: the Black Forest and the sea.
-            (1, new[] {
-                "Upgrader1Armor", "Upgrader1Weapon", "HardAntler", "BjornHide", "BjornPaw", "Chitin", "Copper", "Bronze", "BronzeNails", "FineWood",
-                "SerpentScale", "Tin", "TrollHide",
-                "BjornMeat", "CookedBjornMeat", "Blueberries", "Carrot", "Entrails", "FishCooked", "MushroomYellow", "Thistle",
-            }),
-            // The Elder: the Swamp.
-            (2, new[] {
-                "Upgrader2Armor", "Upgrader2Weapon", "CryptKey", "Chain", "ElderBark", "Iron", "IronNails", "Ooze", "Root", "SharpeningStone",
-                "Bloodbag", "SerpentMeat", "SerpentMeatCooked", "Turnip",
-            }),
-            // Bonemass: the Mountains.
-            (3, new[] {
-                "Upgrader3Armor", "Upgrader3Weapon", "Wishbone", "FreezeGland", "JuteRed", "Obsidian", "Silver", "WolfHairBundle", "WolfPelt", "WolfClaw", "WolfFang",
-                "Onion", "WolfMeat", "CookedWolfMeat",
-            }),
-            // Moder: the Plains.
-            (4, new[] {
-                "Upgrader4Armor", "Upgrader4Weapon", "DragonTear", "BlackMetal", "Tar", "Needle", "LinenThread", "LoxPelt", "TrophyBjornUndead", "UndeadBjornRibcage",
-                "Barley", "BarleyFlour", "BreadDough", "Bread", "ChickenEgg", "CookedEgg", "ChickenMeat", "CookedChickenMeat",
-                "Cloudberry", "FishAndBread", "LoxMeat", "LoxPie", "CookedLoxMeat", "MushroomBzerker", "FragrantBundle", "SpiceMountains",
-            }),
-            // Yagluth: the Mistlands.
-            (5, new[] {
-                "Upgrader5Armor", "Upgrader5Weapon", "YagluthDrop", "DvergrKey", "Bilebag", "BlackMarble", "BlackCore", "Carapace", "DvergrKeyFragment", "Eitr",
-                "JuteBlue", "Sap", "ScaleHide", "Wisp", "YggdrasilWood",
-                "BugMeat", "CookedBugMeat", "GiantBloodSack", "HareMeat", "CookedHareMeat", "HoneyGlazedChicken",
-                "MagicallyStuffedShroom", "MeatPlatter", "MisthareSupreme", "MushroomJotunPuffs", "RoyalJelly", "SpicePlains",
-            }),
-            // The Queen: the Ashlands.
-            (6, new[] {
-                "Upgrader6Armor", "Upgrader6Weapon", "QueenDrop", "AskBladder", "AskHide", "BellFragment", "Blackwood", "BonemawSerpentTooth", "CelestialFeather",
-                "CharcoalResin", "CharredBone", "CharredCogwheel", "FlametalNew", "GemstoneBlue", "GemstoneGreen", "GemstoneRed",
-                "Grausten", "MoltenCore", "MorgenSinew", "MorgenHeart", "ProustitePowder", "SulfurStone",
-                "AsksvinMeat", "CookedAsksvinMeat", "BoneMawSerpentMeat", "CookedBoneMawSerpentMeat", "Fiddleheadfern",
-                "MushroomSmokePuff", "PiquantPie", "RoastedCrustPie", "Vineberry", "VoltureEgg", "VoltureMeat", "CookedVoltureMeat",
-                "SpiceMistlands",
-            }),
-            // Fader: the Deep North.
-            (7, new[] {
-                "Upgrader7Armor", "Upgrader7Weapon", "FaderDrop", "Gold", "Frostwood", "FirConeFrost", "BarkaBranch",
-                "MooseHide", "MooseSinew", "SealHide", "ElakingHairBundle", "MoleClaws", "WrithanRoots", "NornThread",
-                "OozeMork", "FrostCore", "FrozenFuel", "Ice",
-                "MooseMeat", "SealBlubber", "Kale", "KaleSeeds", "Oat", "OatSeeds", "Poteitr", "PoteitrSeeds", "Lingonberry",
-                "SpiceAshlands", "SpiceDeepNorth",
-            })
-        );
-
-        private static Dictionary<string, int> Sorted(params (int boss, string[] prefabs)[] bosses) {
-            var sorted = new Dictionary<string, int>();
-            foreach ((int boss, string[] prefabs) in bosses) {
-                foreach (string prefab in prefabs) { sorted[prefab] = boss; }
-            }
-            return sorted;
-        }
-
         internal static bool Active => ValConfig.EnableProgressionLock.Value;
 
         private static bool WorldKeys => string.Equals(ValConfig.ProgressionLockSource.Value, "World", StringComparison.OrdinalIgnoreCase);
@@ -111,27 +52,24 @@ namespace AesirLineage.modules {
         private static readonly Dictionary<string, List<Recipe>> recipesFor = new Dictionary<string, List<Recipe>>();
         private static readonly Dictionary<string, List<string>> convertedFrom = new Dictionary<string, List<string>>();
         private static readonly HashSet<string> resolving = new HashSet<string>();
-        private static Dictionary<string, int> overrides = new Dictionary<string, int>();
         private static ObjectDB cachedFor;
         private static ZNetScene cachedScene;
         private static int cachedRecipes = -1;
-        private static string overridesFrom;
+        private static int cachedList = -1;
 
-        // Starts over when the world's items or recipes change, or the server's overrides do.
+        // Starts over when the world's items or recipes change, or the list of what each boss opens does.
         private static void Refresh() {
             ObjectDB db = ObjectDB.instance;
             int recipeCount = db != null ? db.m_recipes.Count : -1;
-            string raw = ValConfig.ProgressionLockItems.Value;
-            if (db == cachedFor && ZNetScene.instance == cachedScene && recipeCount == cachedRecipes && raw == overridesFrom) { return; }
+            if (db == cachedFor && ZNetScene.instance == cachedScene && recipeCount == cachedRecipes && LockData.Version == cachedList) { return; }
             cachedFor = db;
             cachedScene = ZNetScene.instance;
             cachedRecipes = recipeCount;
-            overridesFrom = raw;
+            cachedList = LockData.Version;
             items.Clear();
             pieces.Clear();
             recipesFor.Clear();
             convertedFrom.Clear();
-            overrides = ParseOverrides(raw);
             if (db == null) { return; }
             foreach (Recipe recipe in db.m_recipes) {
                 if (recipe == null || recipe.m_item == null || !recipe.m_enabled) { continue; }
@@ -160,25 +98,6 @@ namespace AesirLineage.modules {
             if (!list.Contains(source)) { list.Add(source); }
         }
 
-        // "Prefab=bosskey, ..." into prefab to level; an empty boss key is level 0, never sealed.
-        private static Dictionary<string, int> ParseOverrides(string raw) {
-            var parsed = new Dictionary<string, int>();
-            if (string.IsNullOrWhiteSpace(raw)) { return parsed; }
-            foreach (string pair in raw.Split(',')) {
-                if (string.IsNullOrWhiteSpace(pair)) { continue; }
-                string[] parts = pair.Split('=');
-                string prefab = parts[0].Trim();
-                string key = parts.Length > 1 ? parts[1].Trim() : "";
-                int level = key.Length == 0 ? 0 : Array.FindIndex(Deeds.BossOrder, boss => string.Equals(boss, key, StringComparison.OrdinalIgnoreCase)) + 1;
-                if (prefab.Length == 0 || parts.Length != 2 || (key.Length > 0 && level == 0)) {
-                    Logger.LogWarning($"ProgressionLockItems: ignoring '{pair.Trim()}'. Write prefab=bosskey, with a boss key from {string.Join(", ", Deeds.BossOrder)}, or nothing after = to never seal it.");
-                    continue;
-                }
-                parsed[prefab] = level;
-            }
-            return parsed;
-        }
-
         /// <summary>The level an item needs at a quality: 0 when it is never sealed.</summary>
         internal static int Needed(ItemDrop.ItemData item, int quality) {
             if (item?.m_dropPrefab == null) { return 0; }
@@ -187,21 +106,23 @@ namespace AesirLineage.modules {
 
         internal static int Needed(string prefab, int quality) {
             Refresh();
-            if (overrides.TryGetValue(prefab, out int fixedLevel)) { return fixedLevel; }
+            if (LockData.Levels.TryGetValue(prefab, out int listed)) { return listed; }
             if (!items.TryGetValue(prefab, out int[] byQuality)) { byQuality = Resolve(prefab); }
             return byQuality[Mathf.Clamp(quality, 1, byQuality.Length - 1)];
         }
 
         /// <summary>
-        /// The level crafting or upgrading with this recipe needs: the item's own, and that of every
-        /// ingredient up to the quality made.
+        /// The level crafting or upgrading with this recipe needs: the item's own when it is listed, otherwise
+        /// that of every ingredient up to the quality made. At the game's upgrade station, where the idols are
+        /// taken instead, the item's own level and that of the idols.
         /// </summary>
-        internal static int Needed(Recipe recipe, int quality) {
+        internal static int Needed(Recipe recipe, int quality, bool upgrader = false) {
             if (recipe == null || recipe.m_item == null) { return 0; }
             string made = Utils.GetPrefabName(recipe.m_item.gameObject);
             Refresh();
-            if (overrides.TryGetValue(made, out int fixedLevel)) { return fixedLevel; }
-            return Math.Max(BuiltIn.TryGetValue(made, out int own) ? own : 0, RecipeLevel(recipe, quality));
+            if (LockData.Levels.TryGetValue(made, out int listed)) { return listed; }
+            if (upgrader) { return Math.Max(Needed(made, quality), RecipeLevel(recipe, quality, upgrader: true)); }
+            return RecipeLevel(recipe, quality);
         }
 
         /// <summary>The level a build piece needs: the highest among what it is built from.</summary>
@@ -209,7 +130,7 @@ namespace AesirLineage.modules {
             if (piece == null) { return 0; }
             string name = Utils.GetPrefabName(piece.gameObject);
             Refresh();
-            if (overrides.TryGetValue(name, out int fixedLevel)) { return fixedLevel; }
+            if (LockData.Levels.TryGetValue(name, out int listed)) { return listed; }
             if (pieces.TryGetValue(name, out int level)) { return level; }
             level = 0;
             if (piece.m_resources != null) {
@@ -221,12 +142,11 @@ namespace AesirLineage.modules {
             return level;
         }
 
-        // An item's level at each quality from 1 to its highest. Of several recipes and conversions that
-        // make it, the easiest counts.
+        // An unlisted item's level at each quality from 1 to its highest. Of several recipes and conversions
+        // that make it, the easiest counts.
         private static int[] Resolve(string prefab) {
-            int own = BuiltIn.TryGetValue(prefab, out int listed) ? listed : 0;
             // A recipe that leads back to an item already being worked out adds nothing.
-            if (!resolving.Add(prefab)) { return new[] { own, own }; }
+            if (!resolving.Add(prefab)) { return new[] { 0, 0 }; }
             ItemDrop drop = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefab)?.GetComponent<ItemDrop>() : null;
             int maxQuality = Math.Max(1, drop != null ? drop.m_itemData.m_shared.m_maxQuality : 1);
             int[] byQuality = new int[maxQuality + 1];
@@ -241,7 +161,7 @@ namespace AesirLineage.modules {
             }
             for (int quality = 1; quality <= maxQuality; quality++) {
                 int easiest = recipes != null ? Math.Min(converted, recipes.Min(recipe => RecipeLevel(recipe, quality))) : converted;
-                byQuality[quality] = Math.Max(own, easiest == int.MaxValue ? 0 : easiest);
+                byQuality[quality] = easiest == int.MaxValue ? 0 : easiest;
             }
             byQuality[0] = byQuality[1];
             resolving.Remove(prefab);
@@ -250,14 +170,16 @@ namespace AesirLineage.modules {
         }
 
         // The highest level among a recipe's ingredients at every level up to the quality. A recipe that
-        // takes any one of its ingredients needs only the easiest of them at each level.
-        private static int RecipeLevel(Recipe recipe, int quality) {
+        // takes any one of its ingredients needs only the easiest of them at each level. The battle and
+        // protection idols a recipe lists are upgrader resources, which the game takes only at its upgrade
+        // station and every other station skips, so they count only there.
+        private static int RecipeLevel(Recipe recipe, int quality, bool upgrader = false) {
             int level = 0;
             if (recipe.m_resources == null) { return level; }
             for (int at = 1; at <= quality; at++) {
                 int easiest = int.MaxValue;
                 foreach (Piece.Requirement req in recipe.m_resources) {
-                    if (req?.m_resItem == null || req.GetAmount(at) <= 0) { continue; }
+                    if (req?.m_resItem == null || req.m_upgraderResource != upgrader || req.GetAmount(at) <= 0) { continue; }
                     int needed = Needed(Utils.GetPrefabName(req.m_resItem.gameObject), 1);
                     if (recipe.m_requireOnlyOneIngredient) {
                         easiest = Math.Min(easiest, needed);
@@ -361,7 +283,9 @@ namespace AesirLineage.modules {
         private static class Craft {
             private static bool Prefix(InventoryGui __instance, Player player) {
                 int quality = __instance.m_craftUpgradeItem == null ? 1 : __instance.m_craftUpgradeItem.m_quality + 1;
-                return !Sealed(player, Needed(__instance.m_craftRecipe, quality), ValConfig.LockCrafting.Value);
+                CraftingStation station = player.GetCurrentCraftingStation();
+                bool upgrader = station != null && station.m_upgrader;
+                return !Sealed(player, Needed(__instance.m_craftRecipe, quality, upgrader), ValConfig.LockCrafting.Value);
             }
         }
 
@@ -416,6 +340,54 @@ namespace AesirLineage.modules {
         }
 
         // ---- For admins ----
+
+        /// <summary>
+        /// What decides a prefab's level: the prefab, then what it is made from, down to the listed prefab the
+        /// level comes from, such as AxeBronze, Bronze. Just the prefab when it is listed itself.
+        /// </summary>
+        internal static List<string> DecidedBy(string prefab) {
+            Refresh();
+            var chain = new List<string>();
+            string at = prefab;
+            while (at != null && chain.Count < 16 && !chain.Contains(at)) {
+                chain.Add(at);
+                if (LockData.Levels.ContainsKey(at)) { break; }
+                at = Deciding(at);
+            }
+            return chain;
+        }
+
+        // The ingredient, piece resource or converted item that gives an unlisted prefab its level.
+        private static string Deciding(string prefab) {
+            GameObject scenePrefab = ZNetScene.instance != null ? ZNetScene.instance.GetPrefab(prefab) : null;
+            Piece piece = scenePrefab != null && scenePrefab.GetComponent<ItemDrop>() == null ? scenePrefab.GetComponent<Piece>() : null;
+            if (piece != null) {
+                int pieceLevel = Needed(piece);
+                return pieceLevel > 0 ? Matching(piece.m_resources, pieceLevel) : null;
+            }
+            int level = Needed(prefab, 1);
+            if (level <= 0) { return null; }
+            if (recipesFor.TryGetValue(prefab, out List<Recipe> recipes)) {
+                foreach (Recipe recipe in recipes) {
+                    string from = RecipeLevel(recipe, 1) == level ? Matching(recipe.m_resources, level) : null;
+                    if (from != null) { return from; }
+                }
+            }
+            if (convertedFrom.TryGetValue(prefab, out List<string> sources)) {
+                string source = sources.FirstOrDefault(s => Needed(s, 1) == level);
+                if (source != null) { return source; }
+            }
+            ItemDrop drop = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(prefab)?.GetComponent<ItemDrop>() : null;
+            Piece feast = drop != null ? drop.GetComponent<Piece>() : null;
+            return feast != null && Needed(feast) == level ? Matching(feast.m_resources, level) : null;
+        }
+
+        private static string Matching(Piece.Requirement[] requirements, int level) {
+            if (requirements == null) { return null; }
+            return requirements.Where(req => req?.m_resItem != null && !req.m_upgraderResource && req.GetAmount(1) > 0)
+                .Select(req => Utils.GetPrefabName(req.m_resItem.gameObject))
+                .FirstOrDefault(name => Needed(name, 1) == level);
+        }
 
         /// <summary>Every item and build piece that is sealed, by the boss it needs, and those never sealed.</summary>
         internal static (SortedDictionary<int, List<string>> byBoss, List<string> open) Survey() {

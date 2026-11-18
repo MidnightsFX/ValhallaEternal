@@ -462,6 +462,10 @@ namespace AesirLineage.modules
                 }
                 bool opened = ProgressionLock.Level(player) >= needed;
                 Print(Localization.instance.Localize(opened ?"$al_cmd_locks_item_open" : "$al_cmd_locks_item_sealed", prefab, ProgressionLock.BossName(needed)));
+                List<string> chain = ProgressionLock.DecidedBy(prefab);
+                Print(chain.Count > 1
+                    ? Localization.instance.Localize("$al_cmd_locks_made_from", string.Join(" > ", chain.Skip(1)))
+                    : Localization.instance.Localize("$al_cmd_locks_listed", prefab));
             }
         }
     }

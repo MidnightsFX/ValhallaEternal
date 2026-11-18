@@ -21,6 +21,23 @@ namespace AesirLineage.common
         public Boon Blessing { get; set; }
         /// <summary>What a dream from the deity can leave; one is picked at random.</summary>
         public List<Boon> Inspirations { get; set; } = new List<Boon>();
+        /// <summary>The Eternal Hall island the deity's shrines give; none when left out.</summary>
+        public IslandGift Island { get; set; }
+    }
+
+    /// <summary>
+    /// A personal island the deity gives at its shrines, with Eternal Hall: one per character, which the
+    /// deity's shrines take them to after.
+    /// </summary>
+    public class IslandGift
+    {
+        /// <summary>The island's biome, one of Eternal Hall's island types: Meadows, BlackForest, Swamp,
+        /// Mountain, Plains, Mistlands or AshLands.</summary>
+        public string Type { get; set; }
+        /// <summary>Item prefab name to amount, taken when the island is given.</summary>
+        public Dictionary<string, int> Items { get; set; } = new Dictionary<string, int>();
+        /// <summary>Global or player keys needed first: the biome's boss defeated, by default.</summary>
+        public List<string> RequiredKeys { get; set; } = new List<string>();
     }
 
     /// <summary>Star map powers a deity lends for a while, as a blessing or a dream's inspiration.</summary>
@@ -87,6 +104,13 @@ namespace AesirLineage.common
 
         private static Dictionary<string, int> Cost(string item, int amount) => new Dictionary<string, int>() { { item, amount } };
 
+        // An island of the biome, once its boss is down, for the boss's trophy.
+        private static IslandGift Island(string type, string bossKey, string trophy) => new IslandGift() {
+            Type = type,
+            Items = Cost(trophy, 1),
+            RequiredKeys = new List<string>() { bossKey },
+        };
+
         private static Boon Lend(string id, params (Power power, float value)[] powers) {
             Boon boon = new Boon() { Id = id, Name = $"$al_boon_{id}" };
             foreach ((Power power, float value) in powers) { boon.Powers[power.ToString()] = value; }
@@ -101,49 +125,58 @@ namespace AesirLineage.common
 
         // A full reset costs the biome's boss trophy. A blessing opens once the biome's boss is down, so
         // each helps with going back there, at about a major star's worth. An inspiration is about an
-        // oath-bound star's worth of one of the deity's aspects, without the oath.
+        // oath-bound star's worth of one of the deity's aspects, without the oath. An island of the
+        // biome, as Eternal Hall's boss stones would give it, costs the boss's trophy; the Deep North has
+        // no Eternal Hall island, so Vidarr gives none.
         internal static Dictionary<Deity, DeityShrine> Defaults() => new Dictionary<Deity, DeityShrine>() {
             { Deity.Gefjun, new DeityShrine() {
                 ResetCost = Cost("TrophyEikthyr", 1),
                 Ascension = Ascend(("TrophyEikthyr", 1)),
                 Blessing = Lend("gefjun_plough", (Power.CarryWeight, 100), (Power.GatherYield, 10), (Power.HarvestBounty, 10)),
                 Inspirations = new List<Boon>() { Inspire("gefjun_long_table", (Power.FoodBonus, 15), (Power.HarvestBounty, 20)) },
+                Island = Island("Meadows", "defeated_eikthyr", "TrophyEikthyr"),
             } },
             { Deity.Vor, new DeityShrine() {
                 ResetCost = Cost("TrophyTheElder", 1),
                 Ascension = Ascend(("TrophyTheElder", 1)),
                 Blessing = Lend("vor_sight", (Power.OreSense, 50), (Power.ExploreRadius, 30), (Power.Stealth, 10)),
                 Inspirations = new List<Boon>() { Inspire("vor_knowing", (Power.SkillXp, 30), (Power.CritChance, 5)) },
+                Island = Island("BlackForest", "defeated_gdking", "TrophyTheElder"),
             } },
             { Deity.Baldur, new DeityShrine() {
                 ResetCost = Cost("TrophyBonemass", 1),
                 Ascension = Ascend(("TrophyEikthyr", 1), ("TrophyTheElder", 1), ("TrophyBonemass", 1)),
                 Blessing = Lend("baldur_purity", (Power.FireAndPoisonResist, 20), (Power.WetResist, 50), (Power.UndeadDamage, 15)),
                 Inspirations = new List<Boon>() { Inspire("baldur_shining", (Power.BlockPower, 20), (Power.HealthRegen, 20), (Power.UndeadDamage, 20)) },
+                Island = Island("Swamp", "defeated_bonemass", "TrophyBonemass"),
             } },
             { Deity.Skaldi, new DeityShrine() {
                 ResetCost = Cost("TrophyDragonQueen", 1),
                 Ascension = Ascend(("TrophyEikthyr", 1), ("TrophyTheElder", 1), ("TrophyBonemass", 1), ("TrophyDragonQueen", 1)),
                 Blessing = Lend("skadi_mantle", (Power.ColdImmunity, 1), (Power.FrostResist, 15), (Power.RunStamina, 10)),
                 Inspirations = new List<Boon>() { Inspire("skadi_huntress", (Power.BowDamage, 15), (Power.DrawSpeed, 15), (Power.RunStamina, 15)) },
+                Island = Island("Mountain", "defeated_dragon", "TrophyDragonQueen"),
             } },
             { Deity.Syn, new DeityShrine() {
                 ResetCost = Cost("TrophyGoblinKing", 1),
                 Ascension = Ascend(("TrophyGoblinBruteBrosShaman", 1), ("TrophyGoblinBruteBrosBrute", 1)),
                 Blessing = Lend("syn_ward", (Power.BlockPower, 15), (Power.StaggerThreshold, 20), (Power.Armor, 6)),
                 Inspirations = new List<Boon>() { Inspire("syn_threshold", (Power.StaggerThreshold, 40), (Power.MeleeDamage, 12)) },
+                Island = Island("Plains", "defeated_goblinking", "TrophyGoblinKing"),
             } },
             { Deity.Freya, new DeityShrine() {
                 ResetCost = Cost("TrophySeekerQueen", 1),
                 Ascension = Ascend(("TrophySeekerQueen", 1)),
                 Blessing = Lend("freya_falcon_cloak", (Power.FalconGlide, 1), (Power.JumpStamina, 25), (Power.EitrRegen, 15)),
                 Inspirations = new List<Boon>() { Inspire("freya_sessrumnir", (Power.StaminaRegen, 20), (Power.EitrRegen, 20), (Power.MagicDamage, 12)) },
+                Island = Island("Mistlands", "defeated_queen", "TrophySeekerQueen"),
             } },
             { Deity.Hel, new DeityShrine() {
                 ResetCost = Cost("TrophyFader", 1),
                 Ascension = Ascend(("TrophyFallenValkyrie", 1)),
                 Blessing = Lend("hel_embrace", (Power.HeatResistance, 25), (Power.FireResist, 20)),
                 Inspirations = new List<Boon>() { Inspire("hel_harvest", (Power.LifeLeech, 2), (Power.ExecuteDamage, 20)) },
+                Island = Island("AshLands", "defeated_fader", "TrophyFader"),
             } },
             // Kall Fimbulbringer leaves no trophy, so the reset and Ascension ask for the Krigen and Hexen,
             // the Jötnar of the Deep North.
@@ -192,6 +225,10 @@ namespace AesirLineage.common
                 if (shrine == null) { continue; }
                 ResolveBoons(entry.Key, shrine);
                 shrine.ResetCost ??= new Dictionary<string, int>();
+                if (shrine.Island != null) {
+                    shrine.Island.Items ??= new Dictionary<string, int>();
+                    shrine.Island.RequiredKeys ??= new List<string>();
+                }
                 if (shrine.Ascension != null) {
                     shrine.Ascension.Items ??= new Dictionary<string, int>();
                     shrine.Ascension.RequiredKeys ??= new List<string>();

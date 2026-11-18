@@ -57,6 +57,7 @@ namespace AesirLineage
             HarmonyInstance = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
             AddLocalizations();
             ShrineData.LoadLocal();
+            LockData.LoadLocal();
             StarMaps.Setup();
             DataObjects.LoadAssets();
             souls.SoulOfPower.RegisterPrefab();

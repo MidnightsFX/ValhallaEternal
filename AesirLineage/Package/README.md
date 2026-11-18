@@ -19,7 +19,7 @@ The mod aims to stay close to even on power. It can make your journey much easie
 - **Looks.** Each deity's aura, wings, footprints, weapon glow and kill effect, earned with their stars and chosen in the star map. Purely for show, and a server can turn them off.
 - **Quick setup.** A short tutorial on first launch chooses how your world plays, and opens again any time from Mod Config.
 - **An optional progression lock.** Gear, food and building from each biome stay sealed until you defeat the boss before it.
-- **Eternal Hall.** Its heralds of Ragnarök give star points, and each Ascension brings its Ragnarök closer.
+- **Eternal Hall.** Its heralds of Ragnarök give star points, each Ascension brings its Ragnarök closer, and the shrines can give you an island of your own.
 
 ## The deities
 Eight deities, one for each biome. Each has shrines in their biome, a star map of six paths and their own looks.
@@ -86,6 +86,7 @@ Each biome has shrines to its deity. At a shrine you can:
 - **Receive the deity's blessing.** Once you have completed the deity's quest this run, its shrine blesses you once per in-game day for 10 minutes. Each blessing helps with going back to that biome.
 - **Reset the deity's star map** with the shrine's Reset Stars button, for one of the biome's great trophies. Points spent on stars are locked until then; a reset gives back every star you hold with that deity, and the button asks twice before it takes the trophy.
 - **Ascend with the deity**, once every boss has fallen.
+- **Ask for an island of your own**, with Eternal Hall. Once the biome's boss has fallen, its deity's shrines give you an island of that biome, beyond the edge of the world, for the boss's trophy. Each character can have one island, and it stays yours through Ascension. After that, the same deity's shrines take you there, under the same rules as a portal, and the island's monument brings you back to the Sacrificial Stones. Víðarr gives none, since the Deep North has no Eternal Hall island. A server can turn this off with `EnablePersonalIslands`.
 
   | Deity | Blessing | Effects |
   | ----------- | ----------- | ----------- |
@@ -112,7 +113,7 @@ Once you have earned 4 star points with a deity, it may visit you in a dream. Ea
   | Hel | Hel's Harvest | Heal for 2% of the damage you deal; +20% damage to enemies below 30% health |
   | Víðarr | The Silent Vow | +20% unarmed damage; cold slows your regeneration 30% less |
 
-Blessings and dreams can be changed or added to in `Shrines.yaml` when `UseShrinesFile` is on.
+Blessings, dreams and islands can be changed or added to in `Shrines.yaml` when `UseShrinesFile` is on.
 
 ## Progression lock
 Off unless a server turns on `EnableProgressionLock`. With it on, everything made from a biome's materials is sealed until you defeat the boss before that biome: bronze, troll hide and blueberries need Eikthyr, iron and turnips need the Elder, and so on up to Fader for the Deep North. A boss's own drops need that boss, and each tier of battle and protection idols needs the boss of its tier. Anything made from sealed materials is sealed too, followed down through every recipe and through cooking, baking, fermenting and smelting, so items from other mods are sealed by what they are made of.
@@ -127,16 +128,16 @@ A sealed item's tooltip names the boss that opens it, and trying to use it tells
   | `LockBuilding` | Placing build pieces |
 
 - **Whose kills count** (`ProgressionLockSource`). _Personal_, the default: only the bosses you helped defeat, by landing a hit or standing nearby when it fell, the same as for shrine quests. Each one gives you that boss's player key (`defeated_eikthyr` and so on), which Ascending removes when `AscensionRemovesBossKeys` is on, so each new run is sealed again. _World_: every boss defeated in the world counts as well.
-- **Your own list** (`ProgressionLockItems`): `prefab=bosskey` pairs, separated by commas, change which boss an item or build piece needs. `SwordIron=defeated_bonemass` seals the iron sword until Bonemass; `SwordIron=` never seals it. A material's boss also seals everything made from it.
+- **Your own list** (`ProgressionLock.yaml`, read when `UseProgressionLockFile` is on): which boss opens which items and build pieces, listed under each boss's key (`defeated_eikthyr` to `defeated_fader`), each boss holding the next biome's materials. A prefab listed there needs its boss whatever it is made of, and a prefab listed under `never` is never sealed. Everything else follows what it is made from, so moving a material moves everything made from it. Changes to the file apply as soon as it is saved, and players on a server always use the server's list.
 - **Characters from before.** The game itself gives a boss's player key only to the one player whose game runs the boss. If a character beat bosses before the lock was on and finds their gear sealed, an admin can give the key with `setkeyplayer defeated_<boss>` while playing that character.
-- Admins can check it with `al-locks`: on its own it shows the last boss you have defeated, `al-locks <prefab>` shows which boss an item or build piece needs, and `al-locks dump` writes every sealed item and piece to the log, by boss.
+- Admins can check it with `al-locks`: on its own it shows the last boss you have defeated, `al-locks <prefab>` shows which boss an item or build piece needs and which of its materials decides that, and `al-locks dump` writes every sealed item and piece to the log, by boss.
 
 ## Compatibility
 Can you use this with Epicloot? Can you use this with Jewelcrafting? _**Absolutely**_! I can't promise there will be no bugs or conflicts, but I am always interested in addressing those.
 
 - With Auga, the star map's button is in the row of buttons under your character's name.
 - World Advancement Progression has a progression lock of its own. Turn on one of the two, not both.
-- With Eternal Hall, heralds of Ragnarök give star points and Ascension brings Ragnarök closer.
+- With Eternal Hall, heralds of Ragnarök give star points, Ascension brings Ragnarök closer, and the shrines give islands of your own.
 
 ### Suggested mod pairing
 - [World Advancement Progression](https://thunderstore.io/c/valheim/p/VentureValheim/World_Advancement_Progression/) - Make the NG+ part less of a breeze

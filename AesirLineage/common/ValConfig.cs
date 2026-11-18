@@ -43,6 +43,7 @@ public class ValConfig
     public static ConfigEntry<float> AscensionRagnarokDays;
 
     public static ConfigEntry<bool> EnableLooks;
+    public static ConfigEntry<bool> EnablePersonalIslands;
     public static ConfigEntry<string> SoulBosses;
 
     public static ConfigEntry<int> LuckyPointsPerDeity;
@@ -65,7 +66,7 @@ public class ValConfig
     public static ConfigEntry<bool> LockConsumables;
     public static ConfigEntry<bool> LockCrafting;
     public static ConfigEntry<bool> LockBuilding;
-    public static ConfigEntry<string> ProgressionLockItems;
+    public static ConfigEntry<bool> UseProgressionLockFile;
 
     public static ConfigEntry<int> BlessingMinutes;
     public static ConfigEntry<int> InspirationMinutes;
@@ -81,8 +82,10 @@ public class ValConfig
     public const string cfgFolder = "AesirLineage";
     const string shrinesyml = "Shrines.yaml";
     const string starmapsyml = "StarMaps.yaml";
+    const string progressionlockyml = "ProgressionLock.yaml";
     internal static String shrinesCfgPath = Path.Combine(Paths.ConfigPath, cfgFolder, shrinesyml);
     internal static String starMapsCfgPath = Path.Combine(Paths.ConfigPath, cfgFolder, starmapsyml);
+    internal static String progressionLockCfgPath = Path.Combine(Paths.ConfigPath, cfgFolder, progressionlockyml);
 
     private static CustomRPC configRPC;
 
@@ -184,8 +187,13 @@ public class ValConfig
         LockConsumables = BindServerConfig("ProgressionLock", "LockConsumables", true, "Seals eating food and drinking meads.");
         LockCrafting = BindServerConfig("ProgressionLock", "LockCrafting", true, "Seals crafting and upgrading at every crafting station, cooking on cooking stations and ovens, and fermenting meads.");
         LockBuilding = BindServerConfig("ProgressionLock", "LockBuilding", true, "Seals placing build pieces.");
-        ProgressionLockItems = BindServerConfig("ProgressionLock", "ProgressionLockItems", "",
-            "Changes which boss an item or build piece needs, as prefab=bosskey pairs separated by commas, such as SwordIron=defeated_bonemass. The boss keys are defeated_eikthyr, defeated_gdking, defeated_bonemass, defeated_dragon, defeated_goblinking, defeated_queen and defeated_fader. Leave the boss key empty to never seal the prefab. A material's boss also seals everything made from it.");
+        UseProgressionLockFile = BindServerConfig("ProgressionLock", "UseProgressionLockFile", false,
+            $"Use {progressionlockyml} instead of the built-in list of which boss opens each item and build piece. Clients always use the server's list.");
+        UseProgressionLockFile.SettingChanged += (_, _) => {
+            if (ZNet.instance != null && !ZNet.instance.IsServer()) { return; }
+            LockData.LoadLocal();
+            BroadcastConfigs();
+        };
 
         BlessingMinutes = BindServerConfig("Blessings", "BlessingMinutes", 10, "Minutes of play a shrine's blessing lasts.", false, 1, 120);
         InspirationMinutes = BindServerConfig("Blessings", "InspirationMinutes", 30, "Minutes of play the inspiration a deity's dream leaves lasts.", false, 1, 240);
@@ -204,6 +212,9 @@ public class ValConfig
 
         EnableLooks = BindServerConfig("Looks", "EnableLooks", true,
             "Whether deity looks are shown: the auras, wings, footprints, weapon glows and kill effects that stars and Ascension give. Off, nobody shows any and the star map has no Looks button. Players keep the looks they earned, so turning this back on brings them back.");
+
+        EnablePersonalIslands = BindServerConfig("Islands", "EnablePersonalIslands", true,
+            "With Eternal Hall, a deity's shrines can give each character one island of the deity's biome, for the offering in the shrines, and take them back to it after. The island's monument returns them to the Sacrificial Stones. Off, no new islands are given and the shrines no longer lead to them; islands already given stay. Does nothing without Eternal Hall.");
 
         StarMapKey = Config.Bind("Client config", "StarMapKey", new KeyboardShortcut(UnityEngine.KeyCode.K),
             "Opens and closes the star maps.");
@@ -231,6 +242,7 @@ public class ValConfig
         string[] presentFiles = Directory.GetFiles(externalConfigFolder);
         bool foundShrines = false;
         bool foundStarMaps = false;
+        bool foundProgressionLock = false;
 
         foreach (string configFile in presentFiles) {
             if (configFile.Contains(shrinesyml)) {
@@ -240,6 +252,10 @@ public class ValConfig
             if (configFile.Contains(starmapsyml)) {
                 starMapsCfgPath = configFile;
                 foundStarMaps = true;
+            }
+            if (configFile.Contains(progressionlockyml)) {
+                progressionLockCfgPath = configFile;
+                foundProgressionLock = true;
             }
         }
 
@@ -273,8 +289,31 @@ public class ValConfig
             }
         }
 
+        if (foundProgressionLock == false) {
+            Logger.LogDebug("Progression lock file missing, writing the built-in list.");
+            using (StreamWriter writetext = new StreamWriter(progressionLockCfgPath)) {
+                writetext.WriteLine($@"#################################################
+# Aesir Lineage progression lock
+#
+# Only read when UseProgressionLockFile is on in the main config, and only
+# used when EnableProgressionLock is on.
+# Which boss must be defeated before each item or build piece can be used,
+# listed under the boss's key. Each boss opens the biome after its own.
+# A prefab listed here needs its boss, whatever it is made of. Anything not
+# listed needs the latest boss among what it is made from, followed down
+# through every recipe, so items from other mods are sealed by their materials.
+# List a prefab under never to never seal it.
+# The boss keys: {string.Join(", ", modules.Deeds.BossOrder)}.
+# Delete this file to get the current built-in list.
+#################################################
+");
+                writetext.WriteLine(LockData.DefaultYaml());
+            }
+        }
+
         SetupFileWatcher(shrinesyml);
         SetupFileWatcher(starmapsyml);
+        SetupFileWatcher(progressionlockyml);
     }
 
     private void SetupFileWatcher(string filtername)
@@ -319,13 +358,20 @@ public class ValConfig
                 }
                 if (!StarMaps.ApplyYaml(filetext)) { return; }
                 break;
+            case progressionlockyml:
+                if (!UseProgressionLockFile.Value) {
+                    Logger.LogInfo($"{progressionlockyml} changed, but UseProgressionLockFile is off. Ignoring.");
+                    return;
+                }
+                if (!LockData.ApplyYaml(filetext)) { return; }
+                break;
             default:
                 return;
         }
         BroadcastConfigs();
     }
 
-    // Sends the server's current shrines and star maps to every connected client.
+    // Sends the server's current shrines, star maps and progression lock to every connected client.
     private static void BroadcastConfigs()
     {
         if (ZNet.instance == null || !ZNet.instance.IsServer() || ZNet.instance.m_peers.Count == 0) { return; }
@@ -337,11 +383,13 @@ public class ValConfig
     private static ZPackage ConfigPackage()
     {
         ZPackage package = new ZPackage();
-        package.Write(2);
+        package.Write(3);
         package.Write(shrinesyml);
         package.Write(ShrineData.ActiveYaml);
         package.Write(starmapsyml);
         package.Write(StarMaps.ActiveYaml);
+        package.Write(progressionlockyml);
+        package.Write(LockData.ActiveYaml);
         return package;
     }
 
@@ -361,13 +409,16 @@ public class ValConfig
                 case starmapsyml:
                     StarMaps.ApplyYaml(yaml);
                     break;
+                case progressionlockyml:
+                    LockData.ApplyYaml(yaml);
+                    break;
                 default:
                     Logger.LogWarning($"The server sent an unknown config '{name}'; is it running a different version?");
                     break;
             }
         }
         usingServerConfig = true;
-        Logger.LogDebug("Applied the server's shrines and star maps.");
+        Logger.LogDebug("Applied the server's shrines, star maps and progression lock.");
     }
 
     private static IEnumerator OnServerRecieveConfigs(long sender, ZPackage package)
@@ -382,6 +433,7 @@ public class ValConfig
             usingServerConfig = false;
             ShrineData.LoadLocal();
             StarMaps.LoadLocal();
+            LockData.LoadLocal();
         }
     }
 

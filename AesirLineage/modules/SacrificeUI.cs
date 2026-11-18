@@ -9,6 +9,7 @@ using AesirLineage.common;
 using static AesirLineage.common.DataObjects;
 using AesirLineage.visuals;
 using AesirLineage.starmap;
+using EternalHall;
 
 namespace AesirLineage.modules
 {
@@ -17,6 +18,8 @@ namespace AesirLineage.modules
         private const string AscendKey = "ascend";
         private const string BlessingKey = "blessing";
         private const string QuestKey = "quest";
+        private const string IslandKey = "island";
+        private const string IslandTravelKey = "island_travel";
         private static readonly Color InfoNameColor = new Color(0.6f, 0.63f, 0.67f);
         private const float AscendConfirmSeconds = 5f;
         private static float ascendConfirmUntil;
@@ -62,6 +65,16 @@ namespace AesirLineage.modules
             public System.Action Complete;
             /// <summary>False for an entry that only says why something can't be had now; it has no toggle.</summary>
             public bool Selectable = true;
+            /// <summary>The items are checked, but taken by <see cref="Complete"/> once it has worked.</summary>
+            public bool PaysItself;
+        }
+
+        // The shrine panel on screen, if any, so what changes elsewhere (an island given) shows at once.
+        private static SacrificeUI open;
+
+        /// <summary>Rebuilds the shrine panel on screen, if any.</summary>
+        internal static void RefreshOpen() {
+            if (open != null && open.SacrificePanel != null && open.SacrificePanel.activeSelf) { open.SetChoiceList(open.SelectedDeity); }
         }
 
         private readonly List<ShrineChoice> choices = new List<ShrineChoice>();
@@ -104,10 +117,12 @@ namespace AesirLineage.modules
                 holdingInput = true;
             }
             SacrificePanel.SetActive(true);
+            open = this;
         }
 
         public void Hide()
         {
+            if (open == this) { open = null; }
             if (SacrificePanel != null)
             {
                 SacrificePanel.SetActive(false);
@@ -172,7 +187,7 @@ namespace AesirLineage.modules
                 return;
             }
             ascendConfirmUntil = 0f;
-            if (!free && !TakeItems(player, choice.Items, choice.Key)) { return; }
+            if (!free && !choice.PaysItself && !TakeItems(player, choice.Items, $"{SelectedDeity}'s {choice.Key}")) { return; }
             Logger.LogInfo($"Offering {choice.Key} to {SelectedDeity}.");
             WarningText.text = "";
             DeityVfx.Share(SelectedDeity, VfxRole.Burst, player.transform.position, 0.7f);
@@ -212,7 +227,7 @@ namespace AesirLineage.modules
                 return;
             }
             resetConfirmUntil = 0f;
-            if (!free && !TakeItems(player, cost, "reset")) { return; }
+            if (!free && !TakeItems(player, cost, $"{deity}'s reset")) { return; }
             Logger.LogInfo($"Resetting {deity}'s star map at the shrine.");
             WarningText.text = "";
             DeityVfx.Share(deity, VfxRole.Burst, player.transform.position, 0.7f);
@@ -221,11 +236,11 @@ namespace AesirLineage.modules
         }
 
         // Called once HasItems has passed, so every item is known to be there before any is taken.
-        private bool TakeItems(Player player, Dictionary<string, int> items, string what) {
+        internal static bool TakeItems(Player player, Dictionary<string, int> items, string what) {
             if (items == null) { return true; }
             foreach (KeyValuePair<string, int> item in items) {
                 if (!player.GetInventory().RemoveItemByPrefab(item.Key, item.Value)) {
-                    Logger.LogWarning($"Could not take {item.Value} {item.Key} for {SelectedDeity}'s {what}.");
+                    Logger.LogWarning($"Could not take {item.Value} {item.Key} for {what}.");
                     return false;
                 }
             }
@@ -696,6 +711,8 @@ namespace AesirLineage.modules
             ShrineChoice quest = QuestChoice(deity);
             if (quest != null) { choices.Add(quest); }
             if (shrine.Blessing != null) { choices.Add(BlessingChoice(deity, shrine.Blessing)); }
+            ShrineChoice island = IslandChoice(deity, shrine.Island, player);
+            if (island != null) { choices.Add(island); }
 
             AscensionTribute ascension = shrine.Ascension;
             if (ascension != null && Ascension.CanAscend(deity)
@@ -772,6 +789,56 @@ namespace AesirLineage.modules
             }
             choice.Details = details.ToString();
             return choice;
+        }
+
+        // With Eternal Hall: the island to ask for, the way to the island the deity gave, or where the island
+        // the player has lies. None when the deity gives no island, or its keys are missing and
+        // KeyRequirementsHideChoices hides it.
+        private ShrineChoice IslandChoice(Deities.Deity deity, IslandGift gift, Player player) {
+            if (gift == null || player == null || !Islands.Available) { return null; }
+            string type = Islands.TypeNamed(gift.Type);
+            if (type == null) { return null; }
+            Localization loc = Localization.instance;
+            string deityName = Compendium.DeityName(deity);
+            string biome = Islands.BiomeName(type);
+            EHIsland mine = Islands.Of(player);
+            if (mine != null && !string.Equals(mine.Type, type, System.StringComparison.OrdinalIgnoreCase)) {
+                string giver = Islands.TryGetGiver(mine.Type, out Deities.Deity other) ? Compendium.DeityName(other) : deityName;
+                return new ShrineChoice() {
+                    Key = IslandKey,
+                    Name = loc.Localize("$al_island_name", biome),
+                    Description = loc.Localize("$al_island_elsewhere", Islands.BiomeName(mine.Type), giver),
+                    Details = "",
+                    Selectable = false,
+                };
+            }
+            if (mine != null) {
+                return new ShrineChoice() {
+                    Key = IslandTravelKey,
+                    Name = loc.Localize("$al_island_travel_name", biome),
+                    Description = loc.Localize("$al_island_travel_desc", deityName, biome),
+                    Details = loc.Localize("$al_island_travel_details"),
+                    Complete = () => {
+                        Hide();
+                        Islands.Travel(Player.m_localPlayer);
+                    },
+                };
+            }
+            if (!HasKeys(player, gift.RequiredKeys) && ValConfig.KeyRequirementsHideChoices.Value) { return null; }
+            StringBuilder details = new StringBuilder();
+            details.AppendLine(loc.Localize("$al_island_details"));
+            AppendKeys(details, gift.RequiredKeys, player);
+            if (gift.Items.Count > 0) { details.Append(loc.Localize("$al_item_req")); }
+            return new ShrineChoice() {
+                Key = IslandKey,
+                Name = loc.Localize("$al_island_name", biome),
+                Description = loc.Localize("$al_island_desc", deityName, biome),
+                Details = details.ToString(),
+                Items = gift.Items,
+                Keys = gift.RequiredKeys,
+                PaysItself = true,
+                Complete = () => Islands.Ask(deity, gift, Player.m_localPlayer.NoCostCheat()),
+            };
         }
 
         // What the next Ascension gives, then what it costs, then what it needs.
