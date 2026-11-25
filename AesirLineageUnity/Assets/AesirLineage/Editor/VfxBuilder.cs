@@ -1,17 +1,20 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Rendering.BuiltIn.ShaderGraph;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace AesirLineage.EditorTools
 {
     /// <summary>
-    /// Builds Aesir Lineage's effect prefabs from the Piloto Studio pack and the asset bundle the mod
-    /// embeds. Each recipe copies one Piloto prefab, strips anything the game can't load (Piloto's own
-    /// scripts), sets its size and offset, and saves it as <c>al_vfx_&lt;deity&gt;_&lt;role&gt;</c>, which is
-    /// the name the mod asks the bundle for. Rerun after changing a recipe; it replaces the old prefabs.
+    /// Builds Aesir Lineage's effect prefabs and the asset bundle the mod embeds. Each prefab is saved as
+    /// <c>al_vfx_&lt;deity&gt;_&lt;role&gt;</c>, the name the mod asks the bundle for. A recipe copies one Piloto
+    /// prefab (the souls of power, their ground ring and the wings), strips anything the game can't load
+    /// (Piloto's own scripts) and sets its size; every other effect is a design composed from a few particle
+    /// layers (<see cref="VfxDesigns"/>). Rerun after changing either; it replaces the old prefabs.
     /// </summary>
     public static class VfxBuilder
     {
@@ -26,24 +29,15 @@ namespace AesirLineage.EditorTools
             public string Name;
             public string Source;
             public float Scale;
-            public Vector3 Offset;
-            public Vector3 Rotation;
-            // Parts of the source whose names start with this are left out.
-            public string Drop;
 
-            public Recipe(string name, string source, float scale = 1f, Vector3 offset = default, Vector3 rotation = default, string drop = null)
+            public Recipe(string name, string source, float scale = 1f)
             {
                 Name = name;
                 Source = source;
                 Scale = scale;
-                Offset = offset;
-                Rotation = rotation;
-                Drop = drop;
             }
         }
 
-        // The mountain peaks Piloto's explosions raise; kill effects leave them out.
-        private const string Mountains = "Add_Mountain";
         // Wings are half the size Piloto made them.
         private const float WingScale = 0.5f;
 
@@ -54,81 +48,85 @@ namespace AesirLineage.EditorTools
         //   footstep, kill, proc, burst      one-shots
         //   and a few deity-specific ones (harvest, levelup, dome)
         private static readonly Recipe[] Recipes = {
-            // Gefjun: Nature
+            // Gefjun: Nature for the soul and wings; her other effects are designs.
             new Recipe("al_vfx_gefjun_soul_orb", "Nature/Orb_Nature", 1.6f),
-            new Recipe("al_vfx_gefjun_aura", "Nature/NatureAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_gefjun_wings", "Nature/Wing_Nature", WingScale * 1.5f),
-            new Recipe("al_vfx_gefjun_footstep", "Nature/Impact_Nature", 0.3f),
-            new Recipe("al_vfx_gefjun_kill", "Nature/VFX_NatureExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_gefjun_proc", "Nature/Impact_Nature", 0.7f),
-            new Recipe("al_vfx_gefjun_burst", "Nature/AOE_Explosion_Nature", 0.6f),
-            new Recipe("al_vfx_gefjun_harvest", "Nature/Leaf Spray", 0.8f),
 
-            // Vör: Universe
+            // Vör: Universe for the soul and wings; her other effects are designs.
             new Recipe("al_vfx_vor_soul_orb", "Universe/Orb_Universe", 1.6f),
-            new Recipe("al_vfx_vor_aura", "Universe/UniverseAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_vor_wings", "Universe/wing_Universe", WingScale),
-            new Recipe("al_vfx_vor_footstep", "Universe/Impact_Universe", 0.3f),
-            new Recipe("al_vfx_vor_kill", "Universe/VFX_UniverseExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_vor_proc", "Universe/Impact_Universe", 0.7f),
-            new Recipe("al_vfx_vor_burst", "Universe/AOE_Explosion_Universe", 0.6f),
-            new Recipe("al_vfx_vor_levelup", "Arcane/VFX_LevelUpLevelUp_Arcane", 0.8f),
 
-            // Baldur: Holy
+            // Baldur: Holy for the soul and wings; his other effects are designs.
             new Recipe("al_vfx_baldur_soul_orb", "Holy/Orb_Holy", 1.6f),
-            new Recipe("al_vfx_baldur_aura", "Holy/HolyAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_baldur_wings", "Holy/wing_Holy", WingScale),
-            new Recipe("al_vfx_baldur_footstep", "Holy/Impact_Holy", 0.3f),
-            new Recipe("al_vfx_baldur_kill", "Holy/VFX_HolyExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_baldur_proc", "Holy/Impact_Holy", 0.7f),
-            new Recipe("al_vfx_baldur_burst", "Holy/AOE_Explosion_Holy", 0.6f),
 
-            // Skaði: Frost
+            // Skaði: Frost for the soul and wings; her other effects are designs.
             new Recipe("al_vfx_skaldi_soul_orb", "Frost/Frostmist Orb", 0.7f),
-            new Recipe("al_vfx_skaldi_aura", "Frost/FrostAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_skaldi_wings", "Frost/Wing_Frost", WingScale),
-            new Recipe("al_vfx_skaldi_footstep", "Frost/Impact_Frost", 0.3f),
-            new Recipe("al_vfx_skaldi_kill", "Frost/VFX_FrostExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_skaldi_proc", "Frost/Impact_Frost", 0.7f),
-            new Recipe("al_vfx_skaldi_burst", "Frost/AOE_Explosion_Frost", 0.6f),
 
-            // Syn: Fire, and the Sunfire rune ring
+            // Syn: Fire for the soul and wings, and the Sunfire ring under her soul; her other effects are designs.
             new Recipe("al_vfx_syn_soul_orb", "Fire/Orb_Fire", 1.6f),
             new Recipe("al_vfx_syn_soul_ground", "Fire/MagicRing_Sunfire", 0.45f),
-            new Recipe("al_vfx_syn_aura", "Fire/MagicRing_Sunfire", 0.28f, new Vector3(0f, 0.03f, 0f)),
             new Recipe("al_vfx_syn_wings", "Fire/wing_fire", WingScale),
-            new Recipe("al_vfx_syn_footstep", "Fire/Impact_Fire", 0.3f),
-            new Recipe("al_vfx_syn_kill", "Fire/VFX_FireExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_syn_proc", "Fire/Impact_Fire", 0.7f),
-            new Recipe("al_vfx_syn_burst", "Fire/AOE_Explosion_Fire", 0.6f),
-            new Recipe("al_vfx_syn_dome", "Fire/Solar Protection Dome", 1f),
 
-            // Freyja: Fairy, and the celestial lotus
+            // Freyja: Fairy for the soul and wings; her other effects are designs.
             new Recipe("al_vfx_freya_soul_orb", "Fairy/Orb_Fairy", 1.6f),
-            new Recipe("al_vfx_freya_aura", "MegaBundle Exclusives/Aura_Celestial_Lotus", 0.8f, new Vector3(0f, 0.03f, 0f)),
             new Recipe("al_vfx_freya_wings", "Fairy/Wing_Fairy", WingScale),
-            new Recipe("al_vfx_freya_footstep", "Fairy/Impact_Fairy", 0.3f),
-            new Recipe("al_vfx_freya_kill", "Fairy/VFX_FairyExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_freya_proc", "Fairy/Impact_Fairy", 0.7f),
-            new Recipe("al_vfx_freya_burst", "Fairy/AOE_Explosion_Fairy", 0.6f),
 
-            // Hel: Mist
+            // Hel: Mist for the soul and wings; her other effects are designs.
             new Recipe("al_vfx_hel_soul_orb", "Mist/Orb_Mist", 1.6f),
-            new Recipe("al_vfx_hel_aura", "Mist/MistAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_hel_wings", "Mist/Wing_mist", WingScale),
-            new Recipe("al_vfx_hel_footstep", "Mist/Impact_Mist", 0.3f),
-            new Recipe("al_vfx_hel_kill", "Mist/VFX_MistExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_hel_proc", "Mist/Impact_Mist", 0.7f),
-            new Recipe("al_vfx_hel_burst", "Mist/AOE_Explosion_Mist", 0.6f),
 
-            // Víðarr: Wind
+            // Víðarr: Wind for the soul and wings; his other effects are designs.
             new Recipe("al_vfx_vidarr_soul_orb", "Wind/Orb_Wind", 1.6f),
-            new Recipe("al_vfx_vidarr_aura", "Wind/WindAura", 1.1f, new Vector3(0f, 0.55f, 0f)),
             new Recipe("al_vfx_vidarr_wings", "Wind/Wing_Wind", WingScale),
-            new Recipe("al_vfx_vidarr_footstep", "Wind/Impact_Wind", 0.3f),
-            new Recipe("al_vfx_vidarr_kill", "Wind/VFX_WindExplosion", 0.45f, drop: Mountains),
-            new Recipe("al_vfx_vidarr_proc", "Wind/Impact_Wind", 0.7f),
-            new Recipe("al_vfx_vidarr_burst", "Wind/AOE_Explosion_Wind", 0.6f),
+        };
+
+        // Effects composed in VfxDesigns; each names its own prefab.
+        private static readonly Func<GameObject>[] Designs = {
+            VfxDesigns.GefjunFootstep,
+            VfxDesigns.GefjunAura,
+            VfxDesigns.GefjunKill,
+            VfxDesigns.GefjunProc,
+            VfxDesigns.GefjunHarvest,
+            VfxDesigns.GefjunBurst,
+            VfxDesigns.VorFootstep,
+            VfxDesigns.VorAura,
+            VfxDesigns.VorKill,
+            VfxDesigns.VorProc,
+            VfxDesigns.VorBurst,
+            VfxDesigns.VorLevelUp,
+            VfxDesigns.BaldurFootstep,
+            VfxDesigns.BaldurAura,
+            VfxDesigns.BaldurKill,
+            VfxDesigns.BaldurProc,
+            VfxDesigns.BaldurBurst,
+            VfxDesigns.SkadiFootstep,
+            VfxDesigns.SkadiAura,
+            VfxDesigns.SkadiKill,
+            VfxDesigns.SkadiProc,
+            VfxDesigns.SkadiBurst,
+            VfxDesigns.SynFootstep,
+            VfxDesigns.SynAura,
+            VfxDesigns.SynKill,
+            VfxDesigns.SynProc,
+            VfxDesigns.SynBurst,
+            VfxDesigns.SynDome,
+            VfxDesigns.FreyjaFootstep,
+            VfxDesigns.FreyjaAura,
+            VfxDesigns.FreyjaKill,
+            VfxDesigns.FreyjaProc,
+            VfxDesigns.FreyjaBurst,
+            VfxDesigns.HelFootstep,
+            VfxDesigns.HelAura,
+            VfxDesigns.HelKill,
+            VfxDesigns.HelProc,
+            VfxDesigns.HelBurst,
+            VfxDesigns.VidarrFootstep,
+            VfxDesigns.VidarrAura,
+            VfxDesigns.VidarrKill,
+            VfxDesigns.VidarrProc,
+            VfxDesigns.VidarrBurst,
         };
 
         [MenuItem("Aesir Lineage/Build effect prefabs")]
@@ -148,13 +146,17 @@ namespace AesirLineage.EditorTools
                 string problem = Build(recipe);
                 if (problem != null) { problems.Add(recipe.Name + ": " + problem); } else { built++; }
             }
+            foreach (Func<GameObject> design in Designs) {
+                string problem = Save(design(), out string name);
+                if (problem != null) { problems.Add(name + ": " + problem); } else { built++; }
+            }
             foreach (string guid in AssetDatabase.FindAssets("t:Shader", new[] { ShaderFolder })) {
                 Label(AssetDatabase.GUIDToAssetPath(guid));
             }
             int capped = CapTextures();
             int setUp = SetUpMaterials();
             AssetDatabase.SaveAssets();
-            return $"Built {built} of {Recipes.Length} effect prefabs; capped {capped} textures at {MaxTextureSize}; set up {setUp} materials for the built-in pipeline." + (problems.Count > 0 ? " Problems: " + string.Join("; ", problems) : "");
+            return $"Built {built} of {Recipes.Length + Designs.Length} effect prefabs; capped {capped} textures at {MaxTextureSize}; set up {setUp} materials for the built-in pipeline." + (problems.Count > 0 ? " Problems: " + string.Join("; ", problems) : "");
         }
 
         private static string[] EffectPrefabs()
@@ -224,6 +226,11 @@ namespace AesirLineage.EditorTools
         {
             HashSet<string> wanted = new HashSet<string>();
             foreach (Recipe recipe in Recipes) { wanted.Add(recipe.Name); }
+            foreach (Func<GameObject> design in Designs) {
+                GameObject composed = design();
+                wanted.Add(composed.name);
+                Object.DestroyImmediate(composed);
+            }
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { OutputFolder })) {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 if (!wanted.Contains(Path.GetFileNameWithoutExtension(path))) { AssetDatabase.DeleteAsset(path); }
@@ -240,26 +247,24 @@ namespace AesirLineage.EditorTools
             GameObject effect = (GameObject)PrefabUtility.InstantiatePrefab(source);
             PrefabUtility.UnpackPrefabInstance(effect, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
             effect.transform.SetParent(root.transform, false);
-            effect.transform.localPosition = recipe.Offset;
-            effect.transform.localRotation = Quaternion.Euler(recipe.Rotation);
+            effect.transform.localPosition = Vector3.zero;
+            effect.transform.localRotation = Quaternion.identity;
             effect.transform.localScale = effect.transform.localScale * recipe.Scale;
-            if (recipe.Drop != null) { Drop(root, recipe.Drop); }
             Strip(root);
+            return Save(root, out _);
+        }
 
-            string path = $"{OutputFolder}/{recipe.Name}.prefab";
+        // Saves a scene object as its prefab and destroys it. Designs are composed inactive; prefabs play on spawn.
+        private static string Save(GameObject root, out string name)
+        {
+            name = root.name;
+            root.SetActive(true);
+            string path = $"{OutputFolder}/{name}.prefab";
             PrefabUtility.SaveAsPrefabAsset(root, path, out bool saved);
             Object.DestroyImmediate(root);
             if (!saved) { return "could not save " + path; }
             Label(path);
             return null;
-        }
-
-        private static void Drop(GameObject root, string prefix)
-        {
-            foreach (Transform part in root.GetComponentsInChildren<Transform>(true)) {
-                // A part inside one already dropped is gone with it.
-                if (part != null && part.name.StartsWith(prefix)) { Object.DestroyImmediate(part.gameObject); }
-            }
         }
 
         // The game has none of Piloto's scripts, so they would load as missing scripts. Particles keep

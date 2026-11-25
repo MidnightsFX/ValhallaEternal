@@ -1,0 +1,17 @@
+Sinmara (AssetForge)
+
+Made with:
+- BiRefNet (ZhengPeng7), Comfy-Org repackage: MIT (https://huggingface.co/Comfy-Org/BiRefNet)
+- Blender: GPL-2.0-or-later (https://www.blender.org/about/license/)
+- DINOv3 image encoder (dino_v3_L_naf_fp32, used by TRELLIS.2 and Pixal3D): DINOv3 License (https://ai.meta.com/resources/models-and-libraries/dinov3-license/)
+- Qwen-Image-Edit-2511 Multiple-Angles LoRA (fal): Apache-2.0 (https://huggingface.co/fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA)
+- Qwen-Image-Edit-2511 Lightning 4-step LoRA (lightx2v): Apache-2.0 (https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning)
+- Qwen-Image-Edit 2511 (fp8mixed), Comfy-Org repackage: Apache-2.0 (https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI)
+- Qwen-Image VAE: Apache-2.0 (https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI)
+- Qwen2.5-VL-7B text encoder (Qwen-Image-Edit): Apache-2.0 (https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct)
+- TRELLIS.2-4B, Comfy-Org repackage (native ComfyUI nodes): MIT (https://huggingface.co/Comfy-Org/TRELLIS.2)
+- An image the user supplied (drawing, photo, paint-over or reference): the user's own, or used with the rights holder's permission (docs/licence-limits.md)
+
+Usable in: Usable in: noncommercial, commercial, mods, packs. Made with AI models; raw AI output may not be protected by copyright.
+
+AI disclosure: 3D model generated with AI (TRELLIS.2 from a Z-Image Turbo concept), reduced and painted by AssetForge scripts in Blender, rigged and animated by script, with human review at each stage.

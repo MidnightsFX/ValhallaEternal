@@ -42,6 +42,32 @@ public class ValConfig
     public static ConfigEntry<bool> AscensionAdvancesRagnarok;
     public static ConfigEntry<float> AscensionRagnarokDays;
 
+    public static ConfigEntry<bool> ShowRagnarokCountdown;
+    public static ConfigEntry<ragnarok.CountdownPosition> RagnarokCountdownPosition;
+    public static ConfigEntry<UnityEngine.Vector2> RagnarokCountdownOffset;
+    public static ConfigEntry<bool> RagnarokEnabled;
+    public static ConfigEntry<int> RagnarokCycleDays;
+    public static ConfigEntry<bool> RagnarokWorldBoss;
+    public static ConfigEntry<float> WorldBossHealthMultiplier;
+    public static ConfigEntry<float> SpawnRateStart;
+    public static ConfigEntry<float> SpawnRateEnd;
+    public static ConfigEntry<float> NightSpawnRateStart;
+    public static ConfigEntry<float> NightSpawnRateEnd;
+    public static ConfigEntry<bool> ScaleIslandSpawns;
+    public static ConfigEntry<float> HeraldPhase;
+    public static ConfigEntry<int> MaxHeralds;
+    public static ConfigEntry<float> HeraldSpawnMinutes;
+    public static ConfigEntry<int> HeraldStars;
+    public static ConfigEntry<float> HeraldHealthMultiplier;
+    public static ConfigEntry<bool> RagnarokRing;
+    public static ConfigEntry<int> RingFinalAreaPercent;
+    public static ConfigEntry<float> RingStartDays;
+    public static ConfigEntry<float> RingEndDays;
+    public static ConfigEntry<bool> RingEnemyDamage;
+    public static ConfigEntry<float> RingEnemyDamageMultiplier;
+    public static ConfigEntry<bool> RingTrueDamage;
+    public static ConfigEntry<float> RingDamagePerStack;
+
     public static ConfigEntry<bool> EnableLooks;
     public static ConfigEntry<bool> EnablePersonalIslands;
     public static ConfigEntry<string> SoulBosses;
@@ -168,11 +194,10 @@ public class ValConfig
             "Skeleton_Hildir=Vor,Fenring_Cultist_Hildir=Skaldi,GoblinShaman_Hildir+GoblinBruteBros=Syn,FallenValkyrie=Hel",
             "Which creatures are minibosses and whose, as prefab=Deity pairs separated by commas. Join prefabs with + to count them as one miniboss. The first kill of each per run gives its deity star points.");
         MinibossPoints = BindServerConfig("Deeds", "MinibossPoints", 1, "Star points a miniboss's first kill per run gives its deity.", false, 0, 10);
-        // Eternal Hall's heralds, one per biome, named EH_Herald_<Biome>. Each goes to its biome's deity, the
-        // Ocean's to Vidarr, who outlives Ragnarok.
+        // Each herald goes to its biome's deity, the Ocean's to Vidarr, who outlives Ragnarok.
         RagnarokHeralds = BindServerConfig("Deeds", "RagnarokHeralds",
-            "EH_Herald_Meadows=Gefjun,EH_Herald_BlackForest=Vor,EH_Herald_Swamp=Baldur,EH_Herald_Mountain=Skaldi,EH_Herald_Plains=Syn,EH_Herald_Mistlands=Freya,EH_Herald_AshLands=Hel,EH_Herald_DeepNorth=Vidarr,EH_Herald_Ocean=Vidarr",
-            "Eternal Hall's heralds of Ragnarok and the deity each one honours, as prefab=Deity pairs separated by commas. Unlike minibosses, every kill counts.");
+            "AL_Herald_Meadows=Gefjun,AL_Herald_BlackForest=Vor,AL_Herald_Swamp=Baldur,AL_Herald_Mountain=Skaldi,AL_Herald_Plains=Syn,AL_Herald_Mistlands=Freya,AL_Herald_AshLands=Hel,AL_Herald_DeepNorth=Vidarr,AL_Herald_Ocean=Vidarr",
+            "The heralds of Ragnarok and the deity each one honours, as prefab=Deity pairs separated by commas. Unlike minibosses, every kill counts.");
         RagnarokHeraldPoints = BindServerConfig("Deeds", "RagnarokHeraldPoints", 1, "Star points each herald of Ragnarok killed gives its deity.", false, 0, 10);
 
         QuestCooldownDays = BindServerConfig("Quests", "QuestCooldownDays", 5, "In-game days after taking a deity's quest before its shrine gives the next one. 0 gives the next as soon as the last is done.", false, 0, 100);
@@ -207,8 +232,56 @@ public class ValConfig
         AscensionRemovesBossKeys = BindServerConfig("Ascension", "AscensionRemovesBossKeys", true,
             "Whether Ascending removes the boss keys it requires, so the bosses must be defeated again. On a shared world these are the world's keys, so this resets boss progress for every player.");
         AscensionAdvancesRagnarok = BindServerConfig("Ascension", "AscensionAdvancesRagnarok", true,
-            "With Eternal Hall's Ragnarok cycle running, each Ascension brings Ragnarok closer by AscensionRagnarokDays. If that would pass the end of the countdown, Ragnarok comes in half a day instead. Does nothing without Eternal Hall.");
+            "With the Ragnarok cycle running (RagnarokEnabled), each Ascension brings Ragnarok closer by AscensionRagnarokDays. If that would pass the end of the countdown, Ragnarok comes in half a day instead.");
         AscensionRagnarokDays = BindServerConfig("Ascension", "AscensionRagnarokDays", 3f, "In-game days each Ascension brings Ragnarok closer, with AscensionAdvancesRagnarok on.", false, 0f, 30f);
+
+        // Off by default: it changes how the main world plays, which no existing server should find switched on by
+        // an update.
+        RagnarokEnabled = BindServerConfig("Ragnarok", "RagnarokEnabled", false,
+            "Every cycle ends in Ragnarok: creatures grow bolder as it nears, heralds roam the main world in its last days, and at its end a world boss rises. Ragnarok lasts until that boss is killed, then the next cycle begins.");
+        // Read every tick rather than fixed at the cycle's start, so a change applies to the cycle under way.
+        RagnarokCycleDays = BindServerConfig("Ragnarok", "RagnarokCycleDays", 30,
+            "In-game days from the start of a cycle until Ragnarok. Changing it moves the end of the cycle under way.", false, 1, 365);
+        RagnarokWorldBoss = BindServerConfig("Ragnarok", "RagnarokWorldBoss", true,
+            "At the end of the countdown a world boss, one of three chosen at random, rises near a player in the main world, and Ragnarok lasts until it is killed. Off, Ragnarok passes at once and the next cycle begins.");
+        WorldBossHealthMultiplier = BindServerConfig("Ragnarok", "WorldBossHealthMultiplier", 1f,
+            "A world boss's health compared to its standard health.", false, 0.1f, 20f);
+        SpawnRateStart = BindServerConfig("Ragnarok", "SpawnRateStart", 1f,
+            "Creature spawn rate by day at the start of a cycle. It rises evenly to SpawnRateEnd as Ragnarok nears.", false, 0.1f, 10f);
+        SpawnRateEnd = BindServerConfig("Ragnarok", "SpawnRateEnd", 3f,
+            "Creature spawn rate by day at the end of a cycle.", false, 0.1f, 10f);
+        NightSpawnRateStart = BindServerConfig("Ragnarok", "NightSpawnRateStart", 1f,
+            "Creature spawn rate at night at the start of a cycle. It rises evenly to NightSpawnRateEnd as Ragnarok nears.", false, 0.1f, 10f);
+        NightSpawnRateEnd = BindServerConfig("Ragnarok", "NightSpawnRateEnd", 3f,
+            "Creature spawn rate at night at the end of a cycle.", false, 0.1f, 10f);
+        ScaleIslandSpawns = BindServerConfig("Ragnarok", "ScaleIslandSpawns", false,
+            "With Eternal Hall, its islands also get the rising spawn rate. Off keeps the islands as the safe place they are meant to be.");
+        HeraldPhase = BindServerConfig("Ragnarok", "HeraldPhase", 0.1f,
+            "Last part of the cycle, as a fraction, in which heralds of Ragnarok roam the main world. 0.1 is the last tenth.", false, 0f, 1f);
+        MaxHeralds = BindServerConfig("Ragnarok", "MaxHeralds", 5,
+            "Most heralds alive in the main world at once.", false, 0, 50);
+        HeraldSpawnMinutes = BindServerConfig("Ragnarok", "HeraldSpawnMinutes", 8f,
+            "Real minutes between heralds appearing during the herald phase. Each appears near a player in the main world.", false, 0.5f, 120f);
+        HeraldStars = BindServerConfig("Ragnarok", "HeraldStars", 2,
+            "Stars a herald has when it appears.", false, 0, 5);
+        HeraldHealthMultiplier = BindServerConfig("Ragnarok", "HeraldHealthMultiplier", 6f,
+            "A herald's health compared to the creature it is drawn from, before its stars.", false, 1f, 50f);
+        RagnarokRing = BindServerConfig("Ragnarok", "RagnarokRing", true,
+            "With the Ragnarok cycle on, a ring closes in on the main world in ten steps, from RingStartDays before Ragnarok to RingEndDays before it, and the world boss rises inside its last circle. The map shows the ring. Eternal Hall's islands are never outside it; dungeons are, by where they lie.");
+        RingFinalAreaPercent = BindServerConfig("Ragnarok", "RingFinalAreaPercent", 18,
+            "Percent of the main world's area left inside the ring at its smallest. Applies from the next cycle, or after al-ragnarok restart.", false, 5, 60);
+        RingStartDays = BindServerConfig("Ragnarok", "RingStartDays", 30f,
+            "In-game days before Ragnarok at which the ring starts closing in. The whole world is inside it until then.", false, 1f, 365f);
+        RingEndDays = BindServerConfig("Ragnarok", "RingEndDays", 3f,
+            "In-game days before Ragnarok at which the ring reaches its smallest. It stays there until the world boss is killed.", false, 0f, 365f);
+        RingEnemyDamage = BindServerConfig("Ragnarok", "RingEnemyDamage", true,
+            "Creatures hit players outside the ring harder, by RingEnemyDamageMultiplier.");
+        RingEnemyDamageMultiplier = BindServerConfig("Ragnarok", "RingEnemyDamageMultiplier", 2f,
+            "How much harder creatures hit players outside the ring.", false, 1f, 5f);
+        RingTrueDamage = BindServerConfig("Ragnarok", "RingTrueDamage", false,
+            "Players outside the ring lose health every second, past armor and resistances. It grows by a stack for each minute they stay out, up to one stack for each step the ring has closed, and falls by a stack for each minute back inside.");
+        RingDamagePerStack = BindServerConfig("Ragnarok", "RingDamagePerStack", 1f,
+            "Health lost each second for each stack, with RingTrueDamage on.", false, 0.1f, 50f);
 
         EnableLooks = BindServerConfig("Looks", "EnableLooks", true,
             "Whether deity looks are shown: the auras, wings, footprints, weapon glows and kill effects that stars and Ascension give. Off, nobody shows any and the star map has no Looks button. Players keep the looks they earned, so turning this back on brings them back.");
@@ -220,6 +293,12 @@ public class ValConfig
             "Opens and closes the star maps.");
         CallShipKey = Config.Bind("Client config", "CallShipKey", new KeyboardShortcut(UnityEngine.KeyCode.Y),
             "Calls the last ship you steered to the water nearest you, with Baldur's Ship-Caller star.");
+        ShowRagnarokCountdown = Config.Bind("Client config", "ShowRagnarokCountdown", true,
+            "Shows the time left until Ragnarok on the HUD while the Ragnarok cycle is on.");
+        RagnarokCountdownPosition = Config.Bind("Client config", "RagnarokCountdownPosition", ragnarok.CountdownPosition.TopCenter,
+            "Where on the screen the Ragnarok countdown is shown.");
+        RagnarokCountdownOffset = Config.Bind("Client config", "RagnarokCountdownOffset", UnityEngine.Vector2.zero,
+            "Moves the Ragnarok countdown from its position: x to the right, y up, in HUD units.");
 
         ShowQuickConfigButton = Config.Bind("Client config", "ShowQuickConfigButton", true,
             "Shows Aesir Lineage in the Mod Config button's list, bottom right of the main menu and the pause menu, for hosts and server admins.");

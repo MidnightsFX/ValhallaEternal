@@ -7,7 +7,7 @@ using static AesirLineage.common.Deities;
 
 namespace AesirLineage.visuals {
     /// <summary>
-    /// Shows a player's looks: aura, wings and weapon glow as lasting parts, footprints and kill effects
+    /// Shows a player's looks: aura, wings and weapon glow as lasting parts, footsteps and kill effects
     /// as they happen. On every client, for every player: the local player publishes their looks to
     /// their ZDO as a short string (<see cref="Cosmetics.Pack"/>), everyone else reads it there. A look
     /// worn by a player who has Ascended with its deity takes an ascended form, growing with each level:
@@ -38,12 +38,12 @@ namespace AesirLineage.visuals {
 
         internal bool TryGetLook(CosmeticSlot slot, out Look look) => shown.TryGetValue(slot, out look);
 
-        /// <summary>The local player's kill effect, for everyone nearby to see.</summary>
+        /// <summary>The local player's kill effect at the victim's feet, for everyone nearby to see.</summary>
         internal static void OnLocalKill(Character victim) {
             Player local = Player.m_localPlayer;
             if (local == null || victim == null || !local.TryGetComponent(out PlayerVisuals visuals)) { return; }
             if (visuals.TryGetLook(CosmeticSlot.KillEffect, out Look look)) {
-                DeityVfx.Share(look.Deity, VfxRole.Kill, victim.GetCenterPoint(), 1f + 0.125f * look.Ascension);
+                DeityVfx.Share(look.Deity, VfxRole.Kill, victim.transform.position, 1f + 0.05f * look.Ascension);
             }
         }
 
@@ -134,13 +134,14 @@ namespace AesirLineage.visuals {
             }
         }
 
-        // Every client gets each step through this RPC, so remote players leave footprints too.
+        // Every client gets each step through this RPC, so remote players' steps show too.
         [HarmonyPatch(typeof(FootStep), nameof(FootStep.RPC_Step))]
-        private static class Footprints {
+        private static class Footsteps {
             private static void Postfix(FootStep __instance, Vector3 point) {
                 if (!__instance.TryGetComponent(out PlayerVisuals visuals) || !visuals.TryGetLook(CosmeticSlot.Footsteps, out Look look)) { return; }
-                DeityVfx.Play(look.Deity, VfxRole.Footstep, point);
-                Footprint.Leave(look.Deity, point, __instance.transform.forward);
+                // Turned the way the player walks, so a footprint points where they went.
+                GameObject step = DeityVfx.Play(look.Deity, VfxRole.Footstep, point);
+                if (step != null) { step.transform.rotation = Quaternion.Euler(0f, __instance.transform.eulerAngles.y, 0f); }
             }
         }
     }

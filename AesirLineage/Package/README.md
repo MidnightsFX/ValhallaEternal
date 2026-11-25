@@ -19,7 +19,8 @@ The mod aims to stay close to even on power. It can make your journey much easie
 - **Looks.** Each deity's aura, wings, footprints, weapon glow and kill effect, earned with their stars and chosen in the star map. Purely for show, and a server can turn them off.
 - **Quick setup.** A short tutorial on first launch chooses how your world plays, and opens again any time from Mod Config.
 - **An optional progression lock.** Gear, food and building from each biome stay sealed until you defeat the boss before it.
-- **Eternal Hall.** Its heralds of Ragnarök give star points, each Ascension brings its Ragnarök closer, and the shrines can give you an island of your own.
+- **An optional Ragnarök.** A cycle that ends in a world boss: creatures grow bolder, heralds roam the world, a ring of fire closes in, and when the countdown runs out one of three world bosses rises inside it. Heralds give star points, and each Ascension brings Ragnarök closer.
+- **Eternal Hall.** The shrines can give you an island of your own.
 
 ## The deities
 Eight deities, one for each biome. Each has shrines in their biome, a star map of six paths and their own looks.
@@ -39,7 +40,7 @@ The first time you start the game with Aesir Lineage, a short setup opens on the
   | Earning star points | Which deeds always give points, and how many: Souls of Power, minibosses, heralds of Ragnarök and shrine quests |
   | Lucky star points | Whether starred kills, crafting and harvesting can give points by luck, how often, and how many per deity each run |
   | Deity looks | Whether anyone shows their deity looks |
-  | Ascension and Ragnarök | How many times a player can Ascend with each deity, what Ascending costs, and whether it brings Eternal Hall's Ragnarök closer |
+  | Ascension and Ragnarök | How many times a player can Ascend with each deity, what Ascending costs, whether the Ragnarök cycle runs, and whether Ascending brings it closer |
 
 - Nothing changes until you save, and closing with unsaved changes asks first.
 - Open it again any time from the **Mod Config** button at the bottom right of the main menu, or of the pause menu while you host or are a server admin. A host's or admin's save reaches everyone on the server.
@@ -53,7 +54,7 @@ Star points belong to one deity and are spent in that deity's star map. A _run_ 
   | ----------- | ----------- |
   | Claiming a boss's Soul of Power | 1, once per boss per run |
   | First kill of a miniboss (Brenna, Geirrhafa, Zil and Thungr, the Fallen Valkyrie) | 1, once per miniboss per run |
-  | Killing a herald of Ragnarök (with Eternal Hall's Ragnarök cycle) | 1 for the herald's deity, every kill |
+  | Killing a herald of Ragnarök (with the Ragnarök cycle on) | 1 for the herald's deity, every kill |
   | Completing a shrine quest | 1, with a new quest every 5 in-game days |
   | Killing an enemy with 2 or more stars, at or above your biome level | 5% chance of 1 |
   | Crafting or upgrading an item | 1% chance of 1 |
@@ -73,7 +74,7 @@ Once every boss has fallen, any shrine offers to **Ascend** with its deity: star
 - Each level opens one of the deity's final stars, gives 3 of their star points, and keeps one of their looks for good: the aura at level 1, then footprints, weapon glow, kill effect and wings.
 - The price, each a server setting: half of every skill (`AscensionSkillLoss`), the recipes you know (`AscensionForgetsRecipes`), a return to the start (`AscensionReturnsToStart`), and every boss to be defeated again (`AscensionRemovesBossKeys`, the world's keys on a shared world).
 - Every Soul of Power can be claimed again, and quests, blessings and lucky rewards start over.
-- **Ragnarök.** With Eternal Hall's Ragnarök cycle running, each Ascension brings Ragnarök 3 in-game days closer for everyone (`AscensionRagnarokDays`), and everyone is told who brought it. If that would pass the end of the countdown, Ragnarök comes in half a day instead; a countdown already closer than that is left alone. The shrine warns before you Ascend. Turn it off with `AscensionAdvancesRagnarok`.
+- **Ragnarök.** With the [Ragnarök](#ragnarök) cycle running, each Ascension brings Ragnarök 3 in-game days closer for everyone (`AscensionRagnarokDays`), and everyone is told who brought it. If that would pass the end of the countdown, Ragnarök comes in half a day instead; a countdown already closer than that is left alone. The shrine warns before you Ascend. Turn it off with `AscensionAdvancesRagnarok`.
 
 ## Looks
 Major, oath-bound and final stars bring their deity's looks: an aura, wings, footprints, a weapon glow and a kill effect. Choose which deity's look to wear in each place, or none, with the star map's **Looks** button. Ascension keeps a look for good, and grows it with each level. Other players see your looks.
@@ -132,16 +133,69 @@ A sealed item's tooltip names the boss that opens it, and trying to use it tells
 - **Characters from before.** The game itself gives a boss's player key only to the one player whose game runs the boss. If a character beat bosses before the lock was on and finds their gear sealed, an admin can give the key with `setkeyplayer defeated_<boss>` while playing that character.
 - Admins can check it with `al-locks`: on its own it shows the last boss you have defeated, `al-locks <prefab>` shows which boss an item or build piece needs and which of its materials decides that, and `al-locks dump` writes every sealed item and piece to the log, by boss.
 
+## Ragnarök
+Off unless a server turns on `RagnarokEnabled`. With it on, the main world lives in cycles of 30 in-game days, each ending in Ragnarök. A countdown at the top of the screen shows how long is left.
+
+- **The world grows wilder.** Creatures spawn more and more often as the end nears, up to three times as often by the end.
+- **Heralds appear.** In the last tenth of the cycle, heralds of Ragnarök roam near players in the main world: one larger, tougher creature for each biome, with a boss health bar. Each herald killed gives its biome's deity a star point.
+- **Surtr's fire closes in.** From 30 in-game days before Ragnarök to 3 days before it, a ring closes in on the main world in ten steps, until only its last circle, about a fifth of the world, is left. Each cycle the last circle is somewhere new, chosen to hold plenty of land. The map and minimap show the ring: red where it has closed, yellow where it is still to close, and a brighter line where it closes next. The countdown says when it next closes.
+- **Outside the ring** creatures hit twice as hard. With `RingTrueDamage` on, the fire also burns you every second, past armor and resistances: one stack as you step out and one more for each minute you stay, up to one for each step the ring has closed, falling by one for each minute back inside. Dungeons count by where they lie, so one under a closed part of the world is outside too. Eternal Hall's islands are never outside it.
+- **Ragnarök comes.** When the countdown runs out, a world boss rises near a player in the main world and hunts the nearest player, and the countdown gives way to "Ragnarök now!". It lasts until the boss is killed: creatures keep spawning at their fastest and heralds keep coming. If nobody is in the main world, the boss rises near the next player who goes there. With the ring on, it rises only inside the last circle, near the first player there.
+- **Kill it** and Ragnarök is turned back: the next cycle begins. Nothing in the world is lost.
+- **Ascension brings it closer**, by 3 in-game days each time (see [Ascension](#ascension)).
+- **With Eternal Hall**, its islands stay calm: heralds and world bosses never appear there, and creatures there spawn as usual unless `ScaleIslandSpawns` is on.
+- **The world bosses**, one chosen at random each time:
+
+  | Boss | Looks like | Fights with |
+  | ----------- | ----------- | ----------- |
+  | Móðguðr | a crowned skull warden in a violet coat, wound in chains | A scream that blasts everyone near, bolts of purple magic, and skeletons raised to fight for her |
+  | Sinmara | a horned brute of cracked rock burning blue inside | Bursts of blue fire up close, a wide fire nova, and a blink that lands her beside you in flame |
+  | Hræsvelgr | a huge storm-grey bat with a skull for a face | A savage bite, gusts of wind flung from afar, and swarms of bats it keeps calling |
+
+  | Setting | Default | What it does |
+  | ----------- | ----------- | ----------- |
+  | `RagnarokEnabled` | off | Every cycle ends in Ragnarök |
+  | `RagnarokCycleDays` | 30 | In-game days of countdown before Ragnarök |
+  | `RagnarokWorldBoss` | on | A world boss rises at Ragnarök, and Ragnarök lasts until it is killed. Off, it passes at once |
+  | `WorldBossHealthMultiplier` | 1 | How tough the world bosses are |
+  | `SpawnRateStart`, `SpawnRateEnd` | 1, 3 | How often creatures spawn by day at the start and end of the cycle |
+  | `NightSpawnRateStart`, `NightSpawnRateEnd` | 1, 3 | The same at night |
+  | `ScaleIslandSpawns` | off | Eternal Hall's islands get the rising spawn rate too |
+  | `HeraldPhase` | 0.1 | The last part of the cycle in which heralds roam |
+  | `MaxHeralds`, `HeraldSpawnMinutes` | 5, 8 | Most heralds at once, and real minutes between them |
+  | `HeraldStars`, `HeraldHealthMultiplier` | 2, 6 | How strong a herald is |
+  | `RagnarokHeralds`, `RagnarokHeraldPoints` | each biome's deity, 1 | Which deity each herald honours, and the star points its kill gives |
+  | `RagnarokRing` | on | The ring closes in, and the world boss rises inside its last circle |
+  | `RingFinalAreaPercent` | 18 | How much of the main world's area the last circle holds, from the next cycle |
+  | `RingStartDays`, `RingEndDays` | 30, 3 | In-game days before Ragnarök at which the ring starts closing and reaches its last circle |
+  | `RingEnemyDamage`, `RingEnemyDamageMultiplier` | on, 2 | Creatures hit players outside the ring harder, and how much |
+  | `RingTrueDamage`, `RingDamagePerStack` | off, 1 | The fire burns players outside the ring, and the health each stack takes a second |
+  | `ShowRagnarokCountdown` | on | Your own: the countdown on your screen |
+  | `RagnarokCountdownPosition` | `TopCenter` | Your own: where it is, `TopCenter`, `TopLeft`, `UnderMinimap`, `BottomLeft`, `BottomCenter` or `BottomRight` |
+  | `RagnarokCountdownOffset` | 0, 0 | Your own: moves it from there, x to the right and y up |
+
+- The cycle is kept next to the world save, in `<world>.aesirlineage.ragnarok.yaml`.
+- Admins can check and change it with `al-ragnarok`:
+
+  | Command | Does |
+  | ----------- | ----------- |
+  | `al-ragnarok status` | Shows the cycle and the ring |
+  | `al-ragnarok now` | Starts Ragnarök now |
+  | `al-ragnarok days <n>` | Sets the days left |
+  | `al-ragnarok restart` | Starts the countdown over |
+  | `al-ragnarok herald [biome]` | Places a herald near you |
+  | `al-ragnarok boss [name]` | Places a world boss near you, without starting Ragnarök: `Modgud`, `Sinmara` or `Hraesvelgr` |
+
 ## Compatibility
 Can you use this with Epicloot? Can you use this with Jewelcrafting? _**Absolutely**_! I can't promise there will be no bugs or conflicts, but I am always interested in addressing those.
 
 - With Auga, the star map's button is in the row of buttons under your character's name.
 - World Advancement Progression has a progression lock of its own. Turn on one of the two, not both.
-- With Eternal Hall, heralds of Ragnarök give star points, Ascension brings Ragnarök closer, and the shrines give islands of your own.
+- With Eternal Hall, the shrines give islands of your own, and Ragnarök leaves the islands alone.
 
 ### Suggested mod pairing
 - [World Advancement Progression](https://thunderstore.io/c/valheim/p/VentureValheim/World_Advancement_Progression/) - Make the NG+ part less of a breeze
-- [Eternal Hall](https://thunderstore.io/c/valheim/p/MidnightMods/EternalHall/) - Personal boss islands, and a Ragnarök that remakes the world on a timer
+- [Eternal Hall](https://thunderstore.io/c/valheim/p/MidnightMods/EternalHall/) - Personal boss islands beyond the edge of the world
 - [Deathlink](https://thunderstore.io/c/valheim/p/MidnightMods/Deathlink/) - Let each player choose their death risks and rewards
 - [Impactful Skills](https://thunderstore.io/c/valheim/p/MidnightMods/ImpactfulSkills/) - Make leveling up your skills more rewarding by giving them all more useful features
 - [Star Level Systems](https://thunderstore.io/c/valheim/p/MidnightMods/StarLevelSystem/) - Expand creature levels, configure everything creature and loot related
@@ -546,6 +600,11 @@ Víðarr, the silent god, will set his thick shoe on Fenrir's jaw at the world's
 ## Planned features
 - Titles! Have you killed a 20 Star Troll yet? No? Well Matt has, he has the title! Still limited to 5 star mobs? Try out [SLS](https://thunderstore.io/c/valheim/p/MidnightMods/StarLevelSystem/).
 - Activated abilities
+
+<!--
+AI_Assisted_Creation: This assembly was partially or fully created with the assistance of generative AI (Claude Code, using Anthropic's Claude models).
+AI_Model_Vendor: Anthropic
+-->
 
 ---
 

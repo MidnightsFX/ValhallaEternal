@@ -31,7 +31,7 @@ namespace AesirLineage.ui {
         private static Sprite menuIcon;
 
         /// <summary>
-        /// The star map's button icon: a large four-pointed star and a small one, a hard-edged light glyph on clear
+        /// The star map's button icon: a large four-pointed star and a small one, light grey on clear and shaded
         /// like the game's own button icons, so the button's tint applies to it.
         /// </summary>
         internal static Sprite MenuIcon => menuIcon ??= ToSprite(MenuIconTexture(128));
@@ -212,22 +212,45 @@ namespace AesirLineage.ui {
             return texture;
         }
 
-        // Coverage from 4x4 samples a pixel, so the thin points stay smooth when the icon is drawn small.
+        private static readonly Vector3 MenuIconLight = new Vector3(-1f, 1f, 1.1f).normalized;
+
+        // The game's button icons are painted, not flat: lit from the upper left, each form split into a lit and a
+        // shaded plane (the trophies cup), a darker bevel along the lower-right edges (the skills valknut) and a
+        // faint cloudy grain. The button's Custom/LitGui material only tints by the scene's light, so the shading
+        // has to be in the sprite. Coverage is from 4x4 samples a pixel, so the points stay smooth drawn small.
         private static Texture2D MenuIconTexture(int size) {
             const int samples = 4;
+            const float bevel = 0.035f;
+            const float bevelShade = 0.45f;
+            const float darkestFacet = 0.7f;
+            const float grain = 0.16f;
             Texture2D texture = NewTexture(size, size);
             Color[] pixels = new Color[size * size];
             for (int y = 0; y < size; y++) {
                 for (int x = 0; x < size; x++) {
-                    int inside = 0;
+                    int face = 0;
+                    int back = 0;
+                    float light = 0f;
                     for (int sy = 0; sy < samples; sy++) {
                         for (int sx = 0; sx < samples; sx++) {
                             float u = (x + (sx + 0.5f) / samples) / size;
                             float v = (y + (sy + 0.5f) / samples) / size;
-                            if (InFourPointStar(u, v, 0.56f, 0.44f, 0.42f) || InFourPointStar(u, v, 0.2f, 0.8f, 0.17f)) { inside++; }
+                            if (MenuIconStars(u, v, out float lit)) {
+                                face++;
+                                light += Mathf.Lerp(darkestFacet, 1f, lit);
+                            } else if (MenuIconStars(u - bevel, v + bevel, out _)) {
+                                back++;
+                            }
                         }
                     }
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, inside / (float)(samples * samples));
+                    int covered = face + back;
+                    if (covered == 0) { pixels[y * size + x] = Color.clear; continue; }
+                    float u0 = (x + 0.5f) / size;
+                    float v0 = (y + 0.5f) / size;
+                    float cloud = 0.6f * Mathf.PerlinNoise(u0 * 6f, v0 * 6f) + 0.4f * Mathf.PerlinNoise(u0 * 14f + 3.1f, v0 * 14f + 5.3f);
+                    float faceShade = face > 0 ? light / face * (1f - grain + grain * cloud) : 0f;
+                    float shade = (faceShade * face + bevelShade * back) / covered;
+                    pixels[y * size + x] = new Color(shade, shade, shade, covered / (float)(samples * samples));
                 }
             }
             texture.SetPixels(pixels);
@@ -235,11 +258,24 @@ namespace AesirLineage.ui {
             return texture;
         }
 
-        // Inside |x|^0.5 + |y|^0.5 <= 1, in units of the radius: points on the axes, sides curving in between.
-        private static bool InFourPointStar(float u, float v, float centerX, float centerY, float radius) {
-            float x = Mathf.Abs(u - centerX) / radius;
-            float y = Mathf.Abs(v - centerY) / radius;
-            return Mathf.Sqrt(x) + Mathf.Sqrt(y) <= 1f;
+        // Whether (u, v) is on either of the icon's stars, and how lit its facet there is.
+        private static bool MenuIconStars(float u, float v, out float lit) {
+            return InFourPointStar(u, v, 0.56f, 0.44f, 0.42f, out lit) || InFourPointStar(u, v, 0.2f, 0.8f, 0.17f, out lit);
+        }
+
+        // Inside |x|^0.6 + |y|^0.6 <= 1, in units of the radius: points on the axes, sides curving in between.
+        // Each point has a ridge along its axis; its two halves slope away from the ridge and down to the tip.
+        private static bool InFourPointStar(float u, float v, float centerX, float centerY, float radius, out float lit) {
+            float x = (u - centerX) / radius;
+            float y = (v - centerY) / radius;
+            lit = 0f;
+            if (Mathf.Pow(Mathf.Abs(x), 0.6f) + Mathf.Pow(Mathf.Abs(y), 0.6f) > 1f) { return false; }
+            bool across = Mathf.Abs(x) >= Mathf.Abs(y);
+            Vector2 tip = across ? new Vector2(Mathf.Sign(x), 0f) : new Vector2(0f, Mathf.Sign(y));
+            Vector2 side = across ? new Vector2(0f, Mathf.Sign(y)) : new Vector2(Mathf.Sign(x), 0f);
+            Vector2 slope = tip * 0.35f + side;
+            lit = Mathf.Clamp01(Vector3.Dot(new Vector3(slope.x, slope.y, 1f).normalized, MenuIconLight));
+            return true;
         }
 
         private static Texture2D StarTexture(int size) {

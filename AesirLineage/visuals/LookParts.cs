@@ -159,47 +159,4 @@ namespace AesirLineage.visuals {
             return go;
         }
     }
-
-    /// <summary>Glowing footprints that fade a few seconds after each step.</summary>
-    internal sealed class Footprint : MonoBehaviour {
-        private const float Lasts = 3f;
-        private const int MaxPrints = 48;
-        private static readonly Queue<Footprint> prints = new Queue<Footprint>();
-        private static MaterialPropertyBlock block;
-
-        private Renderer mark;
-        private Color color;
-        private float born;
-
-        internal static void Leave(Deity deity, Vector3 point, Vector3 forward) {
-            while (prints.Count >= MaxPrints) {
-                Footprint oldest = prints.Dequeue();
-                if (oldest != null) { Destroy(oldest.gameObject); }
-            }
-            forward.y = 0f;
-            Material material = LookMaterials.Get(deity, "footprint", StarMapArt.SoftGlow.texture, Color.white);
-            Transform quad = LookMaterials.Quad("AL_Footprint", null, material, 1f);
-            quad.position = point + Vector3.up * 0.04f;
-            quad.rotation = Quaternion.LookRotation(Vector3.down, forward.sqrMagnitude > 0.01f ? forward.normalized : Vector3.forward);
-            quad.localScale = new Vector3(0.26f, 0.42f, 1f);
-            Footprint footprint = quad.gameObject.AddComponent<Footprint>();
-            footprint.mark = quad.GetComponent<Renderer>();
-            footprint.color = DeityVfx.Primary(deity);
-            footprint.born = Time.time;
-            prints.Enqueue(footprint);
-        }
-
-        private void Update() {
-            float age = (Time.time - born) / Lasts;
-            if (age >= 1f) {
-                Destroy(gameObject);
-                return;
-            }
-            block ??= new MaterialPropertyBlock();
-            Color now = StarMapArt.WithAlpha(color, 0.7f * (1f - age * age));
-            block.SetColor("_Color", now);
-            block.SetColor("_TintColor", now);
-            mark.SetPropertyBlock(block);
-        }
-    }
 }

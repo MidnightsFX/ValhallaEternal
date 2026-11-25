@@ -281,7 +281,7 @@ namespace AesirLineage.powers {
             }
         }
 
-        // The Sunfire rune circle drawn at this scale covers the dome's reach.
+        // The dome effect is drawn 1.25 m out at scale 1, so it is scaled up to cover the dome's reach.
         private const float DomeCircleRadius = 1.25f;
 
         private static GameObject CreateDome(Transform parent) {

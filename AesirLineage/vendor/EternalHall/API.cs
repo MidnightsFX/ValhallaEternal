@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-// Eternal Hall public island and Ragnarok API (version 3). See API/README.md.
+// Eternal Hall public island and world regeneration API (version 3). See API/README.md.
 
 namespace EternalHall
 {
@@ -196,49 +196,114 @@ namespace EternalHall
     }
 
     /// <summary>
-    /// Public API for Eternal Hall's Ragnarok cycle, in the same file and on the same terms as <see cref="IslandAPI"/>:
+    /// Public API for Eternal Hall's world regeneration, in the same file and on the same terms as <see cref="IslandAPI"/>:
     /// reflection only, main thread only. Needs API version 3; against an older Eternal Hall <see cref="IsAvailable"/>
-    /// is false and every call does nothing.
+    /// is false and subscribing does nothing.
     /// </summary>
-    public static class RagnarokAPI
+    public static class RegenAPI
     {
-        private static readonly MethodInfo IsCountingDownMethod;
-        private static readonly MethodInfo GetDaysLeftMethod;
-        private static readonly MethodInfo AdvanceCountdownMethod;
+        private static readonly MethodInfo AddWorldRegeneratedListenerMethod;
+        private static readonly MethodInfo RemoveWorldRegeneratedListenerMethod;
+        private static readonly MethodInfo AddPlayerWorldResetListenerMethod;
+        private static readonly MethodInfo RemovePlayerWorldResetListenerMethod;
 
-        /// <summary>True when an Eternal Hall with the Ragnarok API is loaded.</summary>
-        public static bool IsAvailable => AdvanceCountdownMethod != null;
+        // Your handlers, by the wrapper handed to Eternal Hall for each, so -= finds the wrapper to remove.
+        private static readonly Dictionary<Action<EHWorldRegeneration>, Action<Dictionary<string, object>>> RegeneratedWrappers =
+            new Dictionary<Action<EHWorldRegeneration>, Action<Dictionary<string, object>>>();
+        private static readonly Dictionary<Action<EHPlayerWorldReset>, Action<Dictionary<string, object>>> PlayerResetWrappers =
+            new Dictionary<Action<EHPlayerWorldReset>, Action<Dictionary<string, object>>>();
 
-        static RagnarokAPI()
+        /// <summary>True when an Eternal Hall with the regeneration API is loaded.</summary>
+        public static bool IsAvailable => AddWorldRegeneratedListenerMethod != null;
+
+        static RegenAPI()
         {
-            Type receiver = Type.GetType("EternalHall.RagnarokAPIReceiver, EternalHall");
+            Type receiver = Type.GetType("EternalHall.RegenAPIReceiver, EternalHall");
             if (receiver == null)
             {
                 Assembly assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "EternalHall");
-                receiver = assembly?.GetType("EternalHall.RagnarokAPIReceiver");
+                receiver = assembly?.GetType("EternalHall.RegenAPIReceiver");
             }
             if (receiver == null) return;
-            IsCountingDownMethod = receiver.GetMethod("IsCountingDown", BindingFlags.Public | BindingFlags.Static);
-            GetDaysLeftMethod = receiver.GetMethod("GetDaysLeft", BindingFlags.Public | BindingFlags.Static);
-            AdvanceCountdownMethod = receiver.GetMethod("AdvanceCountdown", BindingFlags.Public | BindingFlags.Static);
+            AddWorldRegeneratedListenerMethod = receiver.GetMethod("AddWorldRegeneratedListener", BindingFlags.Public | BindingFlags.Static);
+            RemoveWorldRegeneratedListenerMethod = receiver.GetMethod("RemoveWorldRegeneratedListener", BindingFlags.Public | BindingFlags.Static);
+            AddPlayerWorldResetListenerMethod = receiver.GetMethod("AddPlayerWorldResetListener", BindingFlags.Public | BindingFlags.Static);
+            RemovePlayerWorldResetListenerMethod = receiver.GetMethod("RemovePlayerWorldResetListener", BindingFlags.Public | BindingFlags.Static);
         }
 
-        /// <summary>True while the world's Ragnarok cycle is on and counting down. Works on clients.</summary>
-        public static bool IsCountingDown => IsCountingDownMethod?.Invoke(null, null) is bool counting && counting;
-
-        /// <summary>In-game days until Ragnarok, or -1 while it is not counting down. Works on clients.</summary>
-        public static double DaysLeft => GetDaysLeftMethod?.Invoke(null, null) is double days ? days : -1;
+        /// <summary>
+        /// <b>Server (or host).</b> Raised once the main world has been cleared and given its new seed, before the new
+        /// world's locations are placed: by an admin's <c>eh-regen</c> while the world loads at the next start, before
+        /// anyone has joined. Forget here what you kept about the old main world
+        /// on the server, such as positions or places found there. Islands and everything on them are unchanged.
+        /// </summary>
+        public static event Action<EHWorldRegeneration> WorldRegenerated
+        {
+            add { Subscribe(AddWorldRegeneratedListenerMethod, value, RegeneratedWrappers, EHWorldRegeneration.From); }
+            remove { Unsubscribe(RemoveWorldRegeneratedListenerMethod, value, RegeneratedWrappers); }
+        }
 
         /// <summary>
-        /// <b>Server only.</b> Brings Ragnarok <paramref name="days"/> in-game days closer, but never closer than
-        /// <paramref name="minDaysLeft"/> from now; a countdown that already is closer stays where it is. Every client
-        /// sees the new countdown at once. Returns whether it moved: false when the cycle is off, already under way,
-        /// or this is not the server.
+        /// <b>Client.</b> Raised on a player's machine once Eternal Hall has reset the local character's logout point,
+        /// bed and map in the old main world, as the character joins a world remade since it last played there, before
+        /// it spawns, so use <c>Game.instance.GetPlayerProfile()</c> rather than <c>Player.m_localPlayer</c>. Forget here
+        /// what you keep with the character about the old main world. Raised once per character and regeneration.
         /// </summary>
-        /// <param name="reason">Written to the server's log, such as <c>"Ascension of Erik"</c>.</param>
-        public static bool AdvanceCountdown(float days, float minDaysLeft, string reason)
+        public static event Action<EHPlayerWorldReset> PlayerWorldReset
         {
-            return AdvanceCountdownMethod?.Invoke(null, new object[] { days, minDaysLeft, reason }) is bool moved && moved;
+            add { Subscribe(AddPlayerWorldResetListenerMethod, value, PlayerResetWrappers, EHPlayerWorldReset.From); }
+            remove { Unsubscribe(RemovePlayerWorldResetListenerMethod, value, PlayerResetWrappers); }
+        }
+
+        private static void Subscribe<T>(MethodInfo add, Action<T> handler, Dictionary<Action<T>, Action<Dictionary<string, object>>> wrappers,
+                                         Func<Dictionary<string, object>, T> read)
+        {
+            if (add == null || handler == null || wrappers.ContainsKey(handler)) return;
+            Action<Dictionary<string, object>> wrapper = values => handler(read(values));
+            wrappers[handler] = wrapper;
+            add.Invoke(null, new object[] { wrapper });
+        }
+
+        private static void Unsubscribe<T>(MethodInfo remove, Action<T> handler, Dictionary<Action<T>, Action<Dictionary<string, object>>> wrappers)
+        {
+            if (handler == null || wrappers.TryGetValue(handler, out Action<Dictionary<string, object>> wrapper) == false) return;
+            wrappers.Remove(handler);
+            remove?.Invoke(null, new object[] { wrapper });
+        }
+    }
+
+    /// <summary>What <see cref="RegenAPI.WorldRegenerated"/> tells you about a regeneration.</summary>
+    public sealed class EHWorldRegeneration
+    {
+        /// <summary>How many times this world has been regenerated, this time included.</summary>
+        public int Generation { get; private set; }
+        /// <summary>The main world's new seed.</summary>
+        public string Seed { get; private set; }
+
+        internal static EHWorldRegeneration From(Dictionary<string, object> values)
+        {
+            values = values ?? new Dictionary<string, object>();
+            return new EHWorldRegeneration
+            {
+                Generation = values.TryGetValue("generation", out object generation) && generation is int g ? g : 0,
+                Seed = values.TryGetValue("seed", out object seed) ? seed as string ?? "" : "",
+            };
+        }
+    }
+
+    /// <summary>What <see cref="RegenAPI.PlayerWorldReset"/> tells you about a reset.</summary>
+    public sealed class EHPlayerWorldReset
+    {
+        /// <summary>The world's regeneration count the character has now caught up with.</summary>
+        public int Generation { get; private set; }
+
+        internal static EHPlayerWorldReset From(Dictionary<string, object> values)
+        {
+            values = values ?? new Dictionary<string, object>();
+            return new EHPlayerWorldReset
+            {
+                Generation = values.TryGetValue("generation", out object generation) && generation is int g ? g : 0,
+            };
         }
     }
 

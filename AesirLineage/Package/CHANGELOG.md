@@ -12,7 +12,11 @@
  - Retort, Arrow Catcher, Keep the Secret and the Inseparable oath now work as described, and star descriptions that misstated a power are corrected.
  - Deities sometimes reward kills of starred enemies, crafting and harvesting with a star point, up to a limit each run.
  - The first kill of each miniboss gives its deity a star point.
- - Every herald of Ragnarök slain in an Eternal Hall world gives its deity a star point.
+ - Adds an optional Ragnarök cycle, moved here from Eternal Hall, that ends with one of three world bosses rising and lasts until it is killed.
+ - Creatures spawn faster as Ragnarök nears, and heralds of Ragnarök roam the world in its last days, each giving its deity a star point when slain.
+ - A countdown to Ragnarök is shown on screen, and each player can move it.
+ - A ring of Surtr's fire closes in on the world as Ragnarök nears, shown on the map, and the world boss rises inside its last circle.
+ - Creatures hit harder outside the ring, and servers can also have the fire burn players who stay out.
  - A deity you are devoted to may send you a dream while you sleep, lending you a stronger boon for a while.
  - A boss leaves its Soul of Power whenever someone nearby hasn't claimed it yet, and each player can claim a star point from it once per run.
  - Every deity's star map is complete, with a path for each of the deity's aspects, bridges between the paths and a final star on each that opens with Ascension.
@@ -40,7 +44,7 @@
  - Tab fills in each console command's deities, players and other choices.
  - A short setup tutorial opens on first launch, and any time after from Mod Config, to choose how star points are earned, whether deity looks are shown and what Ascension costs.
  - Servers can turn deity looks off for everyone.
- - Each Ascension brings Eternal Hall's Ragnarök closer for everyone, while always leaving a little warning.
+ - Each Ascension brings Ragnarök closer for everyone, while always leaving a little warning.
  - With Eternal Hall, a deity's shrines can give you an island of your own in their biome, and take you back to it.
  - Servers can change which boss opens which items for the progression lock in a file of its own.
  ```

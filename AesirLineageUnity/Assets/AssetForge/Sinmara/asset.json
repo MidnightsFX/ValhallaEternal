@@ -1,0 +1,475 @@
+{
+  "name": "Sinmara",
+  "id": "sinmara",
+  "publisher": "AssetForge",
+  "created": "2026-11-23T01:39:38Z",
+  "description": "A hulking fire brute of cracked, charred black rock, with shoulders three times as wide as its waist, a small head with two swept-back horns sunk low between the shoulders, thick arms hanging to its knees and ending in three long black claws, short heavy legs, deep cracks over its whole body glowing bright blue-white as if molten inside, and jagged blue flames rising from its shoulders and the top of its head, a far bigger and more menacing version of the fire imp in the reference.",
+  "class": "humanoid",
+  "style": "valheim",
+  "tags": [
+    "eternal-hall",
+    "forge",
+    "humanoid",
+    "ragnarok",
+    "world-boss"
+  ],
+  "height_m": 1.6,
+  "triangles": {
+    "LOD0": 11984,
+    "LOD1": 5980,
+    "LOD2": 2994
+  },
+  "variants": [
+    {
+      "name": "base",
+      "fbx": "Sinmara.fbx",
+      "glb": "Sinmara.glb",
+      "material": "M_Sinmara",
+      "base_color": "Textures/Sinmara_BaseColor.png"
+    }
+  ],
+  "files": {
+    "blend": "Sinmara.blend",
+    "preview": "Sinmara_preview.png",
+    "normal": "Textures/Sinmara_Normal.png"
+  },
+  "material": {
+    "kind": "texture",
+    "name": "M_Sinmara",
+    "normal": "Textures/Sinmara_Normal.png",
+    "filter": "bilinear",
+    "smoothness": 0.15,
+    "metallic": 0.0,
+    "texture_size": 1024,
+    "note": "One material per variant: its own base colour texture and the shared normal map (tangent space, OpenGL +Y)."
+  },
+  "lods": {
+    "LOD0": "full",
+    "LOD1": "about 50%",
+    "LOD2": "about 25%"
+  },
+  "engines": [
+    "unity",
+    "godot",
+    "unreal"
+  ],
+  "rig": {
+    "standard": "humanoid",
+    "armature": "Sinmara",
+    "root": "root",
+    "bones": [
+      "root",
+      "Hips",
+      "Spine",
+      "Spine1",
+      "Spine2",
+      "Neck",
+      "Head",
+      "LeftShoulder",
+      "LeftArm",
+      "LeftForeArm",
+      "LeftHand",
+      "LeftHandIndex1",
+      "LeftHandIndex2",
+      "LeftHandIndex3",
+      "LeftHandMiddle1",
+      "LeftHandMiddle2",
+      "LeftHandMiddle3",
+      "LeftHandRing1",
+      "LeftHandRing2",
+      "LeftHandRing3",
+      "LeftHandPinky1",
+      "LeftHandPinky2",
+      "LeftHandPinky3",
+      "LeftHandThumb1",
+      "LeftHandThumb2",
+      "LeftHandThumb3",
+      "RightShoulder",
+      "RightArm",
+      "RightForeArm",
+      "RightHand",
+      "RightHandIndex1",
+      "RightHandIndex2",
+      "RightHandIndex3",
+      "RightHandMiddle1",
+      "RightHandMiddle2",
+      "RightHandMiddle3",
+      "RightHandRing1",
+      "RightHandRing2",
+      "RightHandRing3",
+      "RightHandPinky1",
+      "RightHandPinky2",
+      "RightHandPinky3",
+      "RightHandThumb1",
+      "RightHandThumb2",
+      "RightHandThumb3",
+      "LeftUpLeg",
+      "LeftLeg",
+      "LeftFoot",
+      "LeftToeBase",
+      "RightUpLeg",
+      "RightLeg",
+      "RightFoot",
+      "RightToeBase"
+    ],
+    "human_bones": {
+      "Hips": "Hips",
+      "Spine": "Spine",
+      "Chest": "Spine1",
+      "UpperChest": "Spine2",
+      "Neck": "Neck",
+      "Head": "Head",
+      "LeftShoulder": "LeftShoulder",
+      "LeftUpperArm": "LeftArm",
+      "LeftLowerArm": "LeftForeArm",
+      "LeftHand": "LeftHand",
+      "LeftUpperLeg": "LeftUpLeg",
+      "LeftLowerLeg": "LeftLeg",
+      "LeftFoot": "LeftFoot",
+      "LeftToes": "LeftToeBase",
+      "RightShoulder": "RightShoulder",
+      "RightUpperArm": "RightArm",
+      "RightLowerArm": "RightForeArm",
+      "RightHand": "RightHand",
+      "RightUpperLeg": "RightUpLeg",
+      "RightLowerLeg": "RightLeg",
+      "RightFoot": "RightFoot",
+      "RightToes": "RightToeBase",
+      "Left Thumb Proximal": "LeftHandThumb1",
+      "Left Thumb Intermediate": "LeftHandThumb2",
+      "Left Thumb Distal": "LeftHandThumb3",
+      "Left Index Proximal": "LeftHandIndex1",
+      "Left Index Intermediate": "LeftHandIndex2",
+      "Left Index Distal": "LeftHandIndex3",
+      "Left Middle Proximal": "LeftHandMiddle1",
+      "Left Middle Intermediate": "LeftHandMiddle2",
+      "Left Middle Distal": "LeftHandMiddle3",
+      "Left Ring Proximal": "LeftHandRing1",
+      "Left Ring Intermediate": "LeftHandRing2",
+      "Left Ring Distal": "LeftHandRing3",
+      "Left Little Proximal": "LeftHandPinky1",
+      "Left Little Intermediate": "LeftHandPinky2",
+      "Left Little Distal": "LeftHandPinky3",
+      "Right Thumb Proximal": "RightHandThumb1",
+      "Right Thumb Intermediate": "RightHandThumb2",
+      "Right Thumb Distal": "RightHandThumb3",
+      "Right Index Proximal": "RightHandIndex1",
+      "Right Index Intermediate": "RightHandIndex2",
+      "Right Index Distal": "RightHandIndex3",
+      "Right Middle Proximal": "RightHandMiddle1",
+      "Right Middle Intermediate": "RightHandMiddle2",
+      "Right Middle Distal": "RightHandMiddle3",
+      "Right Ring Proximal": "RightHandRing1",
+      "Right Ring Intermediate": "RightHandRing2",
+      "Right Ring Distal": "RightHandRing3",
+      "Right Little Proximal": "RightHandPinky1",
+      "Right Little Intermediate": "RightHandPinky2",
+      "Right Little Distal": "RightHandPinky3"
+    },
+    "unity": {
+      "animation_type": "Humanoid",
+      "root_node": "root",
+      "note": "Mixamo's bone names, so Unity maps the Humanoid avatar from them and Humanoid clips (Mixamo, Synty) retarget onto it. The rest pose is a T-pose."
+    }
+  },
+  "clips": [
+    {
+      "name": "Idle",
+      "frames": 90,
+      "fps": 30,
+      "seconds": 3.0,
+      "loop": true,
+      "hold": false,
+      "root_motion": false,
+      "events": []
+    },
+    {
+      "name": "Walk",
+      "frames": 32,
+      "fps": 30,
+      "seconds": 1.067,
+      "loop": true,
+      "hold": false,
+      "root_motion": false,
+      "events": []
+    },
+    {
+      "name": "Run",
+      "frames": 20,
+      "fps": 30,
+      "seconds": 0.667,
+      "loop": true,
+      "hold": false,
+      "root_motion": false,
+      "events": []
+    },
+    {
+      "name": "Attack",
+      "frames": 24,
+      "fps": 30,
+      "seconds": 0.8,
+      "loop": false,
+      "hold": false,
+      "root_motion": false,
+      "events": [
+        {
+          "name": "hit",
+          "frame": 13
+        }
+      ]
+    },
+    {
+      "name": "Hit",
+      "frames": 15,
+      "fps": 30,
+      "seconds": 0.5,
+      "loop": false,
+      "hold": false,
+      "root_motion": false,
+      "events": []
+    },
+    {
+      "name": "Death",
+      "frames": 45,
+      "fps": 30,
+      "seconds": 1.5,
+      "loop": false,
+      "hold": true,
+      "root_motion": false,
+      "events": [
+        {
+          "name": "land",
+          "frame": 28
+        }
+      ]
+    }
+  ],
+  "licences": [
+    {
+      "id": "birefnet",
+      "name": "BiRefNet (ZhengPeng7), Comfy-Org repackage",
+      "licence": "MIT",
+      "url": "https://huggingface.co/Comfy-Org/BiRefNet",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "blender",
+      "name": "Blender",
+      "licence": "GPL-2.0-or-later",
+      "url": "https://www.blender.org/about/license/",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "dinov3",
+      "name": "DINOv3 image encoder (dino_v3_L_naf_fp32, used by TRELLIS.2 and Pixal3D)",
+      "licence": "DINOv3 License",
+      "url": "https://ai.meta.com/resources/models-and-libraries/dinov3-license/",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-edit-angles",
+      "name": "Qwen-Image-Edit-2511 Multiple-Angles LoRA (fal)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-edit-lightning",
+      "name": "Qwen-Image-Edit-2511 Lightning 4-step LoRA (lightx2v)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-image-edit-2511",
+      "name": "Qwen-Image-Edit 2511 (fp8mixed), Comfy-Org repackage",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-image-vae",
+      "name": "Qwen-Image VAE",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen2.5-vl-7b",
+      "name": "Qwen2.5-VL-7B text encoder (Qwen-Image-Edit)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "trellis2",
+      "name": "TRELLIS.2-4B, Comfy-Org repackage (native ComfyUI nodes)",
+      "licence": "MIT",
+      "url": "https://huggingface.co/Comfy-Org/TRELLIS.2",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "user-image",
+      "name": "An image the user supplied (drawing, photo, paint-over or reference)",
+      "licence": "the user's own, or used with the rights holder's permission",
+      "url": "docs/licence-limits.md",
+      "checked": "2026-11-20"
+    }
+  ],
+  "usable_in": {
+    "noncommercial": "yes",
+    "commercial": "yes",
+    "mods": "yes",
+    "packs": "yes",
+    "summary": "Usable in: noncommercial, commercial, mods, packs. Made with AI models; raw AI output may not be protected by copyright."
+  },
+  "ai": {
+    "level": "generated",
+    "concept": "AI-generated image (Z-Image Turbo), edited with Qwen-Image-Edit where recorded",
+    "mesh": "AI-generated from the concept (TRELLIS.2), then reduced in Blender by script",
+    "texture": "baked in Blender from the AI-generated mesh's colours (TRELLIS.2), matched to the concept's colours and painted over (crevices, worn edges) by script",
+    "rig": "template skeleton fitted to the mesh by script, weights by Blender's heat solver",
+    "animation": "procedural: the forge's parametric generators, baked in Blender; no AI motion model",
+    "disclosure": "3D model generated with AI (TRELLIS.2 from a Z-Image Turbo concept), reduced and painted by AssetForge scripts in Blender, rigged and animated by script, with human review at each stage."
+  },
+  "realistic_depiction": false,
+  "human_work": [
+    {
+      "at": "2026-11-23T00:57:20Z",
+      "stage": "01_concept",
+      "version": "v001",
+      "decision": "approve",
+      "pick": "A",
+      "notes": "",
+      "by": "user"
+    },
+    {
+      "at": "2026-11-23T00:59:37Z",
+      "stage": "01_concept",
+      "version": "v002",
+      "decision": "pick",
+      "pick": "A",
+      "notes": "",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:03Z",
+      "stage": "02_model",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "Body, horns, shoulder plates and claws came through. The concept's flames were not modelled, which suits: the game adds them as particles.",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:08Z",
+      "stage": "02_model",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "taken to 03_gameready v001",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:21Z",
+      "stage": "03_gameready",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "LOD0 keeps horns, shoulder plates and claws at 11984 triangles; all three LODs hold the silhouette.",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:59Z",
+      "stage": "03_gameready",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "taken to 04_paint v001",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:04:10Z",
+      "stage": "04_paint",
+      "version": "v001",
+      "decision": "pick",
+      "pick": "C",
+      "notes": "",
+      "by": "user"
+    },
+    {
+      "at": "2026-11-23T01:07:52Z",
+      "stage": "05_rig",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "Arms down, crouch and stride bend cleanly. An arm raised overhead drags its shoulder plate up with it, which reads as rock and is acceptable.",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:07:57Z",
+      "stage": "05_rig",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "taken to 06_anim v001",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:18:24Z",
+      "stage": "06_anim",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "",
+      "by": "user"
+    }
+  ],
+  "brief": {
+    "name": "Sinmara",
+    "prompt": "A hulking fire brute of cracked, charred black rock, with shoulders three times as wide as its waist, a small head with two swept-back horns sunk low between the shoulders, thick arms hanging to its knees and ending in three long black claws, short heavy legs, deep cracks over its whole body glowing bright blue-white as if molten inside, and jagged blue flames rising from its shoulders and the top of its head, a far bigger and more menacing version of the fire imp in the reference.",
+    "class": "humanoid",
+    "style": "valheim",
+    "height_m": 1.6,
+    "budget_triangles": 12000,
+    "profile": "mod",
+    "project": "C:\\Users\\carls\\Documents\\projects\\Valheim_Stuff\\Eternal_Hall",
+    "project_name": "Eternal_Hall",
+    "engine": "valheim",
+    "engine_version": "6000.0.75f1",
+    "render_pipeline": "",
+    "signoff": {
+      "concept": "user",
+      "model": "agent",
+      "gameready": "agent",
+      "paint": "user",
+      "rig": "agent",
+      "animate": "user",
+      "package": "user"
+    },
+    "profile_source": "detected",
+    "requested_by": "agent:claude-eternal-hall-bosses",
+    "tags": [
+      "eternal-hall",
+      "world-boss",
+      "ragnarok"
+    ],
+    "gdres_request": null,
+    "reference": {
+      "image": "uploads/20261123-005158-428509-surtling_reference.png",
+      "for": "subject"
+    }
+  },
+  "forge": {
+    "workspace": "C:\\Users\\carls\\Documents\\projects\\AssetForge\\work\\sinmara",
+    "stages": {
+      "01_concept": "v002",
+      "02_model": "v001",
+      "03_gameready": "v001",
+      "04_paint": "v001",
+      "05_rig": "v001",
+      "06_anim": "v001"
+    },
+    "paint_version": "v001"
+  }
+}

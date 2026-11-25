@@ -24,10 +24,10 @@ namespace AesirLineage.visuals {
     }
 
     /// <summary>
-    /// Each deity's effects, built from the Piloto Studio pack in the Unity project
-    /// (<c>Assets/AesirLineage/Editor/VfxBuilder.cs</c>) and loaded from the bundle as
-    /// <c>al_vfx_&lt;deity&gt;_&lt;role&gt;</c>. A missing prefab falls back to a burst drawn in the deity's
-    /// colours, so a server's custom maps or a stale bundle cost looks, never errors.
+    /// Each deity's effects, built in the Unity project (<c>Assets/AesirLineage/Editor/VfxBuilder.cs</c>)
+    /// from Piloto Studio prefabs or from a few particle layers of the deity's own (<c>VfxDesigns.cs</c>),
+    /// and loaded from the bundle as <c>al_vfx_&lt;deity&gt;_&lt;role&gt;</c>. A missing prefab falls back to a
+    /// burst drawn in the deity's colours, so a server's custom maps or a stale bundle cost looks, never errors.
     /// </summary>
     internal static class DeityVfx {
         private const string RpcName = "AL_Vfx";
@@ -88,8 +88,8 @@ namespace AesirLineage.visuals {
             return instance;
         }
 
-        /// <summary>Plays a one-shot here only.</summary>
-        internal static void Play(Deity deity, VfxRole role, Vector3 position, float scale = 1f) {
+        /// <summary>Plays a one-shot here only. Returns the effect, for a caller to turn, or null for the drawn fallback.</summary>
+        internal static GameObject Play(Deity deity, VfxRole role, Vector3 position, float scale = 1f) {
             bool large = role == VfxRole.Burst || role == VfxRole.Kill || role == VfxRole.Dome;
             // Only some deities have a harvest or level-up effect of their own; the rest use their general one.
             if (prefabs.TryGetValue((deity, role), out GameObject prefab)
@@ -97,9 +97,10 @@ namespace AesirLineage.visuals {
                 GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
                 if (scale != 1f) { instance.transform.localScale *= scale; }
                 Object.Destroy(instance, lifetimes[prefab]);
-                return;
+                return instance;
             }
             FallbackBurst(Glow(deity), Primary(deity), position, large ? scale * 2f : scale);
+            return null;
         }
 
         /// <summary>Plays a one-shot for every player nearby, this one included.</summary>

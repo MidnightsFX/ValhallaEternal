@@ -10,6 +10,15 @@
       },
       "hash": "3b28d4cea5911db575bbb5ab07f3241dfd024cf3"
     },
+    "com.assetforge.importer": {
+      "version": "file:C:/Users/carls/Documents/projects/AssetForge/unity/com.assetforge.importer",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
+      }
+    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,

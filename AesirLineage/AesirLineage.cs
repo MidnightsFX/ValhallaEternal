@@ -22,7 +22,7 @@ namespace AesirLineage
     // Loads Auga first, so the Auga API stub (vendor/Auga) finds it. Auga also restyles the UI of mods that list it,
     // which Awake turns off.
     [BepInDependency(StarMapEntryPoints.AugaGuid, BepInDependency.DependencyFlags.SoftDependency)]
-    // Eternal Hall's Ragnarok cycle, which Ascension brings closer (vendor/EternalHall), and whose heralds give star points.
+    // Eternal Hall's islands (vendor/EternalHall): the shrines can give one of your own, and Ragnarok leaves them be.
     [BepInDependency(EternalHallGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor)]
     internal class AesirLineage : BaseUnityPlugin
@@ -61,6 +61,9 @@ namespace AesirLineage
             StarMaps.Setup();
             DataObjects.LoadAssets();
             souls.SoulOfPower.RegisterPrefab();
+            ragnarok.RagnarokHeralds.Init();
+            ragnarok.RagnarokWorldBosses.Init();
+            ragnarok.RagnarokRing.RegisterStatusEffect();
             //PlayerLevelDisplays.LoadAssets();
             //Locations.AddLocationsToWorldGen();
             Commands.AddCommands();
@@ -76,6 +79,7 @@ namespace AesirLineage
         {
             StarMapWindow.UpdateHotkey();
             powers.PowerTicker.Update();
+            ragnarok.RagnarokRing.Update();
         }
 
         private void FixedUpdate()

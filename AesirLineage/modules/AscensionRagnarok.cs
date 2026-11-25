@@ -1,15 +1,14 @@
-using EternalHall;
 using HarmonyLib;
 using System.Collections.Generic;
-using UnityEngine;
 using AesirLineage.common;
+using AesirLineage.ragnarok;
 using static AesirLineage.common.Deities;
 
 namespace AesirLineage.modules {
     /// <summary>
-    /// Each Ascension brings Eternal Hall's Ragnarok closer, by <c>AscensionRagnarokDays</c>. A jump that would
-    /// pass the end of the countdown leaves half a day instead, so nobody is caught without warning, and a
-    /// countdown already closer than that stays where it is (Eternal Hall's <see cref="RagnarokAPI"/> does both).
+    /// Each Ascension brings Ragnarok closer, by <c>AscensionRagnarokDays</c>. A jump that would pass the end of the
+    /// countdown leaves half a day instead, so nobody is caught without warning, and a countdown already closer than
+    /// that stays where it is (<see cref="RagnarokServer.Advance"/> does both).
     /// </summary>
     /// <remarks>
     /// Ascension happens on the player's own machine, and only the server can move the countdown. The player's
@@ -35,8 +34,7 @@ namespace AesirLineage.modules {
         }
 
         /// <summary>Whether the next Ascension would bring Ragnarok closer, as this machine sees it.</summary>
-        internal static bool WouldAdvance => ValConfig.AscensionAdvancesRagnarok.Value && ValConfig.AscensionRagnarokDays.Value > 0f
-            && RagnarokAPI.IsAvailable && RagnarokAPI.IsCountingDown;
+        internal static bool WouldAdvance => ValConfig.AscensionAdvancesRagnarok.Value && ValConfig.AscensionRagnarokDays.Value > 0f && Ragnarok.CountingDown;
 
         /// <summary>On the ascending player's machine, once the Ascension is done.</summary>
         internal static void Ascended(Player player, Deity deity, int level) {
@@ -48,16 +46,10 @@ namespace AesirLineage.modules {
         // On the server.
         private static void OnAscended(long sender, long playerId, string playerName, string deity, int level) {
             if (ZNet.instance == null || !ZNet.instance.IsServer()) { return; }
-            if (!ValConfig.AscensionAdvancesRagnarok.Value || ValConfig.AscensionRagnarokDays.Value <= 0f || !RagnarokAPI.IsAvailable) { return; }
+            if (!ValConfig.AscensionAdvancesRagnarok.Value || ValConfig.AscensionRagnarokDays.Value <= 0f) { return; }
             if (!counted.Add($"{playerId}:{deity}:{level}")) { return; }
-            double before = RagnarokAPI.DaysLeft;
             string reason = $"Ascension of {playerName} with {deity} to level {level}";
-            if (!RagnarokAPI.AdvanceCountdown(ValConfig.AscensionRagnarokDays.Value, MinDaysLeft, reason)) {
-                Logger.LogDebug($"{reason} did not move Ragnarok: its cycle is off, under way, or already closer than {MinDaysLeft} days.");
-                return;
-            }
-            float days = (float)(before - RagnarokAPI.DaysLeft);
-            Logger.LogInfo($"{reason} brought Ragnarok {days:0.##} in-game days closer.");
+            if (!RagnarokServer.Advance(ValConfig.AscensionRagnarokDays.Value, MinDaysLeft, reason, out float days)) { return; }
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, NearerRpc, playerName, days);
         }
 

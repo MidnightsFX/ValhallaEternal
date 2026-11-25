@@ -1,5 +1,4 @@
 using BepInEx.Configuration;
-using EternalHall;
 using HarmonyLib;
 using Jotunn.Managers;
 using System;
@@ -249,8 +248,7 @@ namespace AesirLineage.ui {
             Paragraph(page, "$al_setup_deeds_intro", 48f);
             Source(page, "$al_setup_souls", "$al_setup_souls_hint", ValConfig.PointsPerSoul, "$al_setup_points", 10);
             Source(page, "$al_setup_minibosses", "$al_setup_minibosses_hint", ValConfig.MinibossPoints, "$al_setup_points", 10);
-            Source(page, "$al_setup_heralds", RagnarokAPI.IsAvailable ? "$al_setup_heralds_hint" : "$al_setup_heralds_hint_missing",
-                ValConfig.RagnarokHeraldPoints, "$al_setup_points", 10);
+            Source(page, "$al_setup_heralds", "$al_setup_heralds_hint", ValConfig.RagnarokHeraldPoints, "$al_setup_points", 10);
             Source(page, "$al_setup_quests", "$al_setup_quests_hint", ValConfig.QuestPoints, "$al_setup_points", 10, under => {
                 under.Add(SliderRow(page, "$al_setup_quest_days", ValConfig.QuestCooldownDays, 0, 30));
             });
@@ -282,6 +280,9 @@ namespace AesirLineage.ui {
             Hint(page, "$al_setup_ascension_keys_hint");
             Divider(page);
 
+            ToggleRow(page, "$al_setup_ragnarok_cycle", ValConfig.RagnarokEnabled);
+            Hint(page, "$al_setup_ragnarok_cycle_hint", Indent, 48f);
+
             bool on = Get(ValConfig.AscensionAdvancesRagnarok);
             List<GameObject> under = new List<GameObject>();
             ToggleRow(page, "$al_setup_ragnarok", on, value => {
@@ -289,7 +290,7 @@ namespace AesirLineage.ui {
                 foreach (GameObject row in under) { row.SetActive(value); }
                 Layout(page);
             });
-            Hint(page, RagnarokAPI.IsAvailable ? "$al_setup_ragnarok_hint" : "$al_setup_ragnarok_hint_missing", Indent, 48f);
+            Hint(page, "$al_setup_ragnarok_hint", Indent, 48f);
             under.Add(SliderRow(page, "$al_setup_ragnarok_days", ValConfig.AscensionRagnarokDays, 0.5f, 10f));
             foreach (GameObject row in under) { row.SetActive(on); }
         }

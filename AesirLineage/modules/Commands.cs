@@ -28,6 +28,7 @@ namespace AesirLineage.modules
             CommandManager.Instance.AddConsoleCommand(new ShowDeeds());
             CommandManager.Instance.AddConsoleCommand(new ForceDream());
             CommandManager.Instance.AddConsoleCommand(new ShowLocks());
+            CommandManager.Instance.AddConsoleCommand(new ragnarok.RagnarokCommand());
         }
 
         // Names players might type for a deity, beyond the enum names.

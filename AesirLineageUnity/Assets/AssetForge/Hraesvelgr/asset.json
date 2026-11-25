@@ -1,0 +1,285 @@
+{
+  "name": "Hraesvelgr",
+  "id": "hraesvelgr",
+  "publisher": "AssetForge",
+  "created": "2026-11-23T01:39:42Z",
+  "description": "A huge menacing bat seen from the front with its wings spread wide and flat, each wing twice as long as its body, the wing membranes torn and ragged between long bony fingers ending in hooked claws, a lean body with a row of bone spikes down its back, a skull-like snout with long fangs and tall pointed ears, short clawed hind legs hanging below, storm-grey leathery hide with pale ice-blue glowing eyes.",
+  "class": "static_prop",
+  "style": "valheim",
+  "tags": [
+    "eternal-hall",
+    "forge",
+    "ragnarok",
+    "static prop",
+    "world-boss"
+  ],
+  "height_m": 0.9,
+  "triangles": {
+    "LOD0": 7970,
+    "LOD1": 3978,
+    "LOD2": 1988,
+    "Collider": 96
+  },
+  "variants": [
+    {
+      "name": "base",
+      "fbx": "Hraesvelgr.fbx",
+      "glb": "Hraesvelgr.glb",
+      "material": "M_Hraesvelgr",
+      "base_color": "Textures/Hraesvelgr_BaseColor.png"
+    }
+  ],
+  "files": {
+    "blend": "Hraesvelgr.blend",
+    "preview": "Hraesvelgr_preview.png",
+    "normal": "Textures/Hraesvelgr_Normal.png"
+  },
+  "material": {
+    "kind": "texture",
+    "name": "M_Hraesvelgr",
+    "normal": "Textures/Hraesvelgr_Normal.png",
+    "filter": "bilinear",
+    "smoothness": 0.15,
+    "metallic": 0.0,
+    "texture_size": 1024,
+    "note": "One material per variant: its own base colour texture and the shared normal map (tangent space, OpenGL +Y)."
+  },
+  "lods": {
+    "LOD0": "full",
+    "LOD1": "about 50%",
+    "LOD2": "about 25%",
+    "Collider": "convex hull, for a mesh collider; not for rendering"
+  },
+  "engines": [
+    "unity",
+    "godot",
+    "unreal"
+  ],
+  "rig": null,
+  "clips": [],
+  "licences": [
+    {
+      "id": "birefnet",
+      "name": "BiRefNet (ZhengPeng7), Comfy-Org repackage",
+      "licence": "MIT",
+      "url": "https://huggingface.co/Comfy-Org/BiRefNet",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "blender",
+      "name": "Blender",
+      "licence": "GPL-2.0-or-later",
+      "url": "https://www.blender.org/about/license/",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "dinov3",
+      "name": "DINOv3 image encoder (dino_v3_L_naf_fp32, used by TRELLIS.2 and Pixal3D)",
+      "licence": "DINOv3 License",
+      "url": "https://ai.meta.com/resources/models-and-libraries/dinov3-license/",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "flux-ae",
+      "name": "FLUX.1 [schnell] autoencoder (ae.safetensors, used by Z-Image Turbo)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/black-forest-labs/FLUX.1-schnell",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-edit-angles",
+      "name": "Qwen-Image-Edit-2511 Multiple-Angles LoRA (fal)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-edit-lightning",
+      "name": "Qwen-Image-Edit-2511 Lightning 4-step LoRA (lightx2v)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightning",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-image-edit-2511",
+      "name": "Qwen-Image-Edit 2511 (fp8mixed), Comfy-Org repackage",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Comfy-Org/Qwen-Image-Edit_ComfyUI",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen-image-vae",
+      "name": "Qwen-Image VAE",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen2.5-vl-7b",
+      "name": "Qwen2.5-VL-7B text encoder (Qwen-Image-Edit)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "qwen3-4b",
+      "name": "Qwen3-4B text encoder (Z-Image Turbo)",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen3-4B",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "trellis2",
+      "name": "TRELLIS.2-4B, Comfy-Org repackage (native ComfyUI nodes)",
+      "licence": "MIT",
+      "url": "https://huggingface.co/Comfy-Org/TRELLIS.2",
+      "checked": "2026-11-19"
+    },
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "licence": "Apache-2.0",
+      "url": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "checked": "2026-11-19"
+    }
+  ],
+  "usable_in": {
+    "noncommercial": "yes",
+    "commercial": "yes",
+    "mods": "yes",
+    "packs": "yes",
+    "summary": "Usable in: noncommercial, commercial, mods, packs. Made with AI models; raw AI output may not be protected by copyright."
+  },
+  "ai": {
+    "level": "generated",
+    "concept": "AI-generated image (Z-Image Turbo), edited with Qwen-Image-Edit where recorded",
+    "mesh": "AI-generated from the concept (TRELLIS.2), then reduced in Blender by script",
+    "texture": "baked in Blender from the AI-generated mesh's colours (TRELLIS.2), matched to the concept's colours and painted over (crevices, worn edges) by script",
+    "disclosure": "3D model generated with AI (TRELLIS.2 from a Z-Image Turbo concept), reduced and painted by AssetForge scripts in Blender, with human review at each stage."
+  },
+  "realistic_depiction": false,
+  "human_work": [
+    {
+      "at": "2026-11-23T00:54:14Z",
+      "stage": "01_concept",
+      "version": "v001",
+      "decision": "revise",
+      "pick": "B",
+      "notes": "make the hide and the wing membranes a cold storm grey instead of brown, with the bone spikes and skull snout staying pale bone and the eyes glowing pale ice blue",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T00:54:21Z",
+      "stage": "01_concept",
+      "version": "v001",
+      "decision": "revise",
+      "pick": "C",
+      "notes": "make the hide and the wing membranes a cold storm grey instead of brown, with the bone spikes and skull snout staying pale bone and the eyes glowing pale ice blue",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T00:56:33Z",
+      "stage": "01_concept",
+      "version": "v003",
+      "decision": "approve",
+      "pick": "A",
+      "notes": "",
+      "by": "user"
+    },
+    {
+      "at": "2026-11-23T00:59:58Z",
+      "stage": "01_concept",
+      "version": "v004",
+      "decision": "pick",
+      "pick": "A",
+      "notes": "",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:08Z",
+      "stage": "02_model",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "Both wings came through spread and whole, with the finger bones, spikes, snout and hind legs; good for a wing rig in Blender.",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:13Z",
+      "stage": "02_model",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "taken to 03_gameready v001",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:00:26Z",
+      "stage": "03_gameready",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "Wings, spikes and legs hold at 7970 triangles; LODs keep the silhouette. The collider is not used: the creature keeps its capsule.",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:01:24Z",
+      "stage": "03_gameready",
+      "version": "v001",
+      "decision": "approve",
+      "pick": null,
+      "notes": "taken to 04_paint v001",
+      "by": "agent:claude-eternal-hall-bosses"
+    },
+    {
+      "at": "2026-11-23T01:03:50Z",
+      "stage": "04_paint",
+      "version": "v001",
+      "decision": "pick",
+      "pick": "D",
+      "notes": "",
+      "by": "user"
+    }
+  ],
+  "brief": {
+    "name": "Hraesvelgr",
+    "prompt": "A huge menacing bat seen from the front with its wings spread wide and flat, each wing twice as long as its body, the wing membranes torn and ragged between long bony fingers ending in hooked claws, a lean body with a row of bone spikes down its back, a skull-like snout with long fangs and tall pointed ears, short clawed hind legs hanging below, storm-grey leathery hide with pale ice-blue glowing eyes.",
+    "class": "static_prop",
+    "style": "valheim",
+    "height_m": 0.9,
+    "budget_triangles": 8000,
+    "profile": "mod",
+    "project": "C:\\Users\\carls\\Documents\\projects\\Valheim_Stuff\\Eternal_Hall",
+    "project_name": "Eternal_Hall",
+    "engine": "valheim",
+    "engine_version": "6000.0.75f1",
+    "render_pipeline": "",
+    "signoff": {
+      "concept": "user",
+      "model": "agent",
+      "gameready": "agent",
+      "paint": "user",
+      "rig": "agent",
+      "animate": "user",
+      "package": "user"
+    },
+    "profile_source": "detected",
+    "requested_by": "agent:claude-eternal-hall-bosses",
+    "tags": [
+      "eternal-hall",
+      "world-boss",
+      "ragnarok"
+    ],
+    "gdres_request": null
+  },
+  "forge": {
+    "workspace": "C:\\Users\\carls\\Documents\\projects\\AssetForge\\work\\hraesvelgr",
+    "stages": {
+      "01_concept": "v004",
+      "02_model": "v001",
+      "03_gameready": "v001",
+      "04_paint": "v001"
+    },
+    "paint_version": "v001"
+  }
+}

@@ -11,7 +11,7 @@ using static AesirLineage.common.Deities;
 namespace AesirLineage.modules {
     /// <summary>
     /// What players do in the world that the deities notice: a boss's death (for shrine quests), the first
-    /// kill of each miniboss, every kill of an Eternal Hall herald of Ragnarok, and by luck, starred kills,
+    /// kill of each miniboss, every kill of a herald of Ragnarok, and by luck, starred kills,
     /// crafts and harvests. Lucky points are capped per deity per run by <c>LuckyPointsPerDeity</c>.
     /// </summary>
     /// <remarks>
@@ -136,7 +136,7 @@ namespace AesirLineage.modules {
             }
         }
 
-        // A herald of Ragnarok (Eternal Hall). There is a new one each time, so every kill counts.
+        // A herald of Ragnarok. There is a new one each time, so every kill counts.
         private static void HeraldKilled(Player player, string prefab, Deity deity) {
             int points = ValConfig.RagnarokHeraldPoints.Value;
             if (points <= 0) { return; }
